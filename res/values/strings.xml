@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">Hello World, GuardtheBridge!</string>
-    <string name="app_name">GuardtheBridge</string>
+	<string name="minvers">8</string>
+	<string name="targetvers">8</string>
+    <string name="directions">Please Follow the Directions Below.</string>
+    <string name="netidtext">Please input your NetID:</string>
+    <string name="authtext">Please input tonight\'s code:</string>
+    <string name="carnum">Please CLICK to select your car.</string>
+    <string name="login">Login</string>
+    <string name="app_name">Guard the Bridge</string>
+    <string name="no_rides">You have no rides. Just cruise for now.</string>
+    <string name="dispatch">DISPATCH</string>
+    <string name="emergency">EMERGENCY</string>
 </resources>
