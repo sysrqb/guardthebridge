@@ -33,6 +33,12 @@
   		android:layout_weight="1"
   		android:text="@string/carnum"
   	/>
+  	<TextView
+  		android:id="@+id/showcarnum"
+  		android:layout_width="wrap_content"
+  		android:layout_weight="1"
+  		android:text="@string/showcarnum"
+  	/>
   	<Button android:id="@+id/login"
   		android:text="@string/login"
   		android:layout_height="wrap_content"

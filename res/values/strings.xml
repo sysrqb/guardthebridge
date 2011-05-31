@@ -11,4 +11,6 @@
     <string name="no_rides">You have no rides. Just cruise for now.</string>
     <string name="dispatch">DISPATCH</string>
     <string name="emergency">EMERGENCY</string>
+    <string name="showcarnum"></string>
+    <string name="cars"></string>
 </resources>
