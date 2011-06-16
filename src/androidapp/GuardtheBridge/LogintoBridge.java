@@ -1,6 +1,14 @@
 package androidapp.GuardtheBridge;
 
-import android.app.Activity;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.net.UnknownHostException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -8,7 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-public class LogintoBridge extends Activity {
+public class LogintoBridge extends ListActivity {
 	private EditText mNetIdText;
     private EditText mAuthText;
     private String mCarNum;
@@ -34,7 +42,10 @@ public class LogintoBridge extends Activity {
         loginButton.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-            	sendAuthCheck(mNetIdText, mAuthText, mCarNum);
+            	int retval;
+            	if((retval = sendAuthCheck(mNetIdText, mAuthText, mCarNum)) != 0){
+            		dealwitherrors(retval);
+            	}
                 setResult(RESULT_OK);
                 finish();
             }
@@ -44,11 +55,64 @@ public class LogintoBridge extends Activity {
         carnumtext.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-            	Intent i = new Intent(this, CarNumList.class);
+            	Intent i = new Intent(new LogintoBridge(), CarNumList.class);
             	startActivityForResult(i, CarNum_SELECT);
             }
 
         });
+	}
+	
+	public int sendAuthCheck(EditText netid, EditText authcode, String carnum){
+		byte[] addr = "192.168.2.25".getBytes();
+		InetAddress server = null;
+		Socket send;
+		OutputStream out;
+		MessageDigest hash = null;
+		byte[] hashstring;
+		String stringcat;
+		try {
+			server.getByAddress(addr);
+		} catch (UnknownHostException e) {
+			return -1;
+		}
+		try {
+			send = new Socket(server, 4680);
+		} catch (IOException e) {
+			return -2;
+		}
+		try {
+			out = send.getOutputStream();
+		} catch (IOException e) {
+			return -3;
+		}
+		try {
+			hash = MessageDigest.getInstance("SHA-256");
+		} catch (NoSuchAlgorithmException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		stringcat = netid.getText().toString() + authcode.getText().toString() + carnum;
+		hashstring = hash.digest(stringcat.getBytes());
+		try {
+			out.write(hashstring);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
+	}
+	
+	public void dealwitherrors(int retval){
+		switch (retval){
+		case -1:
+			break;
+		case -2:
+			break;
+		case -3:
+			break;
+		default:
+			break;
+		}
 	}
 
 }

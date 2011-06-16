@@ -1,25 +1,28 @@
 package androidapp.GuardtheBridge;
 
-import android.app.Activity;
+import android.app.ListActivity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 
-public class GuardtheBridge extends Activity {
+public class GuardtheBridge extends ListActivity {
     /** Called when the activity is first created. */
+	private static final int CarNum_SELECT=0;
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activelist);
-        
-        
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
-        		this, R.array.carnums, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        Intent i = new Intent(this, LogintoBridge.class);
+    	startActivityForResult(i, CarNum_SELECT);
     }
     
     public boolean onOptionItemSelected(MenuItem menu){
 		return super.onOptionsItemSelected(menu);
+    }
+    
+    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
     }
 }
