@@ -12,6 +12,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".LogintoBridge"/>
+        <activity android:name=".CarNumList"/>
         
 
     <uses-sdk android:minSdkVersion="@string/minvers" android:targetSdkVersion="@string/targetvers"></uses-sdk></application>

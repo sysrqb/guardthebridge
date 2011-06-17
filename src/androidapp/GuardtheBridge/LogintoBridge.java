@@ -22,11 +22,13 @@ public class LogintoBridge extends ListActivity {
     private String mCarNum;
     private GtBDbAdapter mDbHelper;
     private static final int CarNum_SELECT=0;
+    private LogintoBridge self;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
+		this.self = this;
 		mDbHelper = new GtBDbAdapter(this);
         mDbHelper.open();
 
@@ -55,7 +57,7 @@ public class LogintoBridge extends ListActivity {
         carnumtext.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
-            	Intent i = new Intent(new LogintoBridge(), CarNumList.class);
+            	Intent i = new Intent(self, CarNumList.class);
             	startActivityForResult(i, CarNum_SELECT);
             }
 
