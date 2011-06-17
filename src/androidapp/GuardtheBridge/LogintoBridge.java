@@ -1,8 +1,8 @@
 package androidapp.GuardtheBridge;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.MessageDigest;
@@ -69,57 +69,61 @@ public class LogintoBridge extends ListActivity {
 	            	if((retval = sendAuthCheck(mNetIdText, mAuthText, mCarNum)) != 0){
 	            		dealwitherrors(retval);
 	            	}
-	                setResult(RESULT_OK);
-	                finish();
+	            	else{
+		                setResult(RESULT_OK);
+		                finish();
+	            	}
 	            }
 
 	        });
-	        System.out.println("New Layout");
-	        int car = mDbHelper.getCar();
-	        mCarNum = Integer.toString(car);
+	        mCarNum = Integer.toString(mDbHelper.getCar());
 	        System.out.println("Ret Car Number: " + mCarNum);
 	        TextView showcarnum = (TextView)findViewById(R.id.showcarnum);
-	        showcarnum.setText(mCarNum);
+	        showcarnum.setText("You Selected Car Number: " + mCarNum);
+	        
+	        carnumtext.setOnClickListener(new View.OnClickListener() {
+
+	            public void onClick(View view) {
+	            	Intent i = new Intent(self, CarNumList.class);
+	            	startActivityForResult(i, CarNum_SELECT);
+	            }
+
+	        });
 	    }
 	
 	public int sendAuthCheck(EditText netid, EditText authcode, String carnum){
-		byte[] addr = "192.168.2.25".getBytes();
-		InetAddress server = null;
 		Socket send;
-		OutputStream out;
+		OutputStream out = null;
+		ObjectInputStream in;
+		String myserver = "empathos.dyndns.org";
 		MessageDigest hash = null;
 		byte[] hashstring;
 		String stringcat;
 		try {
-			server.getByAddress(addr);
-		} catch (UnknownHostException e) {
-			return -1;
-		}
-		try {
-			send = new Socket(server, 4680);
-		} catch (IOException e) {
-			return -2;
-		}
-		try {
+			send = new Socket(myserver, 4680);
 			out = send.getOutputStream();
-		} catch (IOException e) {
-			return -3;
-		}
-		try {
 			hash = MessageDigest.getInstance("SHA-256");
+			stringcat = netid.getText().toString() + authcode.getText().toString() + carnum;
+			hashstring = hash.digest(stringcat.getBytes());
+			out.write(hashstring);
+			in = new ObjectInputStream(send.getInputStream());
+			String returncode = (String) in.readObject();
+			return Integer.getInteger(returncode); //CarNumList uses parseInt, not sure if this makes a difference
+		} catch (UnknownHostException e1) {
+			System.out.println("UnknownHostException");
+			return -1;
+		}catch (IOException e) {
+			System.out.println("IOException");
+			return -2;
 		} catch (NoSuchAlgorithmException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		stringcat = netid.getText().toString() + authcode.getText().toString() + carnum;
-		hashstring = hash.digest(stringcat.getBytes());
-		try {
-			out.write(hashstring);
-		} catch (IOException e) {
+			System.out.println("NoSuchAlgo");
+			return -3;
+		}catch (ClassNotFoundException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.println("ClassNotFoundException: String class not found");
+			return -4;
 		}
-		return 0;
 	}
 	
 	public void dealwitherrors(int retval){
@@ -129,6 +133,8 @@ public class LogintoBridge extends ListActivity {
 		case -2:
 			break;
 		case -3:
+			break;
+		case -4:
 			break;
 		default:
 			break;

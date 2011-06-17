@@ -16,8 +16,8 @@ public final class R {
     public static final class id {
         public static final int authkey=0x7f050007;
         public static final int authtext=0x7f050006;
-        public static final int carnum=0x7f050002;
-        public static final int directions=0x7f050003;
+        public static final int carnum=0x7f050003;
+        public static final int directions=0x7f050002;
         public static final int dispatch=0x7f050000;
         public static final int emergency=0x7f050001;
         public static final int login=0x7f050009;
