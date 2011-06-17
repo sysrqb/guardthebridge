@@ -1,7 +1,7 @@
 package androidapp.GuardtheBridge;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -58,6 +58,8 @@ public class LogintoBridge extends ListActivity {
 	        TextView carnumtext = (TextView) findViewById(R.id.carnum);
 	        carnumtext.setClickable(true);//Sets the text to be clickable
 	        
+	        mAuthText = (EditText) findViewById(R.id.authkey);
+	        mNetIdText = (EditText) findViewById(R.id.netid);
 	        
 	        Button loginButton = (Button) findViewById(R.id.login);
 	        
@@ -94,21 +96,32 @@ public class LogintoBridge extends ListActivity {
 	public int sendAuthCheck(EditText netid, EditText authcode, String carnum){
 		Socket send;
 		OutputStream out = null;
-		ObjectInputStream in;
+		InputStream in;
 		String myserver = "empathos.dyndns.org";
+		String key = "AUTH";
 		MessageDigest hash = null;
 		byte[] hashstring;
 		String stringcat;
+		System.out.println("Nightly Key: " + authcode.getText().toString());
+		System.out.println("NetID: " + netid.getText().toString());
+		System.out.println("Car Number: " + carnum);
 		try {
 			send = new Socket(myserver, 4680);
+			
 			out = send.getOutputStream();
+			out.write(key.getBytes());
+			
 			hash = MessageDigest.getInstance("SHA-256");
 			stringcat = netid.getText().toString() + authcode.getText().toString() + carnum;
 			hashstring = hash.digest(stringcat.getBytes());
+			System.out.println("Hash: " + hashstring.length);
 			out.write(hashstring);
-			in = new ObjectInputStream(send.getInputStream());
-			String returncode = (String) in.readObject();
-			return Integer.getInteger(returncode); //CarNumList uses parseInt, not sure if this makes a difference
+			
+			byte[] accepted = new byte[1];
+			in = send.getInputStream();
+			in.read(accepted);
+			
+			return Integer.parseInt(Byte.toString(accepted[0]));
 		} catch (UnknownHostException e1) {
 			System.out.println("UnknownHostException");
 			return -1;
@@ -119,10 +132,6 @@ public class LogintoBridge extends ListActivity {
 			// TODO Auto-generated catch block
 			System.out.println("NoSuchAlgo");
 			return -3;
-		}catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.out.println("ClassNotFoundException: String class not found");
-			return -4;
 		}
 	}
 	

@@ -2,7 +2,6 @@ package androidapp.GuardtheBridge;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.StreamCorruptedException;
 import java.net.Socket;
@@ -26,7 +25,6 @@ public class CarNumList extends ListActivity {
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
-		// TODO Auto-generated method stub
 		super.onListItemClick(l, v, position, id);
 		System.out.println("Index: " + mDbHelper.setCar(position+1));//Position starts at 0, so add 1
 		System.out.println("Car Number: " + position);
@@ -55,14 +53,19 @@ public class CarNumList extends ListActivity {
 		byte[] numofcars = {};
 		int bytesread;
 		String myserver = "empathos.dyndns.org";
-		System.out.println("Get Car");
+		String key = "CARS";
+		System.out.println("Getting Car");
 		try {
+			//Establish connection
 			send = new Socket(myserver, 4680);
 			System.out.println("Server IP: " + send.getInetAddress());
 			System.out.println("Local IP: " + send.getLocalAddress());
-			//send.connect(send.getRemoteSocketAddress());
+			
+			//Send type key
 			out = send.getOutputStream();
-			out.write("CARS".getBytes());
+			out.write(key.getBytes());
+			
+			//Receive number of cars from server
 			in = send.getInputStream();
 			numofcars = new byte[1];
 			bytesread = in.read(numofcars);
@@ -71,24 +74,16 @@ public class CarNumList extends ListActivity {
 				in.read(numofcars);
 			String number = Byte.toString(numofcars[0]);
 			System.out.println("Number of Cars: " + number);
-			//String numb = (String) in.readObject();
-			//return Integer.parseInt(numb); //LogintoBridge uses getInteger, not sure if this makes a difference
 			return Integer.parseInt(number); //LogintoBridge uses getInteger, not sure if this makes a difference
 		} catch (UnknownHostException e1) {
-			
 			System.out.println("UnknownHostException");
 			return -1;
 		} catch (StreamCorruptedException e) {
-			// TODO Auto-generated catch block
 			System.out.println("StreamCorruptionException");
 			return -2;
 		} catch (IOException e1) {
 			System.out.println("IOException");
 			return -3;
-		} /*catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
-			System.out.println("ClassNotFoundException: String class not found");
-			return -4;
-		}*/
+		}
 	}
 }
