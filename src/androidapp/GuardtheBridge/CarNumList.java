@@ -64,7 +64,7 @@ public class CarNumList extends ListActivity {
 			out = send.getOutputStream();
 			out.write("CARS".getBytes());
 			in = send.getInputStream();
-			numofcars = new byte[2];
+			numofcars = new byte[1];
 			bytesread = in.read(numofcars);
 			System.out.println("Bytes read: " + bytesread);
 			if(bytesread == 0)
