@@ -4,7 +4,6 @@ import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 
 public class GuardtheBridge extends ListActivity {
     /** Called when the activity is first created. */

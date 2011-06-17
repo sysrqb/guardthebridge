@@ -20,7 +20,7 @@ public class LogintoBridge extends ListActivity {
 	private EditText mNetIdText;
     private EditText mAuthText;
     private String mCarNum;
-    private GtBDbAdapter mDbHelper;
+    private CarsGtBDbAdapter mDbHelper;
     private static final int CarNum_SELECT=0;
     private LogintoBridge self;
 
@@ -29,30 +29,14 @@ public class LogintoBridge extends ListActivity {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		this.self = this;
-		mDbHelper = new GtBDbAdapter(this);
+		mDbHelper = new CarsGtBDbAdapter(this);
         mDbHelper.open();
-
-        setContentView(R.layout.main);
-        setTitle(R.string.app_name);
         
+        setContentView(R.layout.cars);
+        setTitle(R.string.app_name);
+
         TextView carnumtext = (TextView) findViewById(R.id.carnum);
         carnumtext.setClickable(true);//Sets the text to be clickable
-        
-        Button loginButton = (Button) findViewById(R.id.login);
-        
-        
-        loginButton.setOnClickListener(new View.OnClickListener() {
-
-            public void onClick(View view) {
-            	int retval;
-            	if((retval = sendAuthCheck(mNetIdText, mAuthText, mCarNum)) != 0){
-            		dealwitherrors(retval);
-            	}
-                setResult(RESULT_OK);
-                finish();
-            }
-
-        });
         
         carnumtext.setOnClickListener(new View.OnClickListener() {
 
@@ -63,6 +47,40 @@ public class LogintoBridge extends ListActivity {
 
         });
 	}
+	
+	 protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+	        super.onActivityResult(requestCode, resultCode, intent);
+	        System.out.println("On Return");
+	        
+	        setContentView(R.layout.main);
+	        setTitle(R.string.app_name);
+	        
+	        TextView carnumtext = (TextView) findViewById(R.id.carnum);
+	        carnumtext.setClickable(true);//Sets the text to be clickable
+	        
+	        
+	        Button loginButton = (Button) findViewById(R.id.login);
+	        
+	        
+	        loginButton.setOnClickListener(new View.OnClickListener() {
+
+	            public void onClick(View view) {
+	            	int retval;
+	            	if((retval = sendAuthCheck(mNetIdText, mAuthText, mCarNum)) != 0){
+	            		dealwitherrors(retval);
+	            	}
+	                setResult(RESULT_OK);
+	                finish();
+	            }
+
+	        });
+	        System.out.println("New Layout");
+	        int car = mDbHelper.getCar();
+	        mCarNum = Integer.toString(car);
+	        System.out.println("Ret Car Number: " + mCarNum);
+	        TextView showcarnum = (TextView)findViewById(R.id.showcarnum);
+	        showcarnum.setText(mCarNum);
+	    }
 	
 	public int sendAuthCheck(EditText netid, EditText authcode, String carnum){
 		byte[] addr = "192.168.2.25".getBytes();

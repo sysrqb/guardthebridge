@@ -6,8 +6,6 @@ import java.io.OutputStream;
 import java.io.StreamCorruptedException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-
 import android.app.ListActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -15,10 +13,13 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 public class CarNumList extends ListActivity {
-
+    private CarsGtBDbAdapter mDbHelper;
+    
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mDbHelper = new CarsGtBDbAdapter(this);
+        mDbHelper.open();
 		listCars();
 	}
 	
@@ -26,6 +27,8 @@ public class CarNumList extends ListActivity {
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		// TODO Auto-generated method stub
 		super.onListItemClick(l, v, position, id);
+		System.out.println("Index: " + mDbHelper.setCar(position+1));//Position starts at 0, so add 1
+		System.out.println("Car Number: " + position);
 		setResult(RESULT_OK);
 		finish();
 	}
@@ -34,7 +37,7 @@ public class CarNumList extends ListActivity {
 		String cars[];
 		int num = numberOfCars();
 		if(num < 0){
-			num = 1;
+			num = 5;
 		}
 		cars = new String[num];
 		for(int i = 0; i<num; i++){
