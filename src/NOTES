@@ -1,0 +1,36 @@
+StartActivityForResult(SAFR) Auth
+on ret successful,
+	query all assigned rides for specified car
+	add rides to list and show name/loc
+	on click, open field view with full details
+	in field view, option menu gives Edit
+	In edit, can edit fields and save, which updates server info
+	Long press on phone number calls it
+	long press on address pulls directions from current location (gps)
+	Activities contain two constant buttons:
+		"call dispatch"
+		"Emergency call"
+	Option menu allows for changing netid and car
+
+
+-----
+
+Authenticate to server:
+Provide:
+	all the following are added to a sha256 digest and sent:
+		netid
+		car number (select from a list of predefined range)
+		night's key 
+
+
+App Tasks:
+	Query server for all rides assigned to car
+	store queries in SQLite DB
+	Render list of rides from Lite DB
+	Allow to edit ride details
+	Allow to change state of ride
+	Requery every x minutes (maybe ~1 min)
+	Allow to change netid of ridealong
+	open directions when click on address
+	Ride details activity have complete and cancel buttons
+	Current rides list Activity has option button to show all past/closed rides
