@@ -47,12 +47,14 @@ public class CarNumList extends ListActivity {
 	}
 	
 	public int numberOfCars(){
+		String myserver = "empathos.dyndns.org";
+		GtBSSLHandler sslconn = new GtBSSLHandler(myserver, 4680);
+		sslconn.init();
 		Socket send;
 		OutputStream out = null;
 		InputStream in;
 		byte[] numofcars = {};
 		int bytesread;
-		String myserver = "empathos.dyndns.org";
 		String key = "CARS";
 		System.out.println("Getting Car");
 		try {
