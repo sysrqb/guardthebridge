@@ -16,6 +16,8 @@
 
 package androidapp.GuardtheBridge;
 
+import java.io.ObjectOutputStream;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -34,43 +36,21 @@ import android.util.Log;
  * of using a collection of inner classes (which is less scalable and not
  * recommended).
  */
-public class GtBDbAdapter {
+public class TLSGtBDbAdapter {
 
-    /*public static final String KEY_TITLE = "title";
-    public static final String KEY_BODY = "body";
-    public static final String KEY_ROWID = "id";
-    public static final String KEY_NAME = "name";
-    public static final String KEY_CELL = "cell";
-    public static final String KEY_RIDERS = "riders";
-    public static final String KEY_FROMLOC = "fromloc";
-    public static final String KEY_DROPOFF = "dropoff";
-    public static final String KEY_NOTES = "notes";
-    public static final String KEY_STATUS = "status";
-    public static final String KEY_TIMEDONE = "timedone";*/
-	
-	public static final String KEY_MESSAGE = "body";
-    public static final String KEY_ROWID = "id";
-    public static final String KEY_PID = "pid";
+    public static final String KEY_ROWID = "_id";
+    public static final String KEY_TLSNGIN = "carnum";
 
-    private static final String TAG = "GtBDbAdapter";
+    private static final String TAG = "CarGtBDbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
 
     /**
      * Database creation sql statement
      */
-    private static final String DATABASE_TABLE = "openrides";
-    /*private static final String SAFE_DATABASE_CREATE =
-        "create table " + DATABASE_TABLE + "(id integer primary key autoincrement, "
-        + "name text not null, cell text not null, riders integer not null, " +
-        	"fromloc text not null, dropoff text not null, notes text, status text, timedone blob);";
-    */
-    
-    private static final String SAFE_DATABASE_CREATE =
-        "create table " + DATABASE_TABLE + "(id integer primary key autoincrement, "
-        + "pid integer, patron blob);";
-
-    private static final String DATABASE_NAME = "saferides";
+    private static final String DATABASE_TABLE = "tlsngin"; //tls engine
+    private static final String TLS_DATABASE_CREATE = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, TLSNGIN blob);";
+    private static final String TLS_DATABASE_NAME = "tlsngindb";
     private static final int DATABASE_VERSION = 2;
 
     private final Context mCtx;
@@ -78,13 +58,13 @@ public class GtBDbAdapter {
     private static class DatabaseHelper extends SQLiteOpenHelper {
 
         DatabaseHelper(Context context) {
-            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+            super(context, TLS_DATABASE_NAME, null, DATABASE_VERSION);
         }
 
         @Override
         public void onCreate(SQLiteDatabase db) {
 
-            db.execSQL(SAFE_DATABASE_CREATE);
+            db.execSQL(TLS_DATABASE_CREATE);
         }
 
         @Override
@@ -102,7 +82,7 @@ public class GtBDbAdapter {
      * 
      * @param ctx the Context within which to work
      */
-    public GtBDbAdapter(Context ctx) {
+    public TLSGtBDbAdapter(Context ctx) {
         this.mCtx = ctx;
     }
 
@@ -115,7 +95,7 @@ public class GtBDbAdapter {
      *         initialization call)
      * @throws SQLException if the database could be neither opened or created
      */
-    public GtBDbAdapter open() throws SQLException {
+    public TLSGtBDbAdapter open() throws SQLException {
     		mDbHelper = new DatabaseHelper(mCtx);
     		mDb = mDbHelper.getWritableDatabase();
         return this;
@@ -131,27 +111,16 @@ public class GtBDbAdapter {
      * successfully created return the new rowId for that note, otherwise return
      * a -1 to indicate failure.
      * 
-     * @param title the title of the note
-     * @param body the body of the note
+     * @param carnum the car number
      * @return rowId or -1 if failed
      */
-    public long createNote(byte[] message, int pid) {
-        ContentValues initialValues = new ContentValues();
-        initialValues.put(KEY_MESSAGE, message);
-        initialValues.put(KEY_PID, pid);
-
+    public long setSession(ObjectOutputStream out) {
+        System.out.println("Rows Deleted " + this.deleteAllRows());
+    	ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_ROWID, 1);
+    	initialValues.put(KEY_TLSNGIN, out.toString());
+        
         return mDb.insert(DATABASE_TABLE, null, initialValues);
-    }
-
-    /**
-     * Delete the note with the given rowId
-     * 
-     * @param rowId id of note to delete
-     * @return true if deleted, false otherwise
-     */
-    public boolean deleteNote(long rowId) {
-
-        return mDb.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
     }
 
     /**
@@ -159,31 +128,18 @@ public class GtBDbAdapter {
      * 
      * @return Cursor over all notes
      */
-    public Cursor fetchAllNotes() {
-
-        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_MESSAGE,
-                KEY_PID}, null, null, null, null, null);
+    public GtBSSLHandler getSession() {
+    	GtBSSLHandler temp = new GtBSSLHandler(null, 0);
+        Cursor curse = mDb.query(DATABASE_TABLE, new String[] {KEY_TLSNGIN}, KEY_ROWID + "= 1", null, null, null, null, null);
+        curse.moveToFirst();
+        System.out.println("getCar: returned rows: " + curse.getCount() + " " + curse.getColumnCount());
+        byte[] blob = curse.getBlob(0);
+        return temp.inflate(blob);
     }
-
-    /**
-     * Return a Cursor positioned at the note that matches the given rowId
-     * 
-     * @param rowId id of note to retrieve
-     * @return Cursor positioned to matching note, if found
-     * @throws SQLException if note could not be found/retrieved
-     */
-    public Cursor fetchNote(long rowId) throws SQLException {
-
-        Cursor mCursor =
-
-            mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,
-                    KEY_MESSAGE, KEY_PID}, KEY_ROWID + "=" + rowId, null,
-                    null, null, null, null);
-        if (mCursor != null) {
-            mCursor.moveToFirst();
-        }
-        return mCursor;
-
+    
+    public int getRowId(int carnum){
+    	Cursor curse = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID}, KEY_TLSNGIN + "=" + carnum, null, null, null, null, null);
+    	return curse.getInt(0);
     }
 
     /**
@@ -196,11 +152,21 @@ public class GtBDbAdapter {
      * @param body value to set note body to
      * @return true if the note was successfully updated, false otherwise
      */
-    public boolean updateNote(long rowId, byte[] message, int pid) {
+    public boolean updateSession(String carnum) {
         ContentValues args = new ContentValues();
-        args.put(KEY_MESSAGE, message);
-        args.put(KEY_PID, pid);
+        args.put(KEY_TLSNGIN, carnum);
 
-        return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+        return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "= 1", null) > 0;
+    }
+    
+    /**
+     * Delete the note with the given rowId
+     * 
+     * @param rowId id of note to delete
+     * @return true if deleted, false otherwise
+     */
+    public boolean deleteAllRows() {
+
+        return mDb.delete(DATABASE_TABLE, "1", null) > 0;
     }
 }

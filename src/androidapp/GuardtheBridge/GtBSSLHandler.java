@@ -1,7 +1,13 @@
 package androidapp.GuardtheBridge;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.io.StreamCorruptedException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -16,10 +22,15 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManagerFactory;
 
-public class GtBSSLHandler {
+public class GtBSSLHandler implements Serializable{
+	/**
+	 * Default Serial Version
+	 */
+	private static final long serialVersionUID = 1L;
 	private String host;
 	private int port;
 	private SSLEngine ssle;
@@ -206,6 +217,136 @@ public class GtBSSLHandler {
 		temp[2] = pAppData;
 		temp[3] = pNetData;
 		return temp;
+	}
+	
+	public int send(byte[] buf){
+		SSLEngine engine = ssle;
+		ByteBuffer myAppData = ByteBuffer.allocate( (engine.getSession() ).getApplicationBufferSize());
+		ByteBuffer myNetData = ByteBuffer.allocate( (engine.getSession() ).getPacketBufferSize());
+		myAppData.put(buf);
+		myAppData.flip();
+		
+		try {
+			SocketChannel sC = SocketChannel.open();
+			sC.configureBlocking(false);
+			sC.connect(new InetSocketAddress(host, port));		
+			while (myAppData.hasRemaining()){
+				//Prepare buf for encrypted travel
+				SSLEngineResult res = engine.wrap(myAppData, myNetData);
+				
+				//Check status
+				if (res.getStatus() == SSLEngineResult.Status.OK){ //Ready to send
+					myAppData.compact();
+					
+					//Send the communique
+					while (myNetData.hasRemaining()){
+						int num = sC.write(myNetData);
+						if (num == -1)
+							//Connection Closed
+							break;
+						else if (num == 0){
+							//No bytes written
+							break;
+						}
+					}
+				}
+			}
+			sC.close();
+			return 0;
+		} catch (SSLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return -2;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return -3;
+		}
+	}
+	
+	public byte[] receive(){
+		SSLEngine engine = ssle;
+		ByteBuffer peerAppData = ByteBuffer.allocate( (engine.getSession() ).getApplicationBufferSize());
+		ByteBuffer peerNetData = ByteBuffer.allocate( (engine.getSession() ).getPacketBufferSize());
+		ByteBuffer ret = ByteBuffer.allocate(1);
+		ret.put("empty".getBytes());
+		
+		try {
+			SocketChannel sC = SocketChannel.open();
+			sC.configureBlocking(false);
+			sC.connect(new InetSocketAddress(host, port));
+			
+			//Read data from server
+			int num = sC.read(peerNetData);
+			if (num == -1)
+				//Connection Closed
+				return ret.array();
+			else if (num == 0)
+				//No bytes read
+				return ret.array();
+			else {
+				sC.close();
+				peerNetData.flip();
+				SSLEngineResult res = engine.unwrap(peerNetData, peerAppData);
+				if (res.getStatus() == SSLEngineResult.Status.OK){
+					peerNetData.compact();
+					
+					//return received info
+					if (peerAppData.hasRemaining())
+						return peerAppData.array();
+					else
+						return ret.array();
+				}
+			}
+			return ret.array();
+		} catch (SSLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return receive();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return receive();
+		}
+	}
+	
+	public ObjectOutputStream flatten(){
+		ByteArrayOutputStream baout = new ByteArrayOutputStream();
+		ObjectOutputStream oout = null; 
+		try {
+			oout = new ObjectOutputStream(baout);
+			oout.writeObject(this);
+			oout.close();
+			return oout;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public GtBSSLHandler inflate(byte[] in){
+		ByteArrayInputStream bain = null;
+		ObjectInputStream oin;
+		GtBSSLHandler sslh;
+		bain = new ByteArrayInputStream(in);
+		try {
+			oin = new ObjectInputStream(bain);
+			sslh = (GtBSSLHandler) oin.readObject();
+			return sslh;
+		} catch (StreamCorruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	//TODO

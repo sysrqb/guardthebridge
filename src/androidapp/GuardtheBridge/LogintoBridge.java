@@ -1,10 +1,5 @@
 package androidapp.GuardtheBridge;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -21,6 +16,7 @@ public class LogintoBridge extends ListActivity {
     private EditText mAuthText;
     private String mCarNum;
     private CarsGtBDbAdapter mDbHelper;
+    private TLSGtBDbAdapter nGDbHelper;
     private static final int CarNum_SELECT=0;
     private LogintoBridge self;
 
@@ -29,8 +25,12 @@ public class LogintoBridge extends ListActivity {
 		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		this.self = this;
+		
+		//Re-establish connections to databases
 		mDbHelper = new CarsGtBDbAdapter(this);
         mDbHelper.open();
+        nGDbHelper = new TLSGtBDbAdapter (this);
+        nGDbHelper.open();
         
         setContentView(R.layout.cars);
         setTitle(R.string.app_name);
@@ -94,10 +94,15 @@ public class LogintoBridge extends ListActivity {
 	    }
 	
 	public int sendAuthCheck(EditText netid, EditText authcode, String carnum){
-		Socket send;
+		GtBSSLHandler sslconn;
+		
+		
+		/*Socket send;
 		OutputStream out = null;
 		InputStream in;
-		String myserver = "empathos.dyndns.org";
+		String myserver = "empathos.dyndns.org";*/
+		
+		sslconn = nGDbHelper.getSession();
 		String key = "AUTH";
 		MessageDigest hash = null;
 		byte[] hashstring;
@@ -106,28 +111,24 @@ public class LogintoBridge extends ListActivity {
 		System.out.println("NetID: " + netid.getText().toString());
 		System.out.println("Car Number: " + carnum);
 		try {
-			send = new Socket(myserver, 4680);
+			/*send = new Socket(myserver, 4680);
 			
 			out = send.getOutputStream();
-			out.write(key.getBytes());
+			out.write(key.getBytes());*/
 			
+			sslconn.send(key.getBytes());
 			hash = MessageDigest.getInstance("SHA-256");
 			stringcat = netid.getText().toString() + authcode.getText().toString() + carnum;
 			hashstring = hash.digest(stringcat.getBytes());
 			System.out.println("Hash: " + hashstring.length);
-			out.write(hashstring);
+			//out.write(hashstring);
+			sslconn.send(hashstring);
 			
 			byte[] accepted = new byte[1];
-			in = send.getInputStream();
-			in.read(accepted);
-			
+			/*in = send.getInputStream();
+			in.read(accepted);*/
+			accepted = sslconn.receive();
 			return Integer.parseInt(Byte.toString(accepted[0]));
-		} catch (UnknownHostException e1) {
-			System.out.println("UnknownHostException");
-			return -1;
-		}catch (IOException e) {
-			System.out.println("IOException");
-			return -2;
 		} catch (NoSuchAlgorithmException e1) {
 			// TODO Auto-generated catch block
 			System.out.println("NoSuchAlgo");

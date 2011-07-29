@@ -48,7 +48,7 @@ public class CarsGtBDbAdapter {
      */
     private static final String DATABASE_TABLE = "carnum";
     private static final String CAR_DATABASE_CREATE = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, carnum integer);";
-    private static final String CAR_DATABASE_NAME = "carnum";
+    private static final String CAR_DATABASE_NAME = "carnumdb";
     private static final int DATABASE_VERSION = 2;
 
     private final Context mCtx;
