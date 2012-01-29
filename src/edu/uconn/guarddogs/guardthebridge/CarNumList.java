@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLSocket;
 
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.content.DialogInterface;
@@ -30,12 +32,8 @@ public class CarNumList extends ListActivity {
 		mDbHelper = new CarsGtBDbAdapter(this);
 		nGDbHelper = new TLSGtBDbAdapter(this);
         mDbHelper.open();
-		try {
-			listCars();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		listCars();
+
 	}
 	
 	@Override
@@ -48,11 +46,14 @@ public class CarNumList extends ListActivity {
 		finish();
 	}
 	
-	public void listCars() throws IOException{
+	public void listCars()
+	{
 		String cars[];
 		int num = numberOfCars();
-		if(num < 0){
-			num = 5;
+		if(num < 1)
+		{
+			System.out.println("Failed to retrieve number of cars!");
+			num = 1;
 		}
 		cars = new String[num];
 		for(int i = 0; i<num; i++){
@@ -75,7 +76,8 @@ public class CarNumList extends ListActivity {
 		builder.show();
 	}
 		
-	public int numberOfCars() throws IOException{
+	public int numberOfCars()
+	{
 		Request aPBReq;
 		Response aPBRes;
 		GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper(this);
@@ -98,49 +100,84 @@ public class CarNumList extends ListActivity {
 			System.out.println("Socket is NOT bound!");
 		System.out.println("Connected to: " + aSock.getInetAddress().getCanonicalHostName() + " on Port: " + aSock.getPort());
 		System.out.println("Local Binding is on: " + aSock.getLocalAddress().getCanonicalHostName() + " on Port: " + aSock.getLocalPort());
-		OutputStream aOS = aSock.getOutputStream();
-		aPBReq = Request.newBuilder().
-				setNReqId(2).
-				setSReqType("CARS").
-				build();
-		aPBReq.writeTo(aOS);
-		aOS.close();
-		InputStream aIS = aSock.getInputStream();
-		aPBRes = Response.parseFrom(aIS);
-		aIS.close();
-		if (!aPBRes.hasNRespId())
+		
+		try
 		{
-			aIS = aSock.getInputStream();
-			aPBRes = Response.parseFrom(aIS);
+			OutputStream aOS = aSock.getOutputStream();
+			aPBReq = Request.newBuilder().
+					setNReqId(2).
+					setSReqType("CARS").
+					build();
+			System.out.println("Request type: " + aPBReq.getSReqType());
+			System.out.println("Request Size: " + aPBReq.isInitialized());
+			Request aTemp = Request.parseFrom(aPBReq.toByteArray());
+			System.out.println("SReqType = " + aTemp.getSReqType() + " " + aTemp.getSerializedSize());
+			aPBReq.writeTo(aOS);
+			aOS.close();
+			InputStream aIS = aSock.getInputStream();
+			byte[] vresp = new byte[aIS.available()];
+			aIS.read(vresp);
+			aPBRes = Response.parseFrom(vresp);
+			aIS.close();
 			if (!aPBRes.hasNRespId())
 			{
-				getConnFailedDialog("Connection to server could not be established." + 
-						"Please try again in a minute or call Dispatch.");
-				return -1;
-			}
-			if (aPBRes.getNRespId() != 0)
-			{
-				System.out.println("Error: " + aPBRes.getSResValue());
-				getConnFailedDialog("Connection to server could not be established." + 
-						"Please try again in a minute or call Dispatch.");
-				return -1;
-			}
-			int numofcars;
-			if (aPBRes.getNResAddCount()==1)
-			{
-				numofcars = aPBRes.getNResAdd(1);
-				System.out.println("Number of Cars: " + numofcars);
-			    Log.v(TAG, "Number of Cars: " + numofcars);
-			    return numofcars;
+				aIS = aSock.getInputStream();
+				aPBRes = Response.parseFrom(aIS);
+				if (!aPBRes.hasNRespId())
+				{
+					getConnFailedDialog("Connection to server could not be established." + 
+							"Please try again in a minute or call Dispatch.");
+					return -1;
+				}
+				if (aPBRes.getNRespId() != 0)
+				{
+					System.out.println("Error: " + aPBRes.getSResValue());
+					getConnFailedDialog("Connection to server could not be established." + 
+							"Please try again in a minute or call Dispatch.");
+					return -1;
+				}
+				int numofcars;
+				if (aPBRes.getNResAddCount()==1)
+				{
+					numofcars = aPBRes.getNResAdd(1);
+					System.out.println("Number of Cars: " + numofcars);
+				    Log.v(TAG, "Number of Cars: " + numofcars);
+				    return numofcars;
+				}
+				else
+					return numberOfCars();
 			}
 			else
-				return numberOfCars();
-		}
-		else
+			{
+				if (aPBRes.getNRespId() != 0)
+				{
+					System.out.println("Reponse ID: " + aPBRes.getNRespId());
+					System.out.println("Reponse Type: " + aPBRes.getSResValue());
+					getConnFailedDialog("Connection to server could not be established." + 
+							"Please try again in a minute or call Dispatch.");
+					return -1;
+				}
+				else {	
+					int numofcars;
+					if (aPBRes.getNResAddCount()==1)
+					{
+						numofcars = aPBRes.getNResAdd(1);
+						System.out.println("Number of Cars: " + numofcars);
+					    Log.v(TAG, "Number of Cars: " + numofcars);
+					    return numofcars;
+					}
+					else
+						return numberOfCars();
+				}
+			}
+		} catch (InvalidProtocolBufferException e)
 		{
-			getConnFailedDialog("Connection to server could not be established." + 
-					"Please try again in a minute or call Dispatch.");
-			return 1;
+			e.printStackTrace();
+			return -2;
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+			return -2;
 		}
 	}
 }
