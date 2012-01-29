@@ -13,4 +13,17 @@
     <string name="emergency">EMERGENCY</string>
     <string name="showcarnum"></string>
     <string name="cars"></string>
+    
+    <!-- List of Rides -->
+    <string name="namelabel">Name: ></string>
+    <string name="nameVal"></string>
+    <string name="passlabel"># of Passangers: </string>
+    <string name="passVal"></string>
+    <string name="pulabel">Pickup: </string>
+    <string name="puVal"></string>
+    <string name="dolabel">Dropoff: </string>
+    <string name="doVal"></string>
+    <string name="ttlabel">Time Taken: </string>
+    <string name="ttVal"></string>
+    <!-- List of Rides -->
 </resources>

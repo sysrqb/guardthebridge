@@ -14,7 +14,9 @@
  * the License.
  */
 
-package androidapp.GuardtheBridge;
+package edu.uconn.guarddogs.guardthebridge;
+
+import java.io.ObjectOutputStream;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -34,10 +36,10 @@ import android.util.Log;
  * of using a collection of inner classes (which is less scalable and not
  * recommended).
  */
-public class CarsGtBDbAdapter {
+public class TLSGtBDbAdapter {
 
     public static final String KEY_ROWID = "_id";
-    public static final String KEY_CARNUM = "carnum";
+    public static final String KEY_TLSNGIN = "carnum";
 
     private static final String TAG = "CarGtBDbAdapter";
     private DatabaseHelper mDbHelper;
@@ -46,9 +48,9 @@ public class CarsGtBDbAdapter {
     /**
      * Database creation sql statement
      */
-    private static final String DATABASE_TABLE = "carnum";
-    private static final String CAR_DATABASE_CREATE = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, carnum integer);";
-    private static final String CAR_DATABASE_NAME = "carnumdb";
+    private static final String DATABASE_TABLE = "tlsngin"; //tls engine
+    private static final String TLS_DATABASE_CREATE = "create table " + DATABASE_TABLE + "(_id integer primary key autoincrement, TLSNGIN blob);";
+    private static final String TLS_DATABASE_NAME = "tlsngindb";
     private static final int DATABASE_VERSION = 2;
 
     private final Context mCtx;
@@ -56,13 +58,13 @@ public class CarsGtBDbAdapter {
     private static class DatabaseHelper extends SQLiteOpenHelper {
 
         DatabaseHelper(Context context) {
-            super(context, CAR_DATABASE_NAME, null, DATABASE_VERSION);
+            super(context, TLS_DATABASE_NAME, null, DATABASE_VERSION);
         }
 
         @Override
         public void onCreate(SQLiteDatabase db) {
 
-            db.execSQL(CAR_DATABASE_CREATE);
+            db.execSQL(TLS_DATABASE_CREATE);
         }
 
         @Override
@@ -80,7 +82,7 @@ public class CarsGtBDbAdapter {
      * 
      * @param ctx the Context within which to work
      */
-    public CarsGtBDbAdapter(Context ctx) {
+    public TLSGtBDbAdapter(Context ctx) {
         this.mCtx = ctx;
     }
 
@@ -93,7 +95,7 @@ public class CarsGtBDbAdapter {
      *         initialization call)
      * @throws SQLException if the database could be neither opened or created
      */
-    public CarsGtBDbAdapter open() throws SQLException {
+    public TLSGtBDbAdapter open() throws SQLException {
     		mDbHelper = new DatabaseHelper(mCtx);
     		mDb = mDbHelper.getWritableDatabase();
         return this;
@@ -112,11 +114,11 @@ public class CarsGtBDbAdapter {
      * @param carnum the car number
      * @return rowId or -1 if failed
      */
-    public long setCar(int carnum) {
+    public long setSession(ObjectOutputStream out) {
         System.out.println("Rows Deleted " + this.deleteAllRows());
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_ROWID, 1);
-    	initialValues.put(KEY_CARNUM, carnum);
+    	initialValues.put(KEY_TLSNGIN, out.toString());
         
         return mDb.insert(DATABASE_TABLE, null, initialValues);
     }
@@ -126,16 +128,18 @@ public class CarsGtBDbAdapter {
      * 
      * @return Cursor over all notes
      */
-    public int getCar() {
-
-        Cursor curse = mDb.query(DATABASE_TABLE, new String[] {KEY_CARNUM}, KEY_ROWID + "= 1", null, null, null, null, null);
+    public GtBSSLSocketFactoryWrapper getSession() {
+    	GtBSSLSocketFactoryWrapper temp = new GtBSSLSocketFactoryWrapper();
+        Cursor curse = mDb.query(DATABASE_TABLE, new String[] {KEY_TLSNGIN}, KEY_ROWID + "= 1", null, null, null, null, null);
         curse.moveToFirst();
         System.out.println("getCar: returned rows: " + curse.getCount() + " " + curse.getColumnCount());
-        return curse.getInt(0);
+        byte[] blob = curse.getBlob(0);
+        //return temp.inflate(blob);
+        return temp;
     }
     
     public int getRowId(int carnum){
-    	Cursor curse = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID}, KEY_CARNUM + "=" + carnum, null, null, null, null, null);
+    	Cursor curse = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID}, KEY_TLSNGIN + "=" + carnum, null, null, null, null, null);
     	return curse.getInt(0);
     }
 
@@ -149,9 +153,9 @@ public class CarsGtBDbAdapter {
      * @param body value to set note body to
      * @return true if the note was successfully updated, false otherwise
      */
-    public boolean updateCar(String carnum) {
+    public boolean updateSession(String carnum) {
         ContentValues args = new ContentValues();
-        args.put(KEY_CARNUM, carnum);
+        args.put(KEY_TLSNGIN, carnum);
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "= 1", null) > 0;
     }

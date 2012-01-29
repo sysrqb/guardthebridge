@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="gen"/>
-	<classpathentry kind="con" path="com.android.ide.eclipse.adt.ANDROID_FRAMEWORK"/>
-	<classpathentry kind="lib" path="/home/mfinkel/workspace/GuardtheBridge/src/protobuf-java-2.4.1.jar"/>
-	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="con" path="com.android.ide.eclipse.adt.LIBRARIES"/>
+	<classpathentry kind="lib" path="/home/mfinkel/repos/GuardtheBridge/assets/bcprov-jdk16-146.jar"/>
+	<classpathentry kind="lib" path="/home/mfinkel/repos/GuardtheBridge/assets/protobuf-java-2.4.1.jar"/>
+	<classpathentry kind="output" path="bin/classes"/>
 </classpath>

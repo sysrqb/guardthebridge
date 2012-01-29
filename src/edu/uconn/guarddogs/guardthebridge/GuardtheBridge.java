@@ -1,19 +1,23 @@
-package androidapp.GuardtheBridge;
+package edu.uconn.guarddogs.guardthebridge;
 
-import com.google.protobuf.InvalidProtocolBufferException;
+import java.io.IOException;
+
+import javax.net.ssl.SSLSocket;
 
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
-import androidapp.GuardtheBridge.PatronProto.Patron;
-import androidapp.GuardtheBridge.PatronProto.PatronList;
+import edu.uconn.guarddogs.guardthebridge.Communication.Request;
+import edu.uconn.guarddogs.guardthebridge.Communication.Response;
+import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 public class GuardtheBridge extends ListActivity {
     /** Called when the activity is first created. */
 	private static final int CarNum_SELECT=0;
 	private GtBDbAdapter mDbHelper;
     private TLSGtBDbAdapter nGDbHelper;
+    private GtBSSLSocketFactoryWrapper m_sslSFW;
     @Override
     public void onCreate(Bundle savedInstanceState) {
         
@@ -29,8 +33,14 @@ public class GuardtheBridge extends ListActivity {
     
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
+        m_sslSFW = new GtBSSLSocketFactoryWrapper(this);
         initializeDb();
-        retrieveRides();
+        try {
+			retrieveRides();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         populateRides();
     }
     
@@ -41,9 +51,13 @@ public class GuardtheBridge extends ListActivity {
        nGDbHelper.open();
     }
     
-   public void retrieveRides(){
-	   GtBSSLHandler sslconn = new GtBSSLHandler (null, 0);
-	   sslconn = nGDbHelper.getSession();
+   public void retrieveRides() throws IOException{
+	   Request aPBReq = Request.newBuilder().
+			   setNReqId(0).
+			   setSReqType("CURR").
+			   build();
+	   SSLSocket sslSock = m_sslSFW.getSSLSocket();
+	   aPBReq.writeTo(sslSock.getOutputStream());
 	   /*Socket send;
 	   OutputStream out = null;
 	   InputStream in;
@@ -57,16 +71,10 @@ public class GuardtheBridge extends ListActivity {
 	   out = send.getOutputStream();
 	   out.write(key.getBytes());
 	   in = send.getInputStream();*/
-	   sslconn.send(key.getBytes());
 	   /*numbytes = in.read();
 	   currrides = new byte[numbytes];*/
-	   currrides = sslconn.receive();
-	   try {
-		   addToDb(PatronList.parseFrom(currrides));
-	} catch (InvalidProtocolBufferException e) {
-		// TODO Auto-generated catch block
-		e.printStackTrace();
-	}
+	   
+	   addToDb(Response.parseFrom(sslSock.getInputStream()).getPlPatronList());
 	   
 	   
 	   /*results = in.read();//Number of results
@@ -113,11 +121,21 @@ public class GuardtheBridge extends ListActivity {
 		   val1[1] = patron.getPid();
 	   
 	   PatronInfo pI = new PatronInfo(val, val1);*/
-	   for(Patron patron : list.getPatronList())
-		   mDbHelper.createNote(patron.toByteArray(), patron.getPid());
+	   for (Patron.PatronInfo patron : list.getPatronList())
+		   mDbHelper.createPatron(patron.toByteArray(), patron.getPid());
    }
    
    public void populateRides(){
-	   
+	   /*Patron[] pL = mDbHelper.fetchAllPatrons();
+	   int[] to = new int[]{R.id.nameVal, R.id.ttVal};
+	   ArrayList<Map<String, String>> listmap = new ArrayList<Map<String, String>>(pL.length);
+	   TreeMap<String, String> map = new TreeMap<String, String>();
+	   String[] from = null;
+	   for (int i = 0; i < pL.length; i++){
+		   from = new String[]{pL[i].getName(), pL[i].getTimetaken()};
+		   map.put(pL[i].getTimetaken(), Integer.toString(i));
+		   listmap.add(map);
+	   }
+	   setListAdapter(new SimpleAdapter(this, listmap, R.id.list, from, to));*/
    }
 }

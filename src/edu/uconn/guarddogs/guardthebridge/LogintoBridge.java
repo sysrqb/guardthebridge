@@ -1,7 +1,16 @@
-package androidapp.GuardtheBridge;
+package edu.uconn.guarddogs.guardthebridge;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
+
+import edu.uconn.guarddogs.guardthebridge.Communication.Request;
+import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
 import android.app.ListActivity;
 import android.content.Intent;
@@ -16,7 +25,7 @@ public class LogintoBridge extends ListActivity {
     private EditText mAuthText;
     private String mCarNum;
     private CarsGtBDbAdapter mDbHelper;
-    private TLSGtBDbAdapter nGDbHelper;
+    private TLSGtBDbAdapter mGDbHelper;
     private static final int CarNum_SELECT=0;
     private LogintoBridge self;
 
@@ -29,8 +38,8 @@ public class LogintoBridge extends ListActivity {
 		//Re-establish connections to databases
 		mDbHelper = new CarsGtBDbAdapter(this);
         mDbHelper.open();
-        nGDbHelper = new TLSGtBDbAdapter (this);
-        nGDbHelper.open();
+        mGDbHelper = new TLSGtBDbAdapter (this);
+        mGDbHelper.open();
         
         setContentView(R.layout.cars);
         setTitle(R.string.app_name);
@@ -94,15 +103,41 @@ public class LogintoBridge extends ListActivity {
 	    }
 	
 	public int sendAuthCheck(EditText netid, EditText authcode, String carnum){
-		GtBSSLHandler sslconn;
+		SSLSession sslconn;
+		Request aPBReq;
+		Response aPBRes;
+		GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper();
 		
-		
-		/*Socket send;
-		OutputStream out = null;
-		InputStream in;
-		String myserver = "empathos.dyndns.org";*/
-		
-		sslconn = nGDbHelper.getSession();
+		SSLSocket aSock = aSSLSF.getSSLSocket();
+		if(aSock.isBound())
+		{
+			if(aSock.isConnected())
+			{
+				System.out.println("Socket is connected!");		
+			}
+			else
+			{
+				System.out.println("Socket is NOT connected!");
+			}
+		}
+		else
+			System.out.println("Socket is NOT bound!");
+		try {
+		System.out.println("Connected to: " + aSock.getInetAddress().getCanonicalHostName() + " on Port: " + aSock.getPort());
+		System.out.println("Local Binding is on: " + aSock.getLocalAddress().getCanonicalHostName() + " on Port: " + aSock.getLocalPort());
+		OutputStream aOS = aSock.getOutputStream();
+		aPBReq = Request.newBuilder().
+				setNReqId(2).
+				setSReqType("CARS").
+				build();
+		aPBReq.writeTo(aOS);
+		aOS.close();
+		InputStream aIS = aSock.getInputStream();
+		aPBRes = Response.parseFrom(aIS);
+		aIS.close();
+		} catch (IOException e){
+			e.printStackTrace();
+		}
 		String key = "AUTH";
 		MessageDigest hash = null;
 		byte[] hashstring;
@@ -115,19 +150,17 @@ public class LogintoBridge extends ListActivity {
 			
 			out = send.getOutputStream();
 			out.write(key.getBytes());*/
-			
-			sslconn.send(key.getBytes());
+
 			hash = MessageDigest.getInstance("SHA-256");
 			stringcat = netid.getText().toString() + authcode.getText().toString() + carnum;
 			hashstring = hash.digest(stringcat.getBytes());
 			System.out.println("Hash: " + hashstring.length);
 			//out.write(hashstring);
-			sslconn.send(hashstring);
 			
 			byte[] accepted = new byte[1];
 			/*in = send.getInputStream();
 			in.read(accepted);*/
-			accepted = sslconn.receive();
+			accepted = "".getBytes();
 			return Integer.parseInt(Byte.toString(accepted[0]));
 		} catch (NoSuchAlgorithmException e1) {
 			// TODO Auto-generated catch block

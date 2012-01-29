@@ -14,7 +14,9 @@
  * the License.
  */
 
-package androidapp.GuardtheBridge;
+package edu.uconn.guarddogs.guardthebridge;
+
+import java.util.List;
 
 import android.content.ContentValues;
 import android.content.Context;
@@ -23,6 +25,10 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
+
+import com.google.protobuf.InvalidProtocolBufferException;
+
+import edu.uconn.guarddogs.guardthebridge.Patron.*;
 
 /**
  * Simple notes database access helper class. Defines the basic CRUD operations
@@ -135,7 +141,7 @@ public class GtBDbAdapter {
      * @param body the body of the note
      * @return rowId or -1 if failed
      */
-    public long createNote(byte[] message, int pid) {
+    public long createPatron(byte[] message, int pid) {
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_MESSAGE, message);
         initialValues.put(KEY_PID, pid);
@@ -159,10 +165,23 @@ public class GtBDbAdapter {
      * 
      * @return Cursor over all notes
      */
-    public Cursor fetchAllNotes() {
+	public PatronInfo[] fetchAllPatrons() {
 
-        return mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_MESSAGE,
+        Cursor mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_MESSAGE,
                 KEY_PID}, null, null, null, null, null);
+        
+        PatronInfo pL[] = new PatronInfo[mCursor.getCount()];
+        for(int i = 0; i<pL.length; i++){
+        	
+        	try {
+				pL[i] = PatronInfo.parseFrom(mCursor.getBlob(2));
+        	} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				continue;
+			}
+        }
+        return pL;
     }
 
     /**
@@ -172,7 +191,7 @@ public class GtBDbAdapter {
      * @return Cursor positioned to matching note, if found
      * @throws SQLException if note could not be found/retrieved
      */
-    public Cursor fetchNote(long rowId) throws SQLException {
+	public List<PatronInfo> fetchNote(long rowId) throws SQLException {
 
         Cursor mCursor =
 
@@ -182,7 +201,15 @@ public class GtBDbAdapter {
         if (mCursor != null) {
             mCursor.moveToFirst();
         }
-        return mCursor;
+        
+        PatronList patList = null;
+    	try {
+			patList = PatronList.parseFrom(mCursor.getBlob(2));
+    	} catch (InvalidProtocolBufferException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        return patList.getPatronList();
 
     }
 
