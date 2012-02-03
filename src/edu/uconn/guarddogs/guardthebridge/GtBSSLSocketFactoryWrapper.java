@@ -34,7 +34,7 @@ import android.content.res.Resources.NotFoundException;
 public final class GtBSSLSocketFactoryWrapper {
 	private final String HOST = "empathos.dyndns.org";
 	private final int PORT = 4680;
-	private static SSLSocket m_sslSocket;
+	private static SSLSocket m_sslSocket = null;
 	private static SSLSocketFactory m_aSSF;
 	private static KeyStore m_kstrust, m_kskey;
 	
@@ -46,6 +46,9 @@ public final class GtBSSLSocketFactoryWrapper {
 		
 		//DataInputStream a_tksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.tkspass));
 		//DataInputStream a_ksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.kspass));
+		
+		if(m_sslSocket != null)
+			return;
 		
 		KeyStore kstrust;
 		try {
@@ -83,9 +86,12 @@ public final class GtBSSLSocketFactoryWrapper {
 			SSLContext.setDefault(aSC);			
 			m_sslSocket = (SSLSocket)aSC.getSocketFactory().createSocket(HOST, PORT);
 			m_sslSocket.setUseClientMode(true);
-			m_sslSocket.startHandshake();
-		} catch (IOException e) {
-			e.printStackTrace();
+			try {
+				m_sslSocket.startHandshake();
+			} catch (IOException e)
+			{
+				m_sslSocket.startHandshake();
+			}
 		} catch (KeyStoreException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -104,7 +110,31 @@ public final class GtBSSLSocketFactoryWrapper {
 		} catch (KeyManagementException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+	}
+	
+	public void forceReHandshake()
+	{
+		try {
+			m_sslSocket.startHandshake();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Rehandshake Failure");
+			e.printStackTrace();
+			System.out.println("Re-Establishing Connection..");
+			m_sslSocket = null;
+			new GtBSSLSocketFactoryWrapper(null);
+		}
+	}
+	
+	public SSLSocket reconnect()
+	{
+		SSLSocket tmp = (SSLSocket)createSocket(null, 0, true);
+		tmp.setUseClientMode(true);
+		return tmp;
 	}
 	
 	public Socket createSocket(String host, int port, boolean autoClose)

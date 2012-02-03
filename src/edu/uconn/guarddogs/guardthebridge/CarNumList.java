@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLSocket;
-
-import com.google.protobuf.InvalidProtocolBufferException;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -17,6 +14,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+
+import com.google.protobuf.CodedInputStream;
+import com.google.protobuf.InvalidProtocolBufferException;
+
 import edu.uconn.guarddogs.guardthebridge.Communication.Request;
 import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
@@ -33,7 +34,6 @@ public class CarNumList extends ListActivity {
 		nGDbHelper = new TLSGtBDbAdapter(this);
         mDbHelper.open();
 		listCars();
-
 	}
 	
 	@Override
@@ -53,15 +53,22 @@ public class CarNumList extends ListActivity {
 		if(num < 1)
 		{
 			System.out.println("Failed to retrieve number of cars!");
-			num = 1;
+			cars = new String[1];
+			cars[0] = "Unknown number of cars";
+			setListAdapter(new ArrayAdapter<String>(this, R.layout.carnums, cars));
+			System.out.println("No cars received. Unknown number.");
+			Log.v(TAG, "No cars received. Unknown number.");
 		}
-		cars = new String[num];
-		for(int i = 0; i<num; i++){
-			cars[i] = "Car " + (i+1);
+		else
+		{
+			cars = new String[num];
+			for(int i = 0; i<num; i++){
+				cars[i] = "Car " + (i+1);
+			}
+			setListAdapter(new ArrayAdapter<String>(this, R.layout.carnums, cars));
+			System.out.println("Num of Cars: " + cars.length);
+			Log.v(TAG, "Num of Cars: " + cars.length);
 		}
-		setListAdapter(new ArrayAdapter<String>(this, R.layout.carnums, cars));
-		System.out.println("Num of Cars: " + cars.length);
-		Log.v(TAG, "Num of Cars: " + cars.length);
 	}
 	
 	private void getConnFailedDialog(String msg){
@@ -79,7 +86,7 @@ public class CarNumList extends ListActivity {
 	public int numberOfCars()
 	{
 		Request aPBReq;
-		Response aPBRes;
+		Response aPBRes = null;
 		GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper(this);
 		System.out.println("Getting Car");
 		Log.v(TAG, "Getting Car");
@@ -115,9 +122,25 @@ public class CarNumList extends ListActivity {
 			aPBReq.writeTo(aOS);
 			aOS.close();
 			InputStream aIS = aSock.getInputStream();
-			byte[] vresp = new byte[aIS.available()];
-			aIS.read(vresp);
-			aPBRes = Response.parseFrom(vresp);
+			byte[] vbuf = new byte[11];
+			aIS.read(vbuf);
+			try
+			{
+				aPBRes = Response.parseFrom(vbuf);
+			} catch (InvalidProtocolBufferException e)
+			{
+				e.printStackTrace();
+				aSock = aSSLSF.reconnect();
+				aOS = aSock.getOutputStream();
+				aPBReq.writeTo(aOS);
+				aOS.close();
+				aIS = aSock.getInputStream();
+				vbuf = new byte[11];
+				aIS.read(vbuf);
+				for (int i = 0; i<vbuf.length; i++)
+					System.out.print(vbuf[i] + " ");
+				System.out.println("");
+			}
 			aIS.close();
 			if (!aPBRes.hasNRespId())
 			{
@@ -125,14 +148,14 @@ public class CarNumList extends ListActivity {
 				aPBRes = Response.parseFrom(aIS);
 				if (!aPBRes.hasNRespId())
 				{
-					getConnFailedDialog("Connection to server could not be established." + 
+					getConnFailedDialog("Connection to server could not be established. " + 
 							"Please try again in a minute or call Dispatch.");
 					return -1;
 				}
 				if (aPBRes.getNRespId() != 0)
 				{
 					System.out.println("Error: " + aPBRes.getSResValue());
-					getConnFailedDialog("Connection to server could not be established." + 
+					getConnFailedDialog("Connection to server could not be established. " + 
 							"Please try again in a minute or call Dispatch.");
 					return -1;
 				}
@@ -153,7 +176,7 @@ public class CarNumList extends ListActivity {
 				{
 					System.out.println("Reponse ID: " + aPBRes.getNRespId());
 					System.out.println("Reponse Type: " + aPBRes.getSResValue());
-					getConnFailedDialog("Connection to server could not be established." + 
+					getConnFailedDialog("Connection to server could not be established. " + 
 							"Please try again in a minute or call Dispatch.");
 					return -1;
 				}
@@ -161,12 +184,13 @@ public class CarNumList extends ListActivity {
 					int numofcars;
 					if (aPBRes.getNResAddCount()==1)
 					{
-						numofcars = aPBRes.getNResAdd(1);
+						numofcars = aPBRes.getNResAdd(0);
 						System.out.println("Number of Cars: " + numofcars);
 					    Log.v(TAG, "Number of Cars: " + numofcars);
 					    return numofcars;
 					}
 					else
+						aSSLSF.forceReHandshake();
 						return numberOfCars();
 				}
 			}
@@ -177,6 +201,10 @@ public class CarNumList extends ListActivity {
 		} catch (IOException e)
 		{
 			e.printStackTrace();
+			aSSLSF.forceReHandshake();
+			aSock = aSSLSF.getSSLSocket();
+			getConnFailedDialog("Connection to server could not be established. " + 
+					"Please try again in a minute or call Dispatch.");
 			return -2;
 		}
 	}
