@@ -58,7 +58,6 @@ public final class GtBSSLSocketFactoryWrapper {
 			
 			KeyStore kskey = KeyStore.getInstance("BKS");
 			String kspass = a_ksis.readLine();
-			//DataInputStream in = new DataInputStream(aCtx.getResources().openRawResource(R.raw.gtbks));
 			kskey.load(aCtx.getResources().openRawResource(R.raw.gtbbks), kspass.toCharArray());
 			System.out.println("Contains gdt1: " + kskey.containsAlias("gdt1"));
 			System.out.println("Printing keystore");
@@ -71,7 +70,6 @@ public final class GtBSSLSocketFactoryWrapper {
 			
 			kstrust = KeyStore.getInstance("BKS");
 			String tkspass = a_tksis.readLine();
-			//in = new DataInputStream(aCtx.getResources().openRawResource(R.raw.trustedks));
 			kstrust.load(aCtx.getResources().openRawResource(R.raw.trust), tkspass.toCharArray());
 			System.out.println("Avaiable KMF algorithms: " + TrustManagerFactory.getDefaultAlgorithm());
 			tmf = TrustManagerFactory.getInstance("X509");
@@ -186,68 +184,5 @@ public final class GtBSSLSocketFactoryWrapper {
 	
 	public SSLSession getSession() {
 		return m_sslSocket.getSession();
-	}
-	
-	private java.security.cert.Certificate getJCert(InputStream iIS){
-		CertificateFactory aCF;
-		try {
-			aCF = CertificateFactory.getInstance("X509");
-			ASN1InputStream aAIN = new ASN1InputStream(iIS);
-			ASN1Sequence asni1;
-			asni1 = ASN1Sequence.getInstance(aAIN.readObject());
-			X509CertificateStructure certstruct[] = {new X509CertificateStructure(asni1)};
-			InputStream vBIS;
-			vBIS = new ByteArrayInputStream(certstruct[0].getEncoded());
-			return aCF.generateCertificate(vBIS);
-		} catch (CertificateException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return null;
-	}
-	
-	private void printCertInfo(java.security.cert.X509Certificate jCert){
-		try{
-			jCert.checkValidity();
-			jCert.getSignature();
-			jCert.getBasicConstraints();//Print these
-			jCert.getCriticalExtensionOIDs();
-			jCert.getExtendedKeyUsage();
-			jCert.getIssuerDN();
-			jCert.getIssuerX500Principal();
-			jCert.getSubjectDN();
-			jCert.getTBSCertificate();
-			jCert.getSerialNumber();
-			jCert.getSigAlgName();
-			jCert.getSigAlgOID();
-			System.out.println("Signature: " + jCert.getSignature());
-			System.out.println("Basic Constraints: " + jCert.getBasicConstraints());//Print these
-			System.out.println("Critical Extensions " + jCert.getCriticalExtensionOIDs());
-			System.out.println("Extended Key Usage: " + jCert.getExtendedKeyUsage());
-			System.out.println("Issuer DN: " + jCert.getIssuerDN());
-			System.out.println("Issuer X500 Principal: " + jCert.getIssuerX500Principal().getName());
-			System.out.println("Subject DN: " + jCert.getSubjectDN().getName());
-			System.out.println("TBS Certificate: " + jCert.getTBSCertificate());
-			System.out.println("Pub Key: " + jCert.getPublicKey());
-			System.out.println("Serial Number: " + jCert.getSerialNumber());
-			System.out.println("Sig Alg Name: " + jCert.getSigAlgName());
-			System.out.println("Sig Al OID: " + jCert.getSigAlgOID());
-		}catch (CertificateExpiredException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CertificateNotYetValidException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CertificateEncodingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (CertificateParsingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 	}
 }

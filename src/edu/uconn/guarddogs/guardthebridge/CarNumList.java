@@ -15,7 +15,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import edu.uconn.guarddogs.guardthebridge.Communication.Request;
