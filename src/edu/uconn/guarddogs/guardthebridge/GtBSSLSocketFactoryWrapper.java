@@ -1,9 +1,7 @@
 package edu.uconn.guarddogs.guardthebridge;
 
-import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
@@ -11,12 +9,7 @@ import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateExpiredException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.CertificateNotYetValidException;
-import java.security.cert.CertificateParsingException;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -25,9 +18,6 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.bouncycastle.asn1.ASN1InputStream;
-import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.x509.X509CertificateStructure;
 
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
@@ -83,13 +73,19 @@ public final class GtBSSLSocketFactoryWrapper {
 			
 			SSLContext aSC = SSLContext.getInstance("TLSv1");
 			aSC.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-			SSLContext.setDefault(aSC);			
+			SSLContext.setDefault(aSC);
+			System.out.println("Establishing Connection to server...");
 			m_sslSocket = (SSLSocket)aSC.getSocketFactory().createSocket(HOST, PORT);
+			System.out.println("Connected to: " + m_sslSocket.getInetAddress().getCanonicalHostName() + " on Port: " + m_sslSocket.getPort());
+			System.out.println("Local Binding is on: " + m_sslSocket.getLocalAddress().getCanonicalHostName() + " on Port: " + m_sslSocket.getLocalPort());
+			System.out.println("Connection Established. Handshaking...");
 			m_sslSocket.setUseClientMode(true);
 			try {
 				m_sslSocket.startHandshake();
 			} catch (IOException e)
 			{
+				System.out.println("Handshake Failed");
+				e.printStackTrace();
 				m_sslSocket.startHandshake();
 			}
 		} catch (KeyStoreException e) {

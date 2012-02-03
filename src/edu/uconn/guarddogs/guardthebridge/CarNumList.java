@@ -71,7 +71,7 @@ public class CarNumList extends ListActivity {
 	}
 	
 	private void getConnFailedDialog(String msg){
-		Log.v(TAG, "Failed to Connect to server");
+		Log.w(TAG, "Failed to Connect to server");
 		AlertDialog.Builder builder = new AlertDialog.Builder(this);
 		builder.setMessage(msg);
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
@@ -87,7 +87,6 @@ public class CarNumList extends ListActivity {
 		Request aPBReq;
 		Response aPBRes = null;
 		GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper(this);
-		System.out.println("Getting Car");
 		Log.v(TAG, "Getting Car");
 		
 		SSLSocket aSock = aSSLSF.getSSLSocket();
@@ -95,18 +94,15 @@ public class CarNumList extends ListActivity {
 		{
 			if(aSock.isConnected())
 			{
-				System.out.println("Socket is connected!");		
+				Log.v(TAG, "Socket is connected!");		
 			}
 			else
 			{
-				System.out.println("Socket is NOT connected!");
+				Log.w(TAG, "Socket is NOT connected!");
 			}
 		}
 		else
-			System.out.println("Socket is NOT bound!");
-		System.out.println("Connected to: " + aSock.getInetAddress().getCanonicalHostName() + " on Port: " + aSock.getPort());
-		System.out.println("Local Binding is on: " + aSock.getLocalAddress().getCanonicalHostName() + " on Port: " + aSock.getLocalPort());
-		
+			Log.w(TAG, "Socket is NOT bound!");
 		try
 		{
 			OutputStream aOS = aSock.getOutputStream();
@@ -114,10 +110,10 @@ public class CarNumList extends ListActivity {
 					setNReqId(2).
 					setSReqType("CARS").
 					build();
-			System.out.println("Request type: " + aPBReq.getSReqType());
-			System.out.println("Request Size: " + aPBReq.isInitialized());
+			Log.v(TAG, "Request type: " + aPBReq.getSReqType());
+			Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
 			Request aTemp = Request.parseFrom(aPBReq.toByteArray());
-			System.out.println("SReqType = " + aTemp.getSReqType() + " " + aTemp.getSerializedSize());
+			Log.v(TAG, "SReqType = " + aTemp.getSReqType() + " " + aTemp.getSerializedSize());
 			aPBReq.writeTo(aOS);
 			aOS.close();
 			InputStream aIS = aSock.getInputStream();
@@ -137,7 +133,7 @@ public class CarNumList extends ListActivity {
 				vbuf = new byte[11];
 				aIS.read(vbuf);
 				for (int i = 0; i<vbuf.length; i++)
-					System.out.print(vbuf[i] + " ");
+					Log.v(TAG, vbuf[i] + " ");
 				System.out.println("");
 			}
 			aIS.close();
@@ -153,7 +149,7 @@ public class CarNumList extends ListActivity {
 				}
 				if (aPBRes.getNRespId() != 0)
 				{
-					System.out.println("Error: " + aPBRes.getSResValue());
+					Log.e(TAG, "Error: " + aPBRes.getSResValue());
 					getConnFailedDialog("Connection to server could not be established. " + 
 							"Please try again in a minute or call Dispatch.");
 					return -1;
@@ -162,7 +158,6 @@ public class CarNumList extends ListActivity {
 				if (aPBRes.getNResAddCount()==1)
 				{
 					numofcars = aPBRes.getNResAdd(1);
-					System.out.println("Number of Cars: " + numofcars);
 				    Log.v(TAG, "Number of Cars: " + numofcars);
 				    return numofcars;
 				}
@@ -173,8 +168,8 @@ public class CarNumList extends ListActivity {
 			{
 				if (aPBRes.getNRespId() != 0)
 				{
-					System.out.println("Reponse ID: " + aPBRes.getNRespId());
-					System.out.println("Reponse Type: " + aPBRes.getSResValue());
+					Log.w(TAG, "Reponse ID: " + aPBRes.getNRespId());
+					Log.w(TAG, "Reponse Type: " + aPBRes.getSResValue());
 					getConnFailedDialog("Connection to server could not be established. " + 
 							"Please try again in a minute or call Dispatch.");
 					return -1;
@@ -184,7 +179,6 @@ public class CarNumList extends ListActivity {
 					if (aPBRes.getNResAddCount()==1)
 					{
 						numofcars = aPBRes.getNResAdd(0);
-						System.out.println("Number of Cars: " + numofcars);
 					    Log.v(TAG, "Number of Cars: " + numofcars);
 					    return numofcars;
 					}

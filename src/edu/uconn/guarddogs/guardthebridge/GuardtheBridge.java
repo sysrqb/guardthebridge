@@ -18,6 +18,7 @@ public class GuardtheBridge extends ListActivity {
 	private GtBDbAdapter mDbHelper;
     private TLSGtBDbAdapter nGDbHelper;
     private GtBSSLSocketFactoryWrapper m_sslSFW;
+    
     @Override
     public void onCreate(Bundle savedInstanceState) {
         
