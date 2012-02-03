@@ -21,13 +21,16 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
+import android.util.Log;
 
 public final class GtBSSLSocketFactoryWrapper {
+	private static final String TAG = "SSF-GTBLOG";
 	private final String HOST = "empathos.dyndns.org";
 	private final int PORT = 4680;
 	private static SSLSocket m_sslSocket = null;
 	private static SSLSocketFactory m_aSSF;
 	private static KeyStore m_kstrust, m_kskey;
+	private static SSLContext m_aSSLContext = null;
 	
 	public GtBSSLSocketFactoryWrapper(){}
 
@@ -71,22 +74,38 @@ public final class GtBSSLSocketFactoryWrapper {
 			
 			kmf.init(kskey, kspass.toCharArray());
 			
-			SSLContext aSC = SSLContext.getInstance("TLSv1");
-			aSC.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
-			SSLContext.setDefault(aSC);
-			System.out.println("Establishing Connection to server...");
+			SSLContext aSC = null;
+			if (m_aSSLContext == null)
+			{
+				aSC = SSLContext.getInstance("TLSv1");
+				aSC.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+				SSLContext.setDefault(aSC);
+				m_aSSLContext = aSC;
+			}
+			else
+			{
+				aSC = m_aSSLContext;
+			}
+			Log.v(TAG, "Establishing Connection to server...");
 			m_sslSocket = (SSLSocket)aSC.getSocketFactory().createSocket(HOST, PORT);
-			System.out.println("Connected to: " + m_sslSocket.getInetAddress().getCanonicalHostName() + " on Port: " + m_sslSocket.getPort());
-			System.out.println("Local Binding is on: " + m_sslSocket.getLocalAddress().getCanonicalHostName() + " on Port: " + m_sslSocket.getLocalPort());
-			System.out.println("Connection Established. Handshaking...");
+			Log.v(TAG, "Connected to: " + m_sslSocket.getInetAddress().getCanonicalHostName() + " on Port: " + m_sslSocket.getPort());
+			Log.v(TAG, "Local Binding is on: " + m_sslSocket.getLocalAddress().getCanonicalHostName() + " on Port: " + m_sslSocket.getLocalPort());
+			Log.v(TAG, "Connection Established. Handshaking...");
 			m_sslSocket.setUseClientMode(true);
 			try {
 				m_sslSocket.startHandshake();
 			} catch (IOException e)
 			{
-				System.out.println("Handshake Failed");
+				Log.w(TAG, "Handshake Failed");
 				e.printStackTrace();
+				try {
 				m_sslSocket.startHandshake();
+				} catch (IOException ex)
+				{
+					Log.w(TAG, "Failed to establish connection!");
+					m_sslSocket = null;
+					new GtBSSLSocketFactoryWrapper(i_aCtx);
+				}
 			}
 		} catch (KeyStoreException e) {
 			// TODO Auto-generated catch block
@@ -133,6 +152,10 @@ public final class GtBSSLSocketFactoryWrapper {
 		return tmp;
 	}
 	
+	public SSLSocket createSSLSocket (){
+		return (SSLSocket) createSocket(null, 0, true);
+	}
+	
 	public Socket createSocket(String host, int port, boolean autoClose)
 	{
 		if(host=="")
@@ -167,7 +190,7 @@ public final class GtBSSLSocketFactoryWrapper {
 	
 	public SSLSocket getSSLSocket()
 	{
-		return m_sslSocket;	
+		return m_sslSocket;
 	}
 	
 	public KeyStore getKSKey(){

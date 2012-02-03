@@ -22,7 +22,7 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
 
 public class CarNumList extends ListActivity {
-	private static final String TAG = "GTBLOG";
+	private static final String TAG = "CNL-GTBLOG";
     private CarsGtBDbAdapter mDbHelper;
     private TLSGtBDbAdapter nGDbHelper; //Ngin DB Helper
     
@@ -38,8 +38,7 @@ public class CarNumList extends ListActivity {
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
-		System.out.println("Index: " + mDbHelper.setCar(position+1));//Position starts at 0, so add 1
-		System.out.println("Car Number: " + position);
+		Log.v(TAG, "Index: " + mDbHelper.setCar(position+1));//Position starts at 0, so add 1
 		Log.v(TAG, "Car Number: " + position);
 		setResult(RESULT_OK);
 		finish();
@@ -51,12 +50,11 @@ public class CarNumList extends ListActivity {
 		int num = numberOfCars();
 		if(num < 1)
 		{
-			System.out.println("Failed to retrieve number of cars!");
+			Log.w(TAG, "Failed to retrieve number of cars!");
 			cars = new String[1];
 			cars[0] = "Unknown number of cars";
 			setListAdapter(new ArrayAdapter<String>(this, R.layout.carnums, cars));
-			System.out.println("No cars received. Unknown number.");
-			Log.v(TAG, "No cars received. Unknown number.");
+			Log.w(TAG, "No cars received. Unknown number.");
 		}
 		else
 		{
@@ -65,7 +63,6 @@ public class CarNumList extends ListActivity {
 				cars[i] = "Car " + (i+1);
 			}
 			setListAdapter(new ArrayAdapter<String>(this, R.layout.carnums, cars));
-			System.out.println("Num of Cars: " + cars.length);
 			Log.v(TAG, "Num of Cars: " + cars.length);
 		}
 	}
@@ -92,20 +89,42 @@ public class CarNumList extends ListActivity {
 		SSLSocket aSock = aSSLSF.getSSLSocket();
 		if(aSock.isBound())
 		{
-			if(aSock.isConnected())
+			if(!aSock.isClosed())
 			{
-				Log.v(TAG, "Socket is connected!");		
+				Log.v(TAG, "Socket is not closed!");	
 			}
 			else
 			{
-				Log.w(TAG, "Socket is NOT connected!");
+				Log.w(TAG, "Socket IS closed!");
+				aSock = aSSLSF.createSSLSocket();
 			}
 		}
 		else
 			Log.w(TAG, "Socket is NOT bound!");
+		
+		if (aSock.isOutputShutdown())
+		{
+			Log.w(TAG, "Output Stream is Shutdown!");
+			aSock = aSSLSF.getSSLSocket();
+		}
+		if (aSSLSF.getSession().isValid())
+			Log.v(TAG, "Session is still valid");
+		else
+			Log.w(TAG, "Session is NO LONGER VALID");
+		
 		try
 		{
-			OutputStream aOS = aSock.getOutputStream();
+			OutputStream aOS = null;
+			try
+			{
+				aOS = aSock.getOutputStream();
+			} catch (IOException e)
+			{
+				aSSLSF.forceReHandshake(this);
+				aSock = aSSLSF.getSSLSocket();
+				aOS = aSock.getOutputStream();
+			}
+			
 			aPBReq = Request.newBuilder().
 					setNReqId(2).
 					setSReqType("CARS").
@@ -119,22 +138,24 @@ public class CarNumList extends ListActivity {
 			InputStream aIS = aSock.getInputStream();
 			byte[] vbuf = new byte[11];
 			aIS.read(vbuf);
+			aSock.close(); //Server Side is already closed
 			try
 			{
 				aPBRes = Response.parseFrom(vbuf);
 			} catch (InvalidProtocolBufferException e)
 			{
 				e.printStackTrace();
-				aSock = aSSLSF.reconnect();
+				aSock = aSSLSF.getSSLSocket();
 				aOS = aSock.getOutputStream();
 				aPBReq.writeTo(aOS);
 				aOS.close();
 				aIS = aSock.getInputStream();
 				vbuf = new byte[11];
 				aIS.read(vbuf);
+				String tmp = "";
 				for (int i = 0; i<vbuf.length; i++)
-					Log.v(TAG, vbuf[i] + " ");
-				System.out.println("");
+					tmp = tmp + vbuf[i] + " ";
+				Log.v(TAG, tmp);
 			}
 			aIS.close();
 			if (!aPBRes.hasNRespId())

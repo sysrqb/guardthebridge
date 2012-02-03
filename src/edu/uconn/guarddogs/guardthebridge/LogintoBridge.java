@@ -9,18 +9,19 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
-import edu.uconn.guarddogs.guardthebridge.Communication.Request;
-import edu.uconn.guarddogs.guardthebridge.Communication.Response;
-
 import android.app.ListActivity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import edu.uconn.guarddogs.guardthebridge.Communication.Request;
+import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
 public class LogintoBridge extends ListActivity {
+	private static final String TAG = "LIB-GTBLOG";
 	private EditText mNetIdText;
     private EditText mAuthText;
     private String mCarNum;
@@ -59,7 +60,7 @@ public class LogintoBridge extends ListActivity {
 	
 	 protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 	        super.onActivityResult(requestCode, resultCode, intent);
-	        System.out.println("On Return");
+	        Log.v(TAG, "On Return");
 	        
 	        setContentView(R.layout.main);
 	        setTitle(R.string.app_name);
@@ -88,7 +89,7 @@ public class LogintoBridge extends ListActivity {
 
 	        });
 	        mCarNum = Integer.toString(mDbHelper.getCar());
-	        System.out.println("Ret Car Number: " + mCarNum);
+	        Log.v(TAG, "Ret Car Number: " + mCarNum);
 	        TextView showcarnum = (TextView)findViewById(R.id.showcarnum);
 	        showcarnum.setText("You Selected Car Number: " + mCarNum);
 	        

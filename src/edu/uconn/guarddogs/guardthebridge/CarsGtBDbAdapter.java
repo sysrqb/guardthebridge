@@ -35,7 +35,6 @@ import android.util.Log;
  * recommended).
  */
 public class CarsGtBDbAdapter {
-
     public static final String KEY_ROWID = "_id";
     public static final String KEY_CARNUM = "carnum";
 
@@ -113,7 +112,7 @@ public class CarsGtBDbAdapter {
      * @return rowId or -1 if failed
      */
     public long setCar(int carnum) {
-        System.out.println("Rows Deleted " + this.deleteAllRows());
+        Log.v(TAG, "Rows Deleted " + this.deleteAllRows());
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_ROWID, 1);
     	initialValues.put(KEY_CARNUM, carnum);
@@ -130,7 +129,7 @@ public class CarsGtBDbAdapter {
 
         Cursor curse = mDb.query(DATABASE_TABLE, new String[] {KEY_CARNUM}, KEY_ROWID + "= 1", null, null, null, null, null);
         curse.moveToFirst();
-        System.out.println("getCar: returned rows: " + curse.getCount() + " " + curse.getColumnCount());
+       Log.v(TAG, "getCar: returned rows: " + curse.getCount() + " " + curse.getColumnCount());
         return curse.getInt(0);
     }
     
