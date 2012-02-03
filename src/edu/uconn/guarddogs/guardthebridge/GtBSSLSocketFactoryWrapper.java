@@ -1,6 +1,7 @@
 package edu.uconn.guarddogs.guardthebridge;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
@@ -44,8 +45,8 @@ public final class GtBSSLSocketFactoryWrapper {
 		
 		Context aCtx = i_aCtx;
 		
-		//DataInputStream a_tksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.tkspass));
-		//DataInputStream a_ksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.kspass));
+		DataInputStream a_tksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.tkspass));
+		DataInputStream a_ksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.kspass));
 		
 		if(m_sslSocket != null)
 			return;
@@ -56,30 +57,31 @@ public final class GtBSSLSocketFactoryWrapper {
 			KeyManagerFactory kmf;
 			
 			KeyStore kskey = KeyStore.getInstance("BKS");
-			//String kspass = a_ksis.readLine();
+			String kspass = a_ksis.readLine();
 			//DataInputStream in = new DataInputStream(aCtx.getResources().openRawResource(R.raw.gtbks));
-			kskey.load(aCtx.getResources().openRawResource(R.raw.gtbbks), "a7b58df4b988423dad92cef6ce63bee2".toCharArray());
+			kskey.load(aCtx.getResources().openRawResource(R.raw.gtbbks), kspass.toCharArray());
 			System.out.println("Contains gdt1: " + kskey.containsAlias("gdt1"));
 			System.out.println("Printing keystore");
 			java.security.cert.Certificate aCertGDT1 = kskey.getCertificate("gdt1");
 			System.out.println("GDT1 PubKey Format: " + aCertGDT1.getPublicKey().getFormat());
 			kmf = KeyManagerFactory.getInstance("X509");
-			//a_ksis.close();
+			a_ksis.close();
 			m_kskey = kskey;
 			
 			
 			kstrust = KeyStore.getInstance("BKS");
+			String tkspass = a_tksis.readLine();
 			//in = new DataInputStream(aCtx.getResources().openRawResource(R.raw.trustedks));
-			kstrust.load(aCtx.getResources().openRawResource(R.raw.trust), "c5af83b8e7ee49d1a7e91024558a6605".toCharArray());
+			kstrust.load(aCtx.getResources().openRawResource(R.raw.trust), tkspass.toCharArray());
 			System.out.println("Avaiable KMF algorithms: " + TrustManagerFactory.getDefaultAlgorithm());
 			tmf = TrustManagerFactory.getInstance("X509");
 			tmf.init(kstrust);
 			System.out.println("Algorithm being used for TMF: " + tmf.getAlgorithm());
 			
-			//a_tksis.close();			
+			a_tksis.close();			
 			m_kstrust = kstrust;
 			
-			kmf.init(kskey, "a7b58df4b988423dad92cef6ce63bee2".toCharArray());
+			kmf.init(kskey, kspass.toCharArray());
 			
 			SSLContext aSC = SSLContext.getInstance("TLSv1");
 			aSC.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
@@ -116,7 +118,7 @@ public final class GtBSSLSocketFactoryWrapper {
 		}
 	}
 	
-	public void forceReHandshake()
+	public void forceReHandshake(Context i_aCtx)
 	{
 		try {
 			m_sslSocket.startHandshake();
@@ -126,7 +128,7 @@ public final class GtBSSLSocketFactoryWrapper {
 			e.printStackTrace();
 			System.out.println("Re-Establishing Connection..");
 			m_sslSocket = null;
-			new GtBSSLSocketFactoryWrapper(null);
+			new GtBSSLSocketFactoryWrapper(i_aCtx);
 		}
 	}
 	

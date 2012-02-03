@@ -190,7 +190,7 @@ public class CarNumList extends ListActivity {
 					    return numofcars;
 					}
 					else
-						aSSLSF.forceReHandshake();
+						aSSLSF.forceReHandshake(this);
 						return numberOfCars();
 				}
 			}
@@ -201,7 +201,7 @@ public class CarNumList extends ListActivity {
 		} catch (IOException e)
 		{
 			e.printStackTrace();
-			aSSLSF.forceReHandshake();
+			aSSLSF.forceReHandshake(this);
 			aSock = aSSLSF.getSSLSocket();
 			getConnFailedDialog("Connection to server could not be established. " + 
 					"Please try again in a minute or call Dispatch.");
