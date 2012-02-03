@@ -5,7 +5,6 @@ import java.io.IOException;
 import javax.net.ssl.SSLSocket;
 
 import android.app.ListActivity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import edu.uconn.guarddogs.guardthebridge.Communication.Request;
@@ -13,8 +12,6 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 public class GuardtheBridge extends ListActivity {
-    /** Called when the activity is first created. */
-	private static final int CarNum_SELECT=0;
 	private GtBDbAdapter mDbHelper;
     private TLSGtBDbAdapter nGDbHelper;
     private GtBSSLSocketFactoryWrapper m_sslSFW;
@@ -24,16 +21,6 @@ public class GuardtheBridge extends ListActivity {
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activelist);
-        Intent i = new Intent(this, LogintoBridge.class);
-    	startActivityForResult(i, CarNum_SELECT);
-    }
-    
-    public boolean onOptionItemSelected(MenuItem menu){
-		return super.onOptionsItemSelected(menu);
-    }
-    
-    protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-        super.onActivityResult(requestCode, resultCode, intent);
         m_sslSFW = new GtBSSLSocketFactoryWrapper(this);
         initializeDb();
         try {
@@ -43,6 +30,10 @@ public class GuardtheBridge extends ListActivity {
 			e.printStackTrace();
 		}
         populateRides();
+    }
+    
+    public boolean onOptionItemSelected(MenuItem menu){
+		return super.onOptionsItemSelected(menu);
     }
     
     public void initializeDb(){

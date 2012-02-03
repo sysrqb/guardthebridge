@@ -81,8 +81,8 @@ public class LogintoBridge extends ListActivity {
 	            		dealwitherrors(retval);
 	            	}
 	            	else{
-		                setResult(RESULT_OK);
-		                finish();
+		                Intent i = new Intent (self, GuardtheBridge.class);
+		                startActivity(i);
 	            	}
 	            }
 
