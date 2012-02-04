@@ -158,14 +158,13 @@ public final class GtBSSLSocketFactoryWrapper {
 	
 	public Socket createSocket(String host, int port, boolean autoClose)
 	{
-		if(host=="")
+		if(host==null)
 			host = HOST;
 		if(port==0)
 			port = PORT;
 		
 		try {
-			Socket tempSocket = new Socket(host, port);
-			return createSocket(tempSocket, host, port, autoClose);
+			return m_aSSLContext.getSocketFactory().createSocket(host, port);
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -180,7 +179,8 @@ public final class GtBSSLSocketFactoryWrapper {
 			throws IOException 
 			{
 		// TODO Auto-generated method stub
-		return m_aSSF.createSocket(socket, host, port, autoClose);
+		return m_aSSLContext.getSocketFactory().createSocket(host, port);
+		//return m_aSSF.createSocket(socket, host, port, autoClose);
 	}
 	
 	public SSLSocketFactory getSSLSocketFactory()

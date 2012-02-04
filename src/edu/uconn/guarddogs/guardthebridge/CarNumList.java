@@ -23,22 +23,22 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
 public class CarNumList extends ListActivity {
 	private static final String TAG = "CNL-GTBLOG";
-    private CarsGtBDbAdapter mDbHelper;
-    private TLSGtBDbAdapter nGDbHelper; //Ngin DB Helper
+    private CarsGtBDbAdapter m_aCDbHelper;
+    private TLSGtBDbAdapter m_aTDbHelper; //Ngin DB Helper
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mDbHelper = new CarsGtBDbAdapter(this);
-		nGDbHelper = new TLSGtBDbAdapter(this);
-        mDbHelper.open();
+		m_aCDbHelper = new CarsGtBDbAdapter(this);
+		m_aTDbHelper = new TLSGtBDbAdapter(this);
+        m_aCDbHelper.open();
 		listCars();
 	}
 	
 	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id) {
 		super.onListItemClick(l, v, position, id);
-		Log.v(TAG, "Index: " + mDbHelper.setCar(position+1));//Position starts at 0, so add 1
+		Log.v(TAG, "Index: " + m_aCDbHelper.setCar(position+1));//Position starts at 0, so add 1
 		Log.v(TAG, "Car Number: " + position);
 		setResult(RESULT_OK);
 		finish();

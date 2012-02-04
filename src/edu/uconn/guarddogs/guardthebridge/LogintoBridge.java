@@ -9,7 +9,9 @@ import java.security.NoSuchAlgorithmException;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -104,85 +106,72 @@ public class LogintoBridge extends ListActivity {
 	    }
 	
 	public int sendAuthCheck(EditText netid, EditText authcode, String carnum){
-		SSLSession sslconn;
 		Request aPBReq;
 		Response aPBRes;
 		GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper();
 		
 		SSLSocket aSock = aSSLSF.getSSLSocket();
-		if(aSock.isBound())
+		if(aSock.isClosed())
 		{
-			if(aSock.isConnected())
-			{
-				System.out.println("Socket is connected!");		
-			}
-			else
-			{
-				System.out.println("Socket is NOT connected!");
-			}
+			aSock = aSSLSF.createSSLSocket();
 		}
-		else
-			System.out.println("Socket is NOT bound!");
 		try {
-		System.out.println("Connected to: " + aSock.getInetAddress().getCanonicalHostName() + " on Port: " + aSock.getPort());
-		System.out.println("Local Binding is on: " + aSock.getLocalAddress().getCanonicalHostName() + " on Port: " + aSock.getLocalPort());
-		OutputStream aOS = aSock.getOutputStream();
-		aPBReq = Request.newBuilder().
-				setNReqId(2).
-				setSReqType("CARS").
+			OutputStream aOS = aSock.getOutputStream();
+			aPBReq = Request.newBuilder().
+				setNReqId(1).
+				setSReqType("AUTH").
+				setSParams(0, netid.getText().toString()).
+				setSParams(1, authcode.getText().toString()).
+				setSParams(2, carnum).
 				build();
-		aPBReq.writeTo(aOS);
-		aOS.close();
-		InputStream aIS = aSock.getInputStream();
-		aPBRes = Response.parseFrom(aIS);
-		aIS.close();
+			
+			Log.v(TAG, "Nightly Key: " + authcode.getText().toString());
+			Log.v(TAG, "NetID: " + netid.getText().toString());
+			Log.v(TAG, "Car Number: " + carnum);
+			aPBReq.writeTo(aOS);
+			aOS.close();
+			InputStream aIS = aSock.getInputStream();
+			aPBRes = Response.parseFrom(aIS);
+			aIS.close();
+			return aPBRes.getNRespId();
 		} catch (IOException e){
 			e.printStackTrace();
-		}
-		String key = "AUTH";
-		MessageDigest hash = null;
-		byte[] hashstring;
-		String stringcat;
-		System.out.println("Nightly Key: " + authcode.getText().toString());
-		System.out.println("NetID: " + netid.getText().toString());
-		System.out.println("Car Number: " + carnum);
-		try {
-			/*send = new Socket(myserver, 4680);
-			
-			out = send.getOutputStream();
-			out.write(key.getBytes());*/
-
-			hash = MessageDigest.getInstance("SHA-256");
-			stringcat = netid.getText().toString() + authcode.getText().toString() + carnum;
-			hashstring = hash.digest(stringcat.getBytes());
-			System.out.println("Hash: " + hashstring.length);
-			//out.write(hashstring);
-			
-			byte[] accepted = new byte[1];
-			/*in = send.getInputStream();
-			in.read(accepted);*/
-			accepted = "".getBytes();
-			return Integer.parseInt(Byte.toString(accepted[0]));
-		} catch (NoSuchAlgorithmException e1) {
-			// TODO Auto-generated catch block
-			System.out.println("NoSuchAlgo");
-			return -3;
+			getConnFailedDialog("Connection to server could not be established. " + 
+					"Please try again in a minute or call Dispatch.");
+			return -2;
 		}
 	}
 	
 	public void dealwitherrors(int retval){
 		switch (retval){
 		case -1:
+			getConnFailedDialog("I'm sorry, but please retype the authentication code." 
+					+ "The one you entered could not be verified");
 			break;
 		case -2:
+			getConnFailedDialog("I'm sorry, but please retype your NetID." 
+					+ "The one you entered could not be verified");
 			break;
 		case -3:
-			break;
+			
 		case -4:
-			break;
+			
 		default:
+			getConnFailedDialog("I'm sorry, but an unknown error occurred. " +
+					"Please call dispatch/the supervisor if this persists.");
 			break;
 		}
 	}
-
+	
+	private void getConnFailedDialog(String msg){
+		Log.w(TAG, "Failed to Connect to server");
+		AlertDialog.Builder builder = new AlertDialog.Builder(this);
+		builder.setMessage(msg);
+		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int id) {
+           	    finish();
+           }
+        });
+		builder.show();
+	}
 }
