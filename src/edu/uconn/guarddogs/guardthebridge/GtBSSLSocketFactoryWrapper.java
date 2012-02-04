@@ -175,14 +175,6 @@ public final class GtBSSLSocketFactoryWrapper {
 		return null;
 	}
 	
-	public Socket createSocket(Socket socket, String host, int port, boolean autoClose)
-			throws IOException 
-			{
-		// TODO Auto-generated method stub
-		return m_aSSLContext.getSocketFactory().createSocket(host, port);
-		//return m_aSSF.createSocket(socket, host, port, autoClose);
-	}
-	
 	public SSLSocketFactory getSSLSocketFactory()
 	{
 		return m_aSSF;	

@@ -120,9 +120,9 @@ public class LogintoBridge extends ListActivity {
 			aPBReq = Request.newBuilder().
 				setNReqId(1).
 				setSReqType("AUTH").
-				setSParams(0, netid.getText().toString()).
-				setSParams(1, authcode.getText().toString()).
-				setSParams(2, carnum).
+				addSParams(netid.getText().toString()).
+				addSParams(authcode.getText().toString()).
+				addSParams(carnum).
 				build();
 			
 			Log.v(TAG, "Nightly Key: " + authcode.getText().toString());
