@@ -40,6 +40,7 @@ public class CarNumList extends ListActivity {
 		super.onListItemClick(l, v, position, id);
 		Log.v(TAG, "Index: " + m_aCDbHelper.setCar(position+1));//Position starts at 0, so add 1
 		Log.v(TAG, "Car Number: " + position);
+		m_aCDbHelper.close();
 		setResult(RESULT_OK);
 		finish();
 	}
@@ -96,7 +97,7 @@ public class CarNumList extends ListActivity {
 			else
 			{
 				Log.w(TAG, "Socket IS closed!");
-				aSock = aSSLSF.createSSLSocket();
+				aSock = aSSLSF.createSSLSocket(this);
 			}
 		}
 		else
@@ -131,8 +132,8 @@ public class CarNumList extends ListActivity {
 					build();
 			Log.v(TAG, "Request type: " + aPBReq.getSReqType());
 			Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
-			Request aTemp = Request.parseFrom(aPBReq.toByteArray());
-			Log.v(TAG, "SReqType = " + aTemp.getSReqType() + " " + aTemp.getSerializedSize());
+			Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + aPBReq.getSerializedSize());
+			aOS.write(aPBReq.getSerializedSize());
 			aPBReq.writeTo(aOS);
 			aOS.close();
 			InputStream aIS = aSock.getInputStream();
@@ -147,6 +148,7 @@ public class CarNumList extends ListActivity {
 				e.printStackTrace();
 				aSock = aSSLSF.getSSLSocket();
 				aOS = aSock.getOutputStream();
+				aOS.write(aPBReq.getSerializedSize());
 				aPBReq.writeTo(aOS);
 				aOS.close();
 				aIS = aSock.getInputStream();

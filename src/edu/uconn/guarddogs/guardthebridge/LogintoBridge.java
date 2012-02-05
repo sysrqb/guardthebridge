@@ -113,7 +113,7 @@ public class LogintoBridge extends ListActivity {
 		SSLSocket aSock = aSSLSF.getSSLSocket();
 		if(aSock.isClosed())
 		{
-			aSock = aSSLSF.createSSLSocket();
+			aSock = aSSLSF.createSSLSocket(this);
 		}
 		try {
 			OutputStream aOS = aSock.getOutputStream();
@@ -124,14 +124,19 @@ public class LogintoBridge extends ListActivity {
 				addSParams(authcode.getText().toString()).
 				addSParams(carnum).
 				build();
-			
+			Log.v(TAG, "Number of Params: " + aPBReq.getSParamsCount());
 			Log.v(TAG, "Nightly Key: " + authcode.getText().toString());
 			Log.v(TAG, "NetID: " + netid.getText().toString());
 			Log.v(TAG, "Car Number: " + carnum);
+			Log.v(TAG, "Serialized Size: " + aPBReq.getSerializedSize());
+			aOS.write(aPBReq.getSerializedSize());
 			aPBReq.writeTo(aOS);
 			aOS.close();
 			InputStream aIS = aSock.getInputStream();
-			aPBRes = Response.parseFrom(aIS);
+			byte[] vbuf = new byte[14];
+			aIS.read(vbuf);
+			aSock.close();
+			aPBRes = Response.parseFrom(vbuf);
 			aIS.close();
 			return aPBRes.getNRespId();
 		} catch (IOException e){
@@ -169,7 +174,7 @@ public class LogintoBridge extends ListActivity {
 		builder.setMessage(msg);
 		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
            public void onClick(DialogInterface dialog, int id) {
-           	    finish();
+           	    return;
            }
         });
 		builder.show();

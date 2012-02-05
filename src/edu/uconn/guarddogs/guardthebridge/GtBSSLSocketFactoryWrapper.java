@@ -36,13 +36,13 @@ public final class GtBSSLSocketFactoryWrapper {
 
 	public GtBSSLSocketFactoryWrapper(Context i_aCtx){
 		
+		if(m_sslSocket != null)
+			return;
+		
 		Context aCtx = i_aCtx;
 		
 		DataInputStream a_tksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.tkspass));
 		DataInputStream a_ksis = new DataInputStream(aCtx.getResources().openRawResource(R.raw.kspass));
-		
-		if(m_sslSocket != null)
-			return;
 		
 		KeyStore kstrust;
 		try {
@@ -152,8 +152,10 @@ public final class GtBSSLSocketFactoryWrapper {
 		return tmp;
 	}
 	
-	public SSLSocket createSSLSocket (){
-		return (SSLSocket) createSocket(null, 0, true);
+	public SSLSocket createSSLSocket (Context i_aCtx){
+		m_sslSocket = (SSLSocket) createSocket(null, 0, true);
+		forceReHandshake(i_aCtx);
+		return m_sslSocket;
 	}
 	
 	public Socket createSocket(String host, int port, boolean autoClose)
