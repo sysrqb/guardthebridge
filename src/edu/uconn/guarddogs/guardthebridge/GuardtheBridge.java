@@ -1,27 +1,31 @@
 package edu.uconn.guarddogs.guardthebridge;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 import javax.net.ssl.SSLSocket;
 
 import android.app.ListActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
-import edu.uconn.guarddogs.guardthebridge.Communication.Request;
-import edu.uconn.guarddogs.guardthebridge.Communication.Response;
+import edu.uconn.guarddogs.guardthebridge.Communication.*;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 public class GuardtheBridge extends ListActivity {
-	private GtBDbAdapter mDbHelper;
+	private static final String TAG = "GTB";
+	private CarsGtBDbAdapter mDbHelper;
+	private GtBDbAdapter mGDbHelper;
     private TLSGtBDbAdapter nGDbHelper;
-    private GtBSSLSocketFactoryWrapper m_sslSFW;
+    private GtBSSLSocketFactoryWrapper m_sslSF;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activelist);
-        m_sslSFW = new GtBSSLSocketFactoryWrapper(this);
+        m_sslSF = new GtBSSLSocketFactoryWrapper(this);
         initializeDb();
         try {
 			retrieveRides();
@@ -30,58 +34,50 @@ public class GuardtheBridge extends ListActivity {
 			e.printStackTrace();
 		}
         populateRides();
+        mGDbHelper.close();
+        mDbHelper.close();
+        nGDbHelper.close();
     }
     
     public boolean onOptionItemSelected(MenuItem menu){
 		return super.onOptionsItemSelected(menu);
     }
     
-    public void initializeDb(){
-	   mDbHelper = new GtBDbAdapter(this);
-	   mDbHelper.open();
-	   nGDbHelper = new TLSGtBDbAdapter (this);
-       nGDbHelper.open();
+    public void initializeDb()
+     {
+    	mGDbHelper = new GtBDbAdapter(this);
+    	mGDbHelper.open();
+    	mDbHelper = new CarsGtBDbAdapter(this);
+	    mDbHelper.open();
+	    nGDbHelper = new TLSGtBDbAdapter (this);
+        nGDbHelper.open();
     }
     
    public void retrieveRides() throws IOException{
 	   Request aPBReq = Request.newBuilder().
-			   setNReqId(0).
+			   setNReqId(1).
 			   setSReqType("CURR").
+			   setNCarId(mDbHelper.getCar()).
 			   build();
-	   SSLSocket sslSock = m_sslSFW.getSSLSocket();
-	   aPBReq.writeTo(sslSock.getOutputStream());
-	   /*Socket send;
-	   OutputStream out = null;
-	   InputStream in;
-	   String myserver = "empathos.dyndns.org";*/
-	   
-	   String key = "CURR";
-	   //int numbytes, results;
-	   byte[] currrides;
-	   //TODO: DH???
-	   /*send = new Socket(myserver, 4680);
-	   out = send.getOutputStream();
-	   out.write(key.getBytes());
-	   in = send.getInputStream();*/
-	   /*numbytes = in.read();
-	   currrides = new byte[numbytes];*/
-	   
-	   addToDb(Response.parseFrom(sslSock.getInputStream()).getPlPatronList());
-	   
-	   
-	   /*results = in.read();//Number of results
-	   while(results-- > 0){//Loop for each entry
-		   byte[][] row = new byte[8][];//Array of bytes - each index contains data for it's column, respectfully
-		   for (int i = 0; i<8; i++){//Per column
-			   numbytes = in.read(); //Number of bytes coming
-			   currrides = new byte[numbytes];//Initialize byte array to hold column data
-			   in.read(currrides);//Store incoming data
-			   row[i] = currrides;//
-			   }
-		   addToDb(row);//Save it
-		   }
-	   in = null;
-	   out = null;*/
+	   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
+	   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
+	   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
+	   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + aPBReq.getSerializedSize());
+	   SSLSocket aSock = m_sslSF.getSSLSocket();
+	   if (aSock.isClosed())
+		   aSock = m_sslSF.createSSLSocket(this);
+	   OutputStream aOS = aSock.getOutputStream();
+	   aOS.write(aPBReq.getSerializedSize());
+	   byte[] vbuf = aPBReq.toByteArray();
+	   //aPBReq.writeTo(aOS);
+	   aOS.write(vbuf);
+	   InputStream aIS = aSock.getInputStream();
+	   vbuf = new byte[1];
+	   aIS.read(vbuf);
+	   vbuf = new byte[vbuf[0]];
+	   aIS.read(vbuf);
+	   addToDb(Response.parseFrom(vbuf).getPlPatronList());
+	   Log.v(TAG, "Added to DB");
    	}
    
    public void addToDb(PatronList list){
@@ -114,7 +110,7 @@ public class GuardtheBridge extends ListActivity {
 	   
 	   PatronInfo pI = new PatronInfo(val, val1);*/
 	   for (Patron.PatronInfo patron : list.getPatronList())
-		   mDbHelper.createPatron(patron.toByteArray(), patron.getPid());
+		   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
    }
    
    public void populateRides(){

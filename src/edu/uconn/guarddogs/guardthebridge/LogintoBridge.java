@@ -118,7 +118,7 @@ public class LogintoBridge extends ListActivity {
 		try {
 			OutputStream aOS = aSock.getOutputStream();
 			aPBReq = Request.newBuilder().
-				setNReqId(1).
+				setNReqId(2).
 				setSReqType("AUTH").
 				addSParams(netid.getText().toString()).
 				addSParams(authcode.getText().toString()).

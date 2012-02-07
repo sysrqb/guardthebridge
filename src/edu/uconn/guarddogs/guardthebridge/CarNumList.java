@@ -127,7 +127,7 @@ public class CarNumList extends ListActivity {
 			}
 			
 			aPBReq = Request.newBuilder().
-					setNReqId(2).
+					setNReqId(3).
 					setSReqType("CARS").
 					build();
 			Log.v(TAG, "Request type: " + aPBReq.getSReqType());
