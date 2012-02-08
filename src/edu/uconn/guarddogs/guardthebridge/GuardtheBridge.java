@@ -3,6 +3,9 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.TreeMap;
 
 import javax.net.ssl.SSLSocket;
 
@@ -10,7 +13,15 @@ import android.app.ListActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
-import edu.uconn.guarddogs.guardthebridge.Communication.*;
+import android.widget.ArrayAdapter;
+import android.widget.SimpleAdapter;
+
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.TextFormat;
+
+import edu.uconn.guarddogs.guardthebridge.Communication.Request;
+import edu.uconn.guarddogs.guardthebridge.Communication.Response;
+import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 public class GuardtheBridge extends ListActivity {
@@ -27,12 +38,7 @@ public class GuardtheBridge extends ListActivity {
         setContentView(R.layout.activelist);
         m_sslSF = new GtBSSLSocketFactoryWrapper(this);
         initializeDb();
-        try {
-			retrieveRides();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+        retrieveRides();
         populateRides();
         mGDbHelper.close();
         mDbHelper.close();
@@ -53,7 +59,7 @@ public class GuardtheBridge extends ListActivity {
         nGDbHelper.open();
     }
     
-   public void retrieveRides() throws IOException{
+   public void retrieveRides() {
 	   Request aPBReq = Request.newBuilder().
 			   setNReqId(1).
 			   setSReqType("CURR").
@@ -66,64 +72,63 @@ public class GuardtheBridge extends ListActivity {
 	   SSLSocket aSock = m_sslSF.getSSLSocket();
 	   if (aSock.isClosed())
 		   aSock = m_sslSF.createSSLSocket(this);
-	   OutputStream aOS = aSock.getOutputStream();
-	   aOS.write(aPBReq.getSerializedSize());
-	   byte[] vbuf = aPBReq.toByteArray();
-	   //aPBReq.writeTo(aOS);
-	   aOS.write(vbuf);
-	   InputStream aIS = aSock.getInputStream();
-	   vbuf = new byte[1];
-	   aIS.read(vbuf);
-	   vbuf = new byte[vbuf[0]];
-	   aIS.read(vbuf);
-	   addToDb(Response.parseFrom(vbuf).getPlPatronList());
-	   Log.v(TAG, "Added to DB");
+	   try {
+		   OutputStream aOS = aSock.getOutputStream();
+		   aOS.write(aPBReq.getSerializedSize());
+		   byte[] vbuf = aPBReq.toByteArray();
+		   //aPBReq.writeTo(aOS);
+		   aOS.write(vbuf);
+		   InputStream aIS = aSock.getInputStream();
+		   vbuf = new byte[1];
+		   aIS.read(vbuf);
+		   vbuf = new byte[vbuf[0]];
+		   aIS.read(vbuf);
+		   Response apbRes;
+		   try {
+			   apbRes = Response.parseFrom(vbuf);
+		
+			   Log.v(TAG, "Response Buffer:");
+			   Log.v(TAG, TextFormat.shortDebugString(apbRes));
+			   Log.v(TAG, "PatronList Buffer: ");
+			   Log.v(TAG, TextFormat.shortDebugString(apbRes.getPlPatronList()));
+			   addToDb(apbRes.getPlPatronList());
+			   Log.v(TAG, "Added to DB");
+			} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	   }catch (IOException e)
+	   {
+		   e.printStackTrace();
+	   }
    	}
    
    public void addToDb(PatronList list){
-	   //TODO: Add to SQLITE DB
-	   /*String val[] = new String[9];
-	   int val1[] = new int[2];
-	   if (patron.hasName())
-		   val[0] = patron.getName();
-	   if (patron.hasPickup())
-		   val[1] = patron.getPickup();
-	   if (patron.hasDropoff())
-		   val[2] = patron.getDropoff();
-	   if (patron.hasPhone())
-		   val[3] = patron.getPhone();
-	   if (patron.hasStatus())
-		   val[4] = patron.getStatus();
-	   if (patron.hasNotes())
-		   val[5] = patron.getNotes();
-	   if (patron.hasTimetaken())
-		   val[6] = patron.getTimetaken();
-	   if (patron.hasTimeassigned())
-		   val[7] = patron.getTimeassigned();
-	   if (patron.hasTimedone())
-		   val[8] = patron.getTimedone();
-	   
-	   if (patron.hasPassangers())
-		   val1[0] = patron.getPassangers();
-	   if (patron.hasPid())
-		   val1[1] = patron.getPid();
-	   
-	   PatronInfo pI = new PatronInfo(val, val1);*/
-	   for (Patron.PatronInfo patron : list.getPatronList())
+	   for (PatronInfo patron : list.getPatronList())
 		   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
    }
    
    public void populateRides(){
-	   /*Patron[] pL = mDbHelper.fetchAllPatrons();
-	   int[] to = new int[]{R.id.nameVal, R.id.ttVal};
-	   ArrayList<Map<String, String>> listmap = new ArrayList<Map<String, String>>(pL.length);
-	   TreeMap<String, String> map = new TreeMap<String, String>();
-	   String[] from = null;
-	   for (int i = 0; i < pL.length; i++){
-		   from = new String[]{pL[i].getName(), pL[i].getTimetaken()};
-		   map.put(pL[i].getTimetaken(), Integer.toString(i));
-		   listmap.add(map);
+	   PatronInfo[] vPI = mGDbHelper.fetchAllPatrons();
+	   if (vPI.length == 0)
+	   {
+		   String[] msg = new String[1];
+		   msg[0] = "No pending rides! Just chill";
+		   setListAdapter(new ArrayAdapter<String>(this, R.layout.carnums, msg));
+		   Log.w(TAG, "No rides received.");
 	   }
-	   setListAdapter(new SimpleAdapter(this, listmap, R.id.list, from, to));*/
+	   else
+	   {
+		   int[] to = new int[]{R.string.nameVal, R.string.ttVal};
+		   ArrayList<Map<String, String>> listmap = new ArrayList<Map<String, String>>(vPI.length);
+		   TreeMap<String, String> map = new TreeMap<String, String>();
+		   String[] from = null;
+		   for (int i = 0; i < vPI.length; i++){
+			   from = new String[]{vPI[i].getName(), vPI[i].getTimetaken()};
+			   map.put(vPI[i].getTimetaken(), Integer.toString(i));
+			   listmap.add(map);
+		   }
+		   setListAdapter(new SimpleAdapter(this, listmap, R.layout.carnums, from, to));
+	   }
    }
 }

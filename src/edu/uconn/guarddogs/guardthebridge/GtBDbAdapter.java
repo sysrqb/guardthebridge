@@ -54,7 +54,7 @@ public class GtBDbAdapter {
     public static final String KEY_STATUS = "status";
     public static final String KEY_TIMEDONE = "timedone";*/
 	
-	public static final String KEY_MESSAGE = "body";
+	public static final String KEY_PATRON = "body";
     public static final String KEY_ROWID = "id";
     public static final String KEY_PID = "pid";
 
@@ -73,8 +73,8 @@ public class GtBDbAdapter {
     */
     
     private static final String SAFE_DATABASE_CREATE =
-        "create table " + DATABASE_TABLE + "(id integer primary key autoincrement, "
-        + "pid integer, patron blob);";
+        "create table " + DATABASE_TABLE + "( " + KEY_ROWID + " integer primary key autoincrement, "
+        + KEY_PID + " integer, " + KEY_PATRON + " blob);";
 
     private static final String DATABASE_NAME = "saferides";
     private static final int DATABASE_VERSION = 2;
@@ -133,7 +133,7 @@ public class GtBDbAdapter {
 
 
     /**
-     * Create a new note using the title and body provided. If the note is
+     * Create a new patron index using the pid and info provided. If the patron is
      * successfully created return the new rowId for that note, otherwise return
      * a -1 to indicate failure.
      * 
@@ -143,7 +143,7 @@ public class GtBDbAdapter {
      */
     public long createPatron(byte[] message, int pid) {
         ContentValues initialValues = new ContentValues();
-        initialValues.put(KEY_MESSAGE, message);
+        initialValues.put(KEY_PATRON, message);
         initialValues.put(KEY_PID, pid);
 
         return mDb.insert(DATABASE_TABLE, null, initialValues);
@@ -161,42 +161,51 @@ public class GtBDbAdapter {
     }
 
     /**
-     * Return a Cursor over the list of all notes in the database
+     * Return a Cursor over the list of all patrons in the database
      * 
-     * @return Cursor over all notes
+     * @return Cursor over all patrons
      */
-	public PatronInfo[] fetchAllPatrons() {
-
-        Cursor mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_MESSAGE,
+	public PatronInfo[] fetchAllPatrons() 
+	{
+		Log.v(TAG, "fetchAllPatrons");
+        Cursor mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_PATRON,
                 KEY_PID}, null, null, null, null, null);
-        
-        PatronInfo pL[] = new PatronInfo[mCursor.getCount()];
-        for(int i = 0; i<pL.length; i++){
-        	
-        	try {
-				pL[i] = PatronInfo.parseFrom(mCursor.getBlob(2));
-        	} catch (InvalidProtocolBufferException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-				continue;
-			}
+        Log.v(TAG, "mCursor = " + mCursor.getCount());
+        if (mCursor.getCount() > 0)
+        {
+	        PatronInfo[] vPI = new PatronInfo[mCursor.getCount()];
+	        mCursor.moveToFirst();
+	        for(int i = 0; i<mCursor.getCount(); i++)
+	        {
+	        	try 
+	        	{
+	        		Log.v(TAG, "Index: " + i);
+	        		vPI[i] = PatronInfo.parseFrom(mCursor.getBlob(1));
+	        		mCursor.moveToNext();
+	        	} catch (InvalidProtocolBufferException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					continue;
+				}
+	        }
+	        return vPI;
         }
-        return pL;
+        return null;
     }
 
     /**
-     * Return a Cursor positioned at the note that matches the given rowId
+     * Return a Cursor positioned at the patron that matches the given rowId
      * 
-     * @param rowId id of note to retrieve
+     * @param rowId id of patron to retrieve
      * @return Cursor positioned to matching note, if found
-     * @throws SQLException if note could not be found/retrieved
+     * @throws SQLException if patron could not be found/retrieved
      */
-	public List<PatronInfo> fetchNote(long rowId) throws SQLException {
+	public PatronInfo fetchPatron(long rowId) throws SQLException {
 
         Cursor mCursor =
 
             mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,
-                    KEY_MESSAGE, KEY_PID}, KEY_ROWID + "=" + rowId, null,
+                    KEY_PATRON, KEY_PID}, KEY_ROWID + "=" + rowId, null,
                     null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
@@ -209,7 +218,7 @@ public class GtBDbAdapter {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        return patList.getPatronList();
+        return patList.getPatronList().get(0);
 
     }
 
@@ -225,7 +234,7 @@ public class GtBDbAdapter {
      */
     public boolean updateNote(long rowId, byte[] message, int pid) {
         ContentValues args = new ContentValues();
-        args.put(KEY_MESSAGE, message);
+        args.put(KEY_PATRON, message);
         args.put(KEY_PID, pid);
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
