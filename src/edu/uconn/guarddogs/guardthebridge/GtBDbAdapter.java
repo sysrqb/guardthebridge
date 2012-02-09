@@ -141,6 +141,8 @@ public class GtBDbAdapter {
      * @return rowId or -1 if failed
      */
     public long createPatron(byte[] message, int pid) {
+    	if(!isNewPatron(pid))
+    		return 0;
         ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PATRON, message);
         initialValues.put(KEY_PID, pid);
@@ -200,25 +202,38 @@ public class GtBDbAdapter {
      * @throws SQLException if patron could not be found/retrieved
      */
 	public PatronInfo fetchPatron(long rowId) throws SQLException {
-
+		Log.v(TAG, "Requesing " + rowId + " patron");
         Cursor mCursor =
-
-            mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID,
+            mDb.query(true, DATABASE_TABLE, new String[] {
                     KEY_PATRON, KEY_PID}, KEY_ROWID + "=" + rowId, null,
                     null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
-        }
         
-        PatronList patList = null;
-    	try {
-			patList = PatronList.parseFrom(mCursor.getBlob(2));
-    	} catch (InvalidProtocolBufferException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-        return patList.getPatronList().get(0);
+	        PatronInfo patInfo = null;
+	        byte[] patron = mCursor.getBlob(0);
+	    	try {
+				patInfo = PatronInfo.parseFrom(patron);
+	    	} catch (InvalidProtocolBufferException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	        return patInfo;
+        }
+        return null;
+    }
+	
+	public boolean isNewPatron(int pid) throws SQLException {
 
+        Cursor mCursor =
+
+            mDb.query(true, DATABASE_TABLE, new String[] {
+                    KEY_ROWID}, KEY_PID + "=" + pid, null,
+                    null, null, null, null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+        }
+        return (mCursor.getCount() > 0) ? true : false;
     }
 
     /**

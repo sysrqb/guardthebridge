@@ -7,14 +7,16 @@ import java.io.OutputStream;
 import javax.net.ssl.SSLSocket;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
-import android.widget.RelativeLayout.LayoutParams;
-import android.widget.TextView;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.TextFormat;
@@ -25,16 +27,19 @@ import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 public class GuardtheBridge extends Activity {
+	public static final int PATRON_READ = 100; 
 	private static final String TAG = "GTB";
 	private CarsGtBDbAdapter mDbHelper;
 	private GtBDbAdapter mGDbHelper;
     private TLSGtBDbAdapter nGDbHelper;
     private GtBSSLSocketFactoryWrapper m_sslSF;
+    private GuardtheBridge self;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
         
         super.onCreate(savedInstanceState);
+        self = this;
         m_sslSF = new GtBSSLSocketFactoryWrapper(this);
         setContentView(R.layout.activelist);
         initializeDb();
@@ -138,8 +143,24 @@ public class GuardtheBridge extends Activity {
 			   msg[i] = vPI[i].getTimeassigned() + ": " + vPI[i].getName() + " - " + vPI[i].getPickup();
 		   }
 		   
-		   aLV.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, msg));
+		   aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.rides, msg));
 		   Log.v(TAG, "Finished compiling list of assigned rides");
+		   
+		   setActions(aLV, (Button)findViewById(R.id.dispatch), (Button)findViewById(R.id.emergency));
 	   }
+   }
+   
+   private void setActions(ListView lv, Button dispatch, Button emerg){
+	   lv.setOnItemClickListener(new OnItemClickListener() { 
+		   @Override
+		   public void onItemClick(AdapterView<?> av, View v, int position, long id){
+				Log.v(TAG, "Editing Ride: " + id);
+				Log.v(TAG, "Car Number: " + position);
+				Intent intent = new Intent(self, ShowPatron.class);
+				intent.putExtra(GtBDbAdapter.KEY_ROWID, id);
+				startActivityForResult(intent, PATRON_READ);
+		   }
+	   });
+	   
    }
 }
