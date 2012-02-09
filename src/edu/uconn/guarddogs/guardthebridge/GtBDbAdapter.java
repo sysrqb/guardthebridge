@@ -16,8 +16,6 @@
 
 package edu.uconn.guarddogs.guardthebridge;
 
-import java.util.List;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -28,7 +26,8 @@ import android.util.Log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
-import edu.uconn.guarddogs.guardthebridge.Patron.*;
+import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
+import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 /**
  * Simple notes database access helper class. Defines the basic CRUD operations

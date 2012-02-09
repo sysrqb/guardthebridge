@@ -133,7 +133,7 @@ public class TLSGtBDbAdapter {
         Cursor curse = mDb.query(DATABASE_TABLE, new String[] {KEY_TLSNGIN}, KEY_ROWID + "= 1", null, null, null, null, null);
         curse.moveToFirst();
         System.out.println("getCar: returned rows: " + curse.getCount() + " " + curse.getColumnCount());
-        byte[] blob = curse.getBlob(0);
+        //byte[] blob = curse.getBlob(0);
         //return temp.inflate(blob);
         return temp;
     }

@@ -3,18 +3,18 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
 
 import javax.net.ssl.SSLSocket;
 
-import android.app.ListActivity;
+import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
-import android.widget.SimpleAdapter;
+import android.widget.ListView;
+import android.widget.RelativeLayout;
+import android.widget.RelativeLayout.LayoutParams;
+import android.widget.TextView;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.TextFormat;
@@ -24,7 +24,7 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
-public class GuardtheBridge extends ListActivity {
+public class GuardtheBridge extends Activity {
 	private static final String TAG = "GTB";
 	private CarsGtBDbAdapter mDbHelper;
 	private GtBDbAdapter mGDbHelper;
@@ -35,8 +35,8 @@ public class GuardtheBridge extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activelist);
         m_sslSF = new GtBSSLSocketFactoryWrapper(this);
+        setContentView(R.layout.activelist);
         initializeDb();
         retrieveRides();
         populateRides();
@@ -114,21 +114,32 @@ public class GuardtheBridge extends ListActivity {
 	   {
 		   String[] msg = new String[1];
 		   msg[0] = "No pending rides! Just chill";
-		   setListAdapter(new ArrayAdapter<String>(this, R.layout.carnums, msg));
+		   //ListView aLV = (ListView) findViewById(R.id.list);
+		   //aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.activelist, R.id.nameVal, msg));
+		   new ArrayAdapter<String>(this, R.layout.activelist, msg);
 		   Log.w(TAG, "No rides received.");
 	   }
 	   else
 	   {
-		   int[] to = new int[]{R.string.nameVal, R.string.ttVal};
+		   /*int[] to = new int[]{R.string.nameVal, R.string.ttVal};
+		   String[] from = new String[]{vPI[i].getName(), vPI[i].getTimetaken()};
 		   ArrayList<Map<String, String>> listmap = new ArrayList<Map<String, String>>(vPI.length);
 		   TreeMap<String, String> map = new TreeMap<String, String>();
-		   String[] from = null;
 		   for (int i = 0; i < vPI.length; i++){
-			   from = new String[]{vPI[i].getName(), vPI[i].getTimetaken()};
+			   
 			   map.put(vPI[i].getTimetaken(), Integer.toString(i));
 			   listmap.add(map);
 		   }
-		   setListAdapter(new SimpleAdapter(this, listmap, R.layout.carnums, from, to));
+		   new SimpleAdapter(this, listmap, R.layout.activelist, from, to));*/
+		   String[] msg = new String[vPI.length];
+		   ListView aLV = (ListView) findViewById(R.id.activelist_list);
+		   for(int i = 0; i<vPI.length; i++)
+		   {
+			   msg[i] = vPI[i].getTimeassigned() + ": " + vPI[i].getName() + " - " + vPI[i].getPickup();
+		   }
+		   
+		   aLV.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, msg));
+		   Log.v(TAG, "Finished compiling list of assigned rides");
 	   }
    }
 }

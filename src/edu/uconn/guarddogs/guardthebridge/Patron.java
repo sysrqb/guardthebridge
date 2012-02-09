@@ -1509,7 +1509,7 @@ public final class Patron {
       
       public edu.uconn.guarddogs.guardthebridge.Patron.PatronList buildPartial() {
         edu.uconn.guarddogs.guardthebridge.Patron.PatronList result = new edu.uconn.guarddogs.guardthebridge.Patron.PatronList(this);
-        int from_bitField0_ = bitField0_;
+        //int from_bitField0_ = bitField0_;
         if (patronBuilder_ == null) {
           if (((bitField0_ & 0x00000001) == 0x00000001)) {
             patron_ = java.util.Collections.unmodifiableList(patron_);

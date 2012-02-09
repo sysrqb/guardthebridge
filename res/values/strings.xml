@@ -14,8 +14,10 @@
     <string name="showcarnum"></string>
     <string name="cars"></string>
     
+    <string name="activelist_title">Current Rides:</string>
+    
     <!-- List of Rides -->
-    <string name="namelabel">Name: ></string>
+    <string name="namelabel">Name: </string>
     <string name="nameVal"></string>
     <string name="passlabel"># of Passangers: </string>
     <string name="passVal"></string>

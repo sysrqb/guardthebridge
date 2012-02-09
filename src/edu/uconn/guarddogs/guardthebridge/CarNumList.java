@@ -24,13 +24,11 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 public class CarNumList extends ListActivity {
 	private static final String TAG = "CNL-GTBLOG";
     private CarsGtBDbAdapter m_aCDbHelper;
-    private TLSGtBDbAdapter m_aTDbHelper; //Ngin DB Helper
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		m_aCDbHelper = new CarsGtBDbAdapter(this);
-		m_aTDbHelper = new TLSGtBDbAdapter(this);
         m_aCDbHelper.open();
 		listCars();
 	}

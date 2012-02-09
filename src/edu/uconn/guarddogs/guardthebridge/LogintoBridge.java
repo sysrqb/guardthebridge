@@ -3,10 +3,7 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.SSLSocket;
 
 import android.app.AlertDialog;
