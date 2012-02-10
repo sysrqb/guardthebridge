@@ -107,9 +107,7 @@ public class EditPatron extends Activity {
 			
 			int npass = 0;
 			try {
-				String spass = ((EditText)findViewById(R.id.editpatron_passVal)).getText().toString();
-				stripWhiteSpace(spass);
-				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().substring(1, 2)); //Puts space before number
+				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
 			} catch (NumberFormatException e)
 			{
 				Log.w(TAG, "Passangers is not an int: " + ((EditText)findViewById(R.id.editpatron_passVal)).getText().toString() + " : " + npass);
@@ -133,10 +131,5 @@ public class EditPatron extends Activity {
 			Log.v(TAG, "Updating Patron: " + mrowid + ": " + mGDbHelper.updatePatron(mrowid + 1, aPI.toByteArray(), aPI.getPid()));
 			mGDbHelper.close();
 		}
-	}
-	
-	private String stripWhiteSpace(String in)
-	{
-		return in;
 	}
 }
