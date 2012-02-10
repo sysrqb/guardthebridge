@@ -16,6 +16,8 @@
 
 package edu.uconn.guarddogs.guardthebridge;
 
+import java.util.ArrayList;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -27,7 +29,6 @@ import android.util.Log;
 import com.google.protobuf.InvalidProtocolBufferException;
 
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
-import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 /**
  * Simple notes database access helper class. Defines the basic CRUD operations
@@ -191,8 +192,33 @@ public class GtBDbAdapter {
 	        }
 	        return vPI;
         }
-        return null;
+        return new PatronInfo[0];
     }
+	
+	public ArrayList<Integer> fetchAllPid()
+	{
+		Log.v(TAG, "fetchAllPid");
+        Cursor mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_PATRON, KEY_PID}, 
+        		null, null, null, null, null);
+        Log.v(TAG, "mCursor = " + mCursor.getCount());
+        if (mCursor.getCount() > 0)
+        {
+	        //int[] vPid = new int[mCursor.getCount()];
+	        mCursor.moveToFirst();
+	        ArrayList<Integer> vPid = new ArrayList<Integer>(mCursor.getCount());
+	        for(int i = 0; i<mCursor.getCount(); i++)
+	        {
+	        	Log.v(TAG, "Index: " + i);
+        		//vPid[i] = mCursor.getInt(0);
+	        	vPid.add(mCursor.getInt(2));
+        		mCursor.moveToNext();
+	        }
+	        return vPid;
+        }
+        ArrayList<Integer> holder = new ArrayList<Integer>(1);
+        holder.add(0);
+        return holder;
+	}
 
     /**
      * Return a Cursor positioned at the patron that matches the given rowId
@@ -233,7 +259,7 @@ public class GtBDbAdapter {
         if (mCursor != null) {
             mCursor.moveToFirst();
         }
-        return (mCursor.getCount() > 0) ? true : false;
+        return (mCursor.getCount() > 0) ? false : true;
     }
 
     /**

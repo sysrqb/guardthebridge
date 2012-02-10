@@ -106,8 +106,11 @@ public class CarNumList extends ListActivity {
 			Log.w(TAG, "Output Stream is Shutdown!");
 			aSock = aSSLSF.getSSLSocket();
 		}
-		if (aSSLSF.getSession().isValid())
+		if (aSSLSF.getSession() == null)
+		{
 			Log.v(TAG, "Session is still valid");
+			aSSLSF = new GtBSSLSocketFactoryWrapper(this);
+		}
 		else
 			Log.w(TAG, "Session is NO LONGER VALID");
 		

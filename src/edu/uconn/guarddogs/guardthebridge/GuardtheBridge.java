@@ -3,6 +3,7 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 
 import javax.net.ssl.SSLSocket;
 
@@ -65,11 +66,14 @@ public class GuardtheBridge extends Activity {
     }
     
    public void retrieveRides() {
+	   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();
 	   Request aPBReq = Request.newBuilder().
 			   setNReqId(1).
 			   setSReqType("CURR").
 			   setNCarId(mDbHelper.getCar()).
-			   build();
+	   		   addAllNParams(vRides).
+	   		   build();
+	   
 	   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
 	   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
 	   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());

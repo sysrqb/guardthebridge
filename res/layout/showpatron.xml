@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:id="@+id/showpatron_layout"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+		
+	<TextView 
+	    android:id="@+id/showpatron_namelabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_alignParentTop="true"
+	    android:text="@string/showpatron_namelabel"/>
+	<TextView 
+	    android:id="@+id/showpatron_nameVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_toRightOf="@+id/showpatron_namelabel"
+	    android:text="@string/showpatron_nameVal"/>
+	
+	<TextView 
+	    android:id="@+id/showpatron_passlabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/showpatron_namelabel"
+	    android:text="@string/showpatron_passlabel"/>
+	<TextView 
+	    android:id="@+id/showpatron_passVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_toRightOf="@+id/showpatron_passlabel"
+	    android:layout_alignTop="@+id/showpatron_passlabel"
+	    android:text="@string/showpatron_passVal"/>
+	
+	<TextView 
+	    android:id="@+id/showpatron_pulabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/showpatron_passlabel"
+	    android:text="@string/showpatron_pulabel"/>
+	<TextView 
+	    android:id="@+id/showpatron_puVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_toRightOf="@+id/showpatron_pulabel"
+	     android:layout_alignTop="@+id/showpatron_pulabel"
+	    android:text="@string/showpatron_puVal"/>
+	
+	<TextView 
+	    android:id="@+id/showpatron_dolabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/showpatron_pulabel"
+	    android:text="@string/showpatron_dolabel"/>
+	<TextView 
+	    android:id="@+id/showpatron_doVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_toRightOf="@+id/showpatron_dolabel"
+	    android:layout_alignTop="@+id/showpatron_dolabel"
+	    android:text="@string/showpatron_doVal"/>
+	
+	<TextView 
+	    android:id="@+id/showpatron_ttlabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/showpatron_dolabel"
+	    android:text="@string/showpatron_ttlabel"/>
+	<TextView 
+	    android:id="@+id/showpatron_ttVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_toRightOf="@+id/showpatron_ttlabel"
+	    android:layout_alignTop="@+id/showpatron_ttlabel"
+	    android:text="@string/showpatron_ttVal"/>
+	
+</RelativeLayout>
