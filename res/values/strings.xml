@@ -31,4 +31,8 @@
     <!-- List of Rides -->
     
     <string name="showpatron_label">Patron Details</string>
+    <string name="editpatron_label">Edit Patron Details</string>
+    
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
 </resources>

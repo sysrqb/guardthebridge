@@ -14,5 +14,6 @@
         <activity android:name=".GuardtheBridge" android:label="@string/app_name" />
         <activity android:name="edu.uconn.guarddogs.guardthebridge.CarNumList"/>
         <activity android:name="edu.uconn.guarddogs.guardthebridge.ShowPatron" android:label="@string/showpatron_label"/>
+        <activity android:name="edu.uconn.guarddogs.guardthebridge.EditPatron" android:label="@string/editpatron_label"/>
     </application>
 </manifest> 

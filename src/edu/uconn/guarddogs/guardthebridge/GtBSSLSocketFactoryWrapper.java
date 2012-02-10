@@ -134,6 +134,7 @@ public final class GtBSSLSocketFactoryWrapper {
 	public void forceReHandshake(Context i_aCtx)
 	{
 		try {
+			Log.v(TAG, "Initiating rehandshake");
 			m_sslSocket.startHandshake();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -143,6 +144,13 @@ public final class GtBSSLSocketFactoryWrapper {
 			m_sslSocket = null;
 			new GtBSSLSocketFactoryWrapper(i_aCtx);
 		}
+	}
+	
+	public GtBSSLSocketFactoryWrapper getNewSSLSFW(Context i_aCtx)
+	{
+		System.out.println("Re-Establishing Connection; from scratch.");
+		m_sslSocket = null;
+		return new GtBSSLSocketFactoryWrapper(i_aCtx);
 	}
 	
 	public SSLSocket reconnect()

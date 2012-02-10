@@ -15,6 +15,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -158,11 +159,22 @@ public class GuardtheBridge extends Activity {
 	   lv.setOnItemClickListener(new OnItemClickListener() { 
 		   @Override
 		   public void onItemClick(AdapterView<?> av, View v, int position, long id){
-				Log.v(TAG, "Editing Ride: " + id);
+				Log.v(TAG, "Displaying Ride: " + id);
 				Log.v(TAG, "Car Number: " + position);
 				Intent intent = new Intent(self, ShowPatron.class);
 				intent.putExtra(GtBDbAdapter.KEY_ROWID, id);
 				startActivityForResult(intent, PATRON_READ);
+		   }
+	   });
+	   lv.setOnItemLongClickListener(new OnItemLongClickListener() { 
+		   @Override
+		   public boolean onItemLongClick(AdapterView<?> av, View v, int position, long id){
+				Log.v(TAG, "Editing Ride: " + id);
+				Log.v(TAG, "Car Number: " + position);
+				Intent intent = new Intent(self, EditPatron.class);
+				intent.putExtra(GtBDbAdapter.KEY_ROWID, id);
+				startActivityForResult(intent, PATRON_READ);
+				return true;
 		   }
 	   });
 	   

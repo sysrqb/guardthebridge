@@ -107,14 +107,14 @@ public class CarNumList extends ListActivity {
 			Log.w(TAG, "Output Stream is Shutdown!");
 			aSock = aSSLSF.getSSLSocket();
 		}
-		if (aSSLSF.getSession() == null)
-		{
+		if (aSSLSF.getSession() != null)
 			Log.v(TAG, "Session is still valid");
+		else
+		{
+			Log.w(TAG, "Session is NO LONGER VALID");
 			aSSLSF = new GtBSSLSocketFactoryWrapper(this);
 			aSock = aSSLSF.getSSLSocket();
 		}
-		else
-			Log.w(TAG, "Session is NO LONGER VALID");
 		
 		try
 		{
@@ -136,7 +136,25 @@ public class CarNumList extends ListActivity {
 			Log.v(TAG, "Request type: " + aPBReq.getSReqType());
 			Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
 			Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + aPBReq.getSerializedSize());
-			aOS.write(aPBReq.getSerializedSize());
+			try 
+			{
+				aOS.write(aPBReq.getSerializedSize());
+			}catch (SSLProtocolException e)
+			{
+				Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+				aSSLSF.forceReHandshake(this);
+				aSock = aSSLSF.getSSLSocket();
+				aOS = aSock.getOutputStream();
+				try
+				{
+					aOS.write(aPBReq.getSerializedSize());
+				} catch (SSLProtocolException ex)
+				{
+					aSSLSF = aSSLSF.getNewSSLSFW(this);
+					aSock = aSSLSF.getSSLSocket();
+					aOS = aSock.getOutputStream();
+				}
+			}
 			aPBReq.writeTo(aOS);
 			aOS.close();
 			InputStream aIS = aSock.getInputStream();

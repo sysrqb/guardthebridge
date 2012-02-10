@@ -272,7 +272,7 @@ public class GtBDbAdapter {
      * @param body value to set note body to
      * @return true if the note was successfully updated, false otherwise
      */
-    public boolean updateNote(long rowId, byte[] message, int pid) {
+    public boolean updatePatron(long rowId, byte[] message, int pid) {
         ContentValues args = new ContentValues();
         args.put(KEY_PATRON, message);
         args.put(KEY_PID, pid);
