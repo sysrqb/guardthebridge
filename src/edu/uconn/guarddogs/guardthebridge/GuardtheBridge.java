@@ -29,7 +29,8 @@ import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 public class GuardtheBridge extends Activity {
-	public static final int PATRON_READ = 100; 
+	private static final int PATRON_READ = 100;
+	private static final int PATRON_EDIT = 101;
 	private static final String TAG = "GTB";
 	private CarsGtBDbAdapter mDbHelper;
 	private GtBDbAdapter mGDbHelper;
@@ -173,10 +174,23 @@ public class GuardtheBridge extends Activity {
 				Log.v(TAG, "Car Number: " + position);
 				Intent intent = new Intent(self, EditPatron.class);
 				intent.putExtra(GtBDbAdapter.KEY_ROWID, id);
-				startActivityForResult(intent, PATRON_READ);
+				startActivityForResult(intent, PATRON_EDIT);
 				return true;
 		   }
 	   });
 	   
+   }
+   
+   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+       super.onActivityResult(requestCode, resultCode, intent);
+       Log.v(TAG, "On Return");
+       
+       setContentView(R.layout.activelist);
+       initializeDb();
+       retrieveRides();
+       populateRides();
+       mGDbHelper.close();
+       mDbHelper.close();
+       nGDbHelper.close();
    }
 }

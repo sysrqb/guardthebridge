@@ -186,6 +186,7 @@ public class EditPatron extends Activity {
 					build();
 			
 			Log.v(TAG, "Updating Patron as DONE: " + mrowid);
+			mGDbHelper.setDone(mrowid + 1, aPI.toByteArray(), aPI.getPid());
 			mGDbHelper.close();
 		}
 			
@@ -224,6 +225,7 @@ public class EditPatron extends Activity {
 					build();
 			
 			Log.v(TAG, "Updating Patron as CANCELED: " + mrowid);
+			mGDbHelper.setCanceled(mrowid + 1, aPI.toByteArray(), aPI.getPid());
 			mGDbHelper.close();
 		}
 			

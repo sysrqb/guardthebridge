@@ -25,7 +25,6 @@ public class LogintoBridge extends ListActivity {
     private EditText mAuthText;
     private String mCarNum;
     private CarsGtBDbAdapter mDbHelper;
-    private TLSGtBDbAdapter mGDbHelper;
     private static final int CarNum_SELECT=0;
     private LogintoBridge self;
 
@@ -38,8 +37,6 @@ public class LogintoBridge extends ListActivity {
 		//Re-establish connections to databases
 		mDbHelper = new CarsGtBDbAdapter(this);
         mDbHelper.open();
-        mGDbHelper = new TLSGtBDbAdapter (this);
-        mGDbHelper.open();
         
         setContentView(R.layout.cars);
         setTitle(R.string.app_name);
