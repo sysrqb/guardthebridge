@@ -153,6 +153,7 @@ public class CarNumList extends ListActivity {
 					aSSLSF = aSSLSF.getNewSSLSFW(this);
 					aSock = aSSLSF.getSSLSocket();
 					aOS = aSock.getOutputStream();
+					aOS.write(aPBReq.getSerializedSize());
 				}
 			}
 			aPBReq.writeTo(aOS);
