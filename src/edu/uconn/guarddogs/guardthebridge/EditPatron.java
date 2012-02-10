@@ -61,6 +61,26 @@ public class EditPatron extends Activity {
 				finish();
 			}
 		});
+		
+		Button bDone = (Button) findViewById(R.id.editpatron_done);
+		bDone.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v){
+				self.cancelPatron();
+				setResult(RESULT_OK);
+				finish();
+			}
+		});
+		
+		Button bCanceled = (Button) findViewById(R.id.editpatron_canceled);
+		bCanceled.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v){
+				self.donePatron();
+				setResult(RESULT_OK);
+				finish();
+			}
+		});
 	}
 	
 	private void fillPatronInfo()
@@ -131,5 +151,81 @@ public class EditPatron extends Activity {
 			Log.v(TAG, "Updating Patron: " + mrowid + ": " + mGDbHelper.updatePatron(mrowid + 1, aPI.toByteArray(), aPI.getPid()));
 			mGDbHelper.close();
 		}
+	}
+	
+	private void donePatron()
+	{
+
+		if (mrowid != null)
+		{
+			mGDbHelper.open();
+			if (m_aPI == null)
+				m_aPI = mGDbHelper.fetchPatron(mrowid + 1);
+			int npass = 0;
+			try {
+				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
+			} catch (NumberFormatException e)
+			{
+				Log.w(TAG, "Passangers is not an int: " + ((EditText)findViewById(R.id.editpatron_passVal)).getText().toString() + " : " + npass);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage("The Number of passagers you entered is invalid");
+				builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		           	    return;
+		           }
+		        });
+				builder.show();
+			}
+			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
+					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
+					setPassangers(npass).
+					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
+					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
+					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
+					setStatus("Done").
+					build();
+			
+			Log.v(TAG, "Updating Patron as DONE: " + mrowid);
+			mGDbHelper.close();
+		}
+			
+	}
+	
+	private void cancelPatron()
+	{
+
+		if (mrowid != null)
+		{
+			mGDbHelper.open();
+			if (m_aPI == null)
+				m_aPI = mGDbHelper.fetchPatron(mrowid + 1);
+			int npass = 0;
+			try {
+				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
+			} catch (NumberFormatException e)
+			{
+				Log.w(TAG, "Passangers is not an int: " + ((EditText)findViewById(R.id.editpatron_passVal)).getText().toString() + " : " + npass);
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setMessage("The Number of passagers you entered is invalid");
+				builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id) {
+		           	    return;
+		           }
+		        });
+				builder.show();
+			}
+			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
+					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
+					setPassangers(npass).
+					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
+					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
+					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
+					setStatus("cancelled").
+					build();
+			
+			Log.v(TAG, "Updating Patron as CANCELED: " + mrowid);
+			mGDbHelper.close();
+		}
+			
 	}
 }

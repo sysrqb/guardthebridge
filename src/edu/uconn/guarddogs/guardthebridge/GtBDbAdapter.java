@@ -57,6 +57,7 @@ public class GtBDbAdapter {
 	public static final String KEY_PATRON = "body";
     public static final String KEY_ROWID = "id";
     public static final String KEY_PID = "pid";
+    public static final String KEY_STATUS = "status";
 
     private static final String TAG = "GtBDbAdapter";
     private DatabaseHelper mDbHelper;
@@ -66,15 +67,15 @@ public class GtBDbAdapter {
      * Database creation sql statement
      */
     private static final String DATABASE_TABLE = "openrides";
-    /*private static final String SAFE_DATABASE_CREATE =
-        "create table " + DATABASE_TABLE + "(id integer primary key autoincrement, "
-        + "name text not null, cell text not null, riders integer not null, " +
-        	"fromloc text not null, dropoff text not null, notes text, status text, timedone blob);";
-    */
+    private static final String DATABASE_TABLE_CLOSED = "closedrides";
     
     private static final String SAFE_DATABASE_CREATE =
         "create table " + DATABASE_TABLE + "( " + KEY_ROWID + " integer primary key autoincrement, "
         + KEY_PID + " integer, " + KEY_PATRON + " blob);";
+    
+    private static final String SAFE_DATABASE_CLOSED_CREATE =
+            "create table " + DATABASE_TABLE + "( " + KEY_ROWID + " integer primary key autoincrement, "
+            + KEY_PID + " integer, " + KEY_PATRON + " blob, " + KEY_STATUS + " text);";
 
     private static final String DATABASE_NAME = "saferides";
     private static final int DATABASE_VERSION = 2;
@@ -91,6 +92,7 @@ public class GtBDbAdapter {
         public void onCreate(SQLiteDatabase db) {
 
             db.execSQL(SAFE_DATABASE_CREATE);
+            db.execSQL(SAFE_DATABASE_CLOSED_CREATE);
         }
 
         @Override
@@ -144,7 +146,7 @@ public class GtBDbAdapter {
     public long createPatron(byte[] message, int pid) {
     	if(!isNewPatron(pid))
     		return 0;
-        ContentValues initialValues = new ContentValues();
+    	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PATRON, message);
         initialValues.put(KEY_PID, pid);
 
@@ -152,12 +154,12 @@ public class GtBDbAdapter {
     }
 
     /**
-     * Delete the note with the given rowId
+     * Delete the patron with the given rowId
      * 
      * @param rowId id of note to delete
      * @return true if deleted, false otherwise
      */
-    public boolean deleteNote(long rowId) {
+    public boolean deletePatron(long rowId) {
 
         return mDb.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
     }
@@ -278,5 +280,29 @@ public class GtBDbAdapter {
         args.put(KEY_PID, pid);
 
         return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+    }
+    
+    public long setDone(long rowId, byte[] message, int pid)
+    {
+    	ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_PATRON, message);
+        initialValues.put(KEY_PID, pid);
+        initialValues.put(KEY_STATUS, "done");
+
+        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
+    	deletePatron(rowId);
+    	return insrtRow;
+    }
+    
+    public long setCanceled(long rowId, byte[] message, int pid)
+    {
+    	ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_PATRON, message);
+        initialValues.put(KEY_PID, pid);
+        initialValues.put(KEY_STATUS, "cancelled");
+
+        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
+    	deletePatron(rowId);
+    	return insrtRow;
     }
 }
