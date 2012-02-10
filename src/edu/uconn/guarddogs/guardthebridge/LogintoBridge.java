@@ -109,6 +109,12 @@ public class LogintoBridge extends ListActivity {
 		{
 			aSock = aSSLSF.createSSLSocket(this);
 		}
+		if (aSock.getSession() == null)
+		{
+			aSSLSF = aSSLSF.getNewSSLSFW(this);
+			aSock = aSSLSF.getSSLSocket();
+		}
+			
 		try {
 			OutputStream aOS = aSock.getOutputStream();
 			aPBReq = Request.newBuilder().
