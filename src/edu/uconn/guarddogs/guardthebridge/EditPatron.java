@@ -130,7 +130,7 @@ public class EditPatron extends Activity {
 					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
 					build();
 			
-			Log.v(TAG, "Updating Patron: " + mrowid + ": " + mGDbHelper.updatePatron(mrowid, aPI.toByteArray(), aPI.getPid()));
+			Log.v(TAG, "Updating Patron: " + mrowid + ": " + mGDbHelper.updatePatron(mrowid + 1, aPI.toByteArray(), aPI.getPid()));
 			mGDbHelper.close();
 		}
 	}
