@@ -2,6 +2,8 @@ package edu.uconn.guarddogs.guardthebridge;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.TextView;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 
@@ -21,6 +23,15 @@ public class ShowPatron extends Activity {
 			mrowid = (bundle != null) ? bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
 		}
 		fillPatronInfo();
+		
+		TextView tvBack = (TextView) findViewById(R.id.showpatron_back);
+		tvBack.setOnClickListener( new OnClickListener()
+		{
+			public void onClick(View v){
+				setResult(RESULT_OK);
+				finish();
+			}
+		});
 	}
 	
 	public void fillPatronInfo()

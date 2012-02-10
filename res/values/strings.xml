@@ -2,6 +2,7 @@
 <resources>
 	<string name="minvers">8</string>
 	<string name="targetvers">8</string>
+	<string name="back">&lt;&lt;</string>
     <string name="directions">Please Follow the Directions Below.</string>
     <string name="netidtext">Please input your NetID:</string>
     <string name="authtext">Please input tonight\'s code:</string>
@@ -28,4 +29,6 @@
     <string name="showpatron_ttlabel">Time Taken: </string>
     <string name="showpatron_ttVal"></string>
     <!-- List of Rides -->
+    
+    <string name="showpatron_label">Patron Details</string>
 </resources>

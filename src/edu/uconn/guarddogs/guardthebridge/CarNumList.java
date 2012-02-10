@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 
 import android.app.AlertDialog;
@@ -110,6 +111,7 @@ public class CarNumList extends ListActivity {
 		{
 			Log.v(TAG, "Session is still valid");
 			aSSLSF = new GtBSSLSocketFactoryWrapper(this);
+			aSock = aSSLSF.getSSLSocket();
 		}
 		else
 			Log.w(TAG, "Session is NO LONGER VALID");

@@ -4,19 +4,14 @@
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent">
 		
-    <TextView 
-        android:id="@+id/showpatron_back"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-        android:text="@string/back" />
+    
 		
 	<TextView 
 	    android:id="@+id/showpatron_namelabel"
 	    android:layout_height="wrap_content"
 	    android:layout_width="wrap_content"
 	    android:layout_alignParentTop="true"
-	    android:text="@string/showpatron_namelabel"
-	    android:layout_toRightOf="@+id/showpatron_back"/>
+	    android:text="@string/showpatron_namelabel"/>
 	<TextView 
 	    android:id="@+id/showpatron_nameVal"
 	    android:layout_height="wrap_content"
