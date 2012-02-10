@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    	android:id="@+id/editpatron_layout"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent">
+		
+    <TextView 
+        android:id="@+id/editpatron_back"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+	    android:layout_alignParentTop="true"
+        android:text="@string/back" />
+		
+	<TextView 
+	    android:id="@+id/editpatron_namelabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:text="@string/showpatron_namelabel"
+	    android:layout_alignTop="@+id/editpatron_nameVal"/>
+	<EditText 
+	    android:id="@+id/editpatron_nameVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/editpatron_back"
+	    android:layout_alignParentRight="true"
+	    android:text="@string/showpatron_nameVal"
+	    android:inputType="text"/>
+	
+	<TextView 
+	    android:id="@+id/editpatron_passlabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_alignTop="@+id/editpatron_passVal"
+	    android:text="@string/showpatron_passlabel"/>
+	<EditText
+	    android:id="@+id/editpatron_passVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/editpatron_nameVal"
+	    android:layout_alignParentRight="true"
+	    android:text="@string/showpatron_passVal"
+	    android:inputType="number"/>
+	
+	<TextView 
+	    android:id="@+id/editpatron_pulabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_alignTop="@+id/editpatron_puVal"
+	    android:text="@string/showpatron_pulabel"/>
+	<EditText 
+	    android:id="@+id/editpatron_puVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/editpatron_passVal"
+	    android:layout_alignParentRight="true"
+	    android:text="@string/showpatron_puVal"
+	    android:inputType="text"/>
+	
+	<TextView 
+	    android:id="@+id/editpatron_dolabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_alignTop="@+id/editpatron_doVal"
+	    android:text="@string/showpatron_dolabel"/>
+	<EditText
+	    android:id="@+id/editpatron_doVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/editpatron_puVal"
+	    android:layout_alignParentRight="true"
+	    android:text="@string/showpatron_doVal"
+	    android:inputType="text"/>
+	
+	<TextView 
+	    android:id="@+id/editpatron_ttlabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_alignTop="@+id/editpatron_ttVal"
+	    android:text="@string/showpatron_ttlabel"/>
+	<EditText
+	    android:id="@+id/editpatron_ttVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/editpatron_doVal"
+	    android:layout_alignParentRight="true"
+	    android:text="@string/showpatron_ttVal"
+	    android:inputType="datetime"/>
+	
+	<Button
+	    android:id="@+id/editpatron_save"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:text="@string/save" />
+	
+	<Button
+	    android:id="@+id/editpatron_cancel"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentBottom="true"
+	    android:layout_toRightOf="@+id/editpatron_save"
+	    android:text="@string/cancel" />
+	
+</RelativeLayout>
