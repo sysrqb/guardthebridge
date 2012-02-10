@@ -205,13 +205,11 @@ public class GtBDbAdapter {
         Log.v(TAG, "mCursor = " + mCursor.getCount());
         if (mCursor.getCount() > 0)
         {
-	        //int[] vPid = new int[mCursor.getCount()];
 	        mCursor.moveToFirst();
 	        ArrayList<Integer> vPid = new ArrayList<Integer>(mCursor.getCount());
 	        for(int i = 0; i<mCursor.getCount(); i++)
 	        {
-	        	Log.v(TAG, "Index: " + i);
-        		//vPid[i] = mCursor.getInt(0);
+	        	Log.v(TAG, "Index: " + mCursor.getInt(0));
 	        	vPid.add(mCursor.getInt(2));
         		mCursor.moveToNext();
 	        }

@@ -19,6 +19,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.TextFormat;
@@ -79,10 +80,16 @@ public class GuardtheBridge extends Activity {
 	   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
 	   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
 	   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
-	   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + aPBReq.getSerializedSize());
+	   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
+			   aPBReq.getSerializedSize());
 	   SSLSocket aSock = m_sslSF.getSSLSocket();
 	   if (aSock.isClosed())
 		   aSock = m_sslSF.createSSLSocket(this);
+	   if (m_sslSF.getSession() == null)
+	   {
+		   m_sslSF = m_sslSF.getNewSSLSFW(this);
+		   aSock = m_sslSF.getSSLSocket();
+	   }
 	   try {
 		   OutputStream aOS = aSock.getOutputStream();
 		   aOS.write(aPBReq.getSerializedSize());
@@ -101,7 +108,8 @@ public class GuardtheBridge extends Activity {
 			   Log.v(TAG, "Response Buffer:");
 			   Log.v(TAG, TextFormat.shortDebugString(apbRes));
 			   Log.v(TAG, "PatronList Buffer: ");
-			   Log.v(TAG, TextFormat.shortDebugString(apbRes.getPlPatronList()));
+			   Log.v(TAG, TextFormat.shortDebugString(
+					   apbRes.getPlPatronList()));
 			   addToDb(apbRes.getPlPatronList());
 			   Log.v(TAG, "Added to DB");
 			} catch (InvalidProtocolBufferException e) {
@@ -146,34 +154,64 @@ public class GuardtheBridge extends Activity {
 		   ListView aLV = (ListView) findViewById(R.id.activelist_list);
 		   for(int i = 0; i<vPI.length; i++)
 		   {
-			   msg[i] = vPI[i].getTimeassigned() + ": " + vPI[i].getName() + " - " + vPI[i].getPickup();
+			   msg[i] = vPI[i].getPid() + " " + vPI[i].getTimeassigned() + 
+					   ": " + vPI[i].getName() + " - " + vPI[i].getPickup();
 		   }
 		   
 		   aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.rides, msg));
 		   Log.v(TAG, "Finished compiling list of assigned rides");
 		   
-		   setActions(aLV, (Button)findViewById(R.id.dispatch), (Button)findViewById(R.id.emergency));
+		   setActions(aLV, (Button)findViewById(R.id.dispatch), 
+				   (Button)findViewById(R.id.emergency));
 	   }
    }
    
    private void setActions(ListView lv, Button dispatch, Button emerg){
 	   lv.setOnItemClickListener(new OnItemClickListener() { 
 		   @Override
-		   public void onItemClick(AdapterView<?> av, View v, int position, long id){
+		   public void onItemClick(AdapterView<?> av, 
+				   View v, 
+				   int position, 
+				   long id){
 				Log.v(TAG, "Displaying Ride: " + id);
 				Log.v(TAG, "Car Number: " + position);
+				TextView tv = (TextView) v;
+				long row = 0;
+				try
+				{
+					row = Long.parseLong(tv.getText().
+							toString().
+							substring(0, 1));
+				} catch (NumberFormatException e)
+				{
+					return;
+				}
 				Intent intent = new Intent(self, ShowPatron.class);
-				intent.putExtra(GtBDbAdapter.KEY_ROWID, id);
+				intent.putExtra(GtBDbAdapter.KEY_ROWID, row);
 				startActivityForResult(intent, PATRON_READ);
 		   }
 	   });
 	   lv.setOnItemLongClickListener(new OnItemLongClickListener() { 
 		   @Override
-		   public boolean onItemLongClick(AdapterView<?> av, View v, int position, long id){
+		   public boolean onItemLongClick(AdapterView<?> av, 
+				   View v, 
+				   int position, 
+				   long id){
 				Log.v(TAG, "Editing Ride: " + id);
 				Log.v(TAG, "Car Number: " + position);
+				TextView tv = (TextView) v;
+				long row = 0;
+				try
+				{
+					row = Long.parseLong(tv.getText().
+							toString().
+							substring(0, 1));
+				} catch (NumberFormatException e)
+				{
+					return false;
+				}
 				Intent intent = new Intent(self, EditPatron.class);
-				intent.putExtra(GtBDbAdapter.KEY_ROWID, id);
+				intent.putExtra(GtBDbAdapter.KEY_ROWID, row);
 				startActivityForResult(intent, PATRON_EDIT);
 				return true;
 		   }
@@ -181,10 +219,12 @@ public class GuardtheBridge extends Activity {
 	   
    }
    
-   protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+   protected void onActivityResult(int requestCode, 
+		   int resultCode, 
+		   Intent intent) {
        super.onActivityResult(requestCode, resultCode, intent);
        Log.v(TAG, "On Return");
-       
+       m_sslSF = m_sslSF.getNewSSLSFW(this);
        setContentView(R.layout.activelist);
        initializeDb();
        retrieveRides();
