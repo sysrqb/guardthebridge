@@ -362,10 +362,8 @@ public class GuardtheBridge extends FragmentActivity {
 		   m_ALFGDbHelper.close();
 	   }
 	   
-	   public void onItemClick(AdapterView<?> av, 
-			   View v, 
-			   int position, 
-			   long id){
+	   @Override
+	   public void onListItemClick(ListView l, View v, int position, long id){
 			Log.v(TAG, "Displaying Ride: " + id);
 			Log.v(TAG, "Car Number: " + position);
 			TextView tv = (TextView) v;
@@ -384,7 +382,7 @@ public class GuardtheBridge extends FragmentActivity {
 			startActivityForResult(intent, PATRON_READ);
 	   }
 	   
-	   public boolean onItemLongClick(AdapterView<?> av, 
+	   public boolean onListItemLongClick(AdapterView<?> av, 
 			   View v, 
 			   int position, 
 			   long id){

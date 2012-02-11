@@ -23,7 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
+
+import com.google.protobuf.TextFormat;
 
 import android.app.AlertDialog;
 import android.app.ListActivity;
@@ -135,7 +138,8 @@ public class LogintoBridge extends ListActivity {
 		}
 			
 		try {
-			OutputStream aOS = aSock.getOutputStream();
+			OutputStream aOS = null;
+				aOS = aSock.getOutputStream();
 			aPBReq = Request.newBuilder().
 				setNReqId(2).
 				setSReqType("AUTH").
@@ -148,12 +152,34 @@ public class LogintoBridge extends ListActivity {
 			Log.v(TAG, "NetID: " + netid.getText().toString());
 			Log.v(TAG, "Car Number: " + carnum);
 			Log.v(TAG, "Serialized Size: " + aPBReq.getSerializedSize());
-			aOS.write(aPBReq.getSerializedSize());
+			Log.v(TAG, "Sending Buf:");
+			Log.v(TAG, TextFormat.shortDebugString(aPBReq));
+			try 
+			{
+				aOS.write(aPBReq.getSerializedSize());
+			}catch (SSLProtocolException e)
+			{
+				Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+				aSSLSF.forceReHandshake(this);
+				aSock = aSSLSF.getSSLSocket();
+				aOS = aSock.getOutputStream();
+				try
+				{
+					aOS.write(aPBReq.getSerializedSize());
+				} catch (SSLProtocolException ex)
+				{
+					aSSLSF = aSSLSF.getNewSSLSFW(this);
+					aSock = aSSLSF.getSSLSocket();
+					aOS = aSock.getOutputStream();
+					aOS.write(aPBReq.getSerializedSize());
+				}
+			}
 			aPBReq.writeTo(aOS);
 			aOS.close();
 			InputStream aIS = aSock.getInputStream();
 			byte[] vbuf = new byte[14];
 			aIS.read(vbuf);
+			
 			aSock.close();
 			aPBRes = Response.parseFrom(vbuf);
 			aIS.close();
