@@ -76,7 +76,7 @@ public class GuardtheBridge extends Activity {
         super.onCreate(savedInstanceState);
         self = this;
         m_sslSF = new GtBSSLSocketFactoryWrapper(this);
-        setContentView(R.layout.activelist);
+        setContentView(R.layout.rideslist);
         initializeDb();
         retrieveRides();
         populateRides();
@@ -166,7 +166,7 @@ public class GuardtheBridge extends Activity {
 		   msg[0] = "No pending rides! Just chill";
 		   //ListView aLV = (ListView) findViewById(R.id.list);
 		   //aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.activelist, R.id.nameVal, msg));
-		   new ArrayAdapter<String>(this, R.layout.activelist, msg);
+		   new ArrayAdapter<String>(this, R.layout.rideslist, msg);
 		   Log.w(TAG, "No rides received.");
 	   }
 	   else
@@ -256,7 +256,7 @@ public class GuardtheBridge extends Activity {
        super.onActivityResult(requestCode, resultCode, intent);
        Log.v(TAG, "On Return");
        m_sslSF = m_sslSF.getNewSSLSFW(this);
-       setContentView(R.layout.activelist);
+       setContentView(R.layout.rideslist);
        initializeDb();
        retrieveRides();
        populateRides();
