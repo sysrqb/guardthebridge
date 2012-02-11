@@ -166,7 +166,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
    }
    
-   public static PatronInfo[] populateRides(int ridetype){
+   public static String[] populateRides(int ridetype){
 	   PatronInfo[] vPI = mGDbHelper.fetchAllPatrons(ridetype);
 	   if (vPI.length == 0)
 	   {
@@ -176,7 +176,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   //aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.activelist, R.id.nameVal, msg));
 		   //new ArrayAdapter<String>(this, R.layout.rideslist, msg);
 		   Log.w(TAG, "No rides received.");
-		   return null;
+		   return msg;
 	   }
 	   else
 	   {
@@ -205,7 +205,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   setActions(aLV, (Button)findViewById(R.id.dispatch), 
 				   (Button)findViewById(R.id.emergency));
 			*/
-		   return vPI;
+		   return msg;
 	   }
    }
    
@@ -323,21 +323,41 @@ public class GuardtheBridge extends FragmentActivity {
 		   Log.v(TAG, "ArrayListFragment: onCreateView");
 		   m_ALFGDbHelper.open();
 		   mGDbHelper.open();
-		   View v = inflater.inflate(R.layout.openrides, container, false);
-		   TextView aTV = (TextView)v.findViewById(R.id.openrides_title);
-		   aTV.setText(R.string.openrides_title);
-		   ListView aLV = (ListView) v.findViewById(android.R.id.list);
+		   TextView aTV = null;
+		   View v = null;
+		   if (mNum == 0)
+		   {
+			   Log.v(TAG, "onCreateView: Current: mNum = " + mNum);
+			   v = inflater.inflate(R.layout.openrides, container, false);
+			   aTV = (TextView)v.findViewById(R.id.openrides_title);
+			   aTV.setText(R.string.openrides_title);
+		   }
+		   else/* if (mNum == 1)*/
+		   {
+			   Log.v(TAG, "onCreateView: Closed: mNum = " + mNum);
+			   v = inflater.inflate(R.layout.closedrides, container, false);
+			   aTV = (TextView)v.findViewById(R.id.closedrides_title);
+			   aTV.setText(R.string.closedrides_title);
+		   }
+		   ((RelativeLayout)aTV.getParent()).removeView(aTV);
+		   /*ListView aLV = (ListView) v.findViewById(android.R.id.list);
 		   aLV.setAdapter(new ArrayAdapter<PatronInfo>(getActivity(), R.layout.rides, GuardtheBridge.populateRides(OPENRIDES)));
-		   ((RelativeLayout)aLV.getParent()).removeView(aLV);
-		   return (View)aLV;
+		   ((RelativeLayout)aLV.getParent()).removeView(aLV);*/
+		   Log.v(TAG, "onCreateView: returning");
+		   return v;
 	   }
 	   
 	   public void onActivityCreated(Bundle savedInstanceState)
 	   {
 		   super.onActivityCreated(savedInstanceState);
 		   Log.v(TAG, "ArrayListFragment: onActivityCreated");
-		   setListAdapter(new ArrayAdapter<PatronInfo>(getActivity(),
+		   if (mNum == 0)
+			   setListAdapter(new ArrayAdapter<String>(getActivity(),
 				   R.layout.rides, GuardtheBridge.populateRides(OPENRIDES)));
+		   else /* if (mNum == 1)*/
+			   setListAdapter(new ArrayAdapter<String>(getActivity(),
+				   R.layout.rides, GuardtheBridge.populateRides(CLOSEDRIDES)));
+		   
 		   mGDbHelper.close();
 		   m_ALFGDbHelper.close();
 	   }

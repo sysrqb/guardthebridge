@@ -16,7 +16,7 @@
     <string name="cars"></string>
     
     <string name="openrides_title">Current Rides:</string>
-    <string name="closedrides_title_closed">Closed Rides:</string>
+    <string name="closedrides_title">Closed Rides:</string>
     
     <!-- List of Rides -->
     <string name="showpatron_namelabel">Name: </string>
