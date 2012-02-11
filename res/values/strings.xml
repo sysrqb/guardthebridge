@@ -29,6 +29,7 @@
     <string name="showpatron_doVal"></string>
     <string name="showpatron_ttlabel">Time Taken: </string>
     <string name="showpatron_ttVal"></string>
+    
     <!-- List of Rides -->
     
     <string name="showpatron_label">Patron Details</string>
@@ -36,6 +37,7 @@
     
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="edit">Edit</string>
     <string name="rideDone">Ride Done</string>
     <string name="rideCanceled">Ride Canceled</string>
 </resources>

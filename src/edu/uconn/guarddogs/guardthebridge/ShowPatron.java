@@ -20,18 +20,23 @@
 package edu.uconn.guarddogs.guardthebridge;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 
 public class ShowPatron extends Activity {
+	private static final int PATRON_EDIT = 101;
 	private GtBDbAdapter mGDbHelper;
 	private Long mpid;
+	private ShowPatron self = null;
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		mGDbHelper = new GtBDbAdapter(this);
+		self = this;
 		mGDbHelper.open();
 		setContentView(R.layout.showpatron);
 		mpid = (savedInstanceState == null) ? null :
@@ -47,8 +52,18 @@ public class ShowPatron extends Activity {
 		tvBack.setOnClickListener( new OnClickListener()
 		{
 			public void onClick(View v){
-				setResult(RESULT_OK);
-				finish();
+				Intent i = new Intent (self, GuardtheBridge.class);
+                startActivity(i);
+			}
+		});
+		Button bEdit = (Button) findViewById(R.id.showpatron_edit);
+		bEdit.setOnClickListener(new OnClickListener()
+		{
+			public void onClick(View v)
+			{
+				Intent i = new Intent (self, EditPatron.class);
+				i.putExtra(GtBDbAdapter.KEY_ROWID, mpid);
+                startActivityForResult(i, PATRON_EDIT);
 			}
 		});
 	}
@@ -85,6 +100,11 @@ public class ShowPatron extends Activity {
 				tvName.setText(" " + aPI.getTimetaken());
 			}
 		}
+	}
+	
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) 
+	{
+		fillPatronInfo();
 	}
 
 }

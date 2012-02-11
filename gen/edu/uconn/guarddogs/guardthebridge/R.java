@@ -50,6 +50,7 @@ public final class R {
         public static final int showpatron_back=0x7f060022;
         public static final int showpatron_doVal=0x7f06002a;
         public static final int showpatron_dolabel=0x7f060029;
+        public static final int showpatron_edit=0x7f06002d;
         public static final int showpatron_layout=0x7f060021;
         public static final int showpatron_nameVal=0x7f060024;
         public static final int showpatron_namelabel=0x7f060023;
@@ -91,6 +92,7 @@ public final class R {
         public static final int closedrides_title=0x7f05000f;
         public static final int directions=0x7f050003;
         public static final int dispatch=0x7f05000a;
+        public static final int edit=0x7f05001e;
         public static final int editpatron_label=0x7f05001b;
         public static final int emergency=0x7f05000b;
         public static final int login=0x7f050007;
@@ -98,8 +100,8 @@ public final class R {
         public static final int netidtext=0x7f050004;
         public static final int no_rides=0x7f050009;
         public static final int openrides_title=0x7f05000e;
-        public static final int rideCanceled=0x7f05001f;
-        public static final int rideDone=0x7f05001e;
+        public static final int rideCanceled=0x7f050020;
+        public static final int rideDone=0x7f05001f;
         public static final int save=0x7f05001c;
         public static final int showcarnum=0x7f05000c;
         public static final int showpatron_doVal=0x7f050017;

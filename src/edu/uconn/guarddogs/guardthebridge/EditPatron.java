@@ -33,6 +33,7 @@ import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 
 public class EditPatron extends Activity {
 	private final String TAG = "EP-GTBLOG";
+	private static final int PATRON_EDIT = 101;
 	private GtBDbAdapter mGDbHelper;
 	private Long mpid;
 	private EditPatron self;
