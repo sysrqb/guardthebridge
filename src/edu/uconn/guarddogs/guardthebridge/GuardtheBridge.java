@@ -26,20 +26,26 @@ import java.util.ArrayList;
 
 import javax.net.ssl.SSLSocket;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.ListFragment;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
-import android.view.GestureDetector;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -50,25 +56,22 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
-public class GuardtheBridge extends Activity {
+public class GuardtheBridge extends FragmentActivity {
 	private static final int PATRON_READ = 100;
 	private static final int PATRON_EDIT = 101;
 	private static final String TAG = "GTB";
+	private static final int OPENRIDES = 0;
+	private static final int CLOSEDRIDES = 1;
+	private static final int NUM_ITEMS = 2;
 	private CarsGtBDbAdapter mDbHelper;
-	private GtBDbAdapter mGDbHelper;
+	private static GtBDbAdapter mGDbHelper;
     private TLSGtBDbAdapter nGDbHelper;
     private GtBSSLSocketFactoryWrapper m_sslSF;
-    private GuardtheBridge self;
+    private static GuardtheBridge self;
     
-    private Animation slideLeftIn;
-    private Animation slideLeftOut;
-    private Animation slideRightIn;
-    private Animation slideRightOut;
+    private GTBAdapter m_GFPA = null; 
+    private ViewPager m_aVP = null;
     
-    private static final int SWIPE_MIN_DISTANCE = 120;
-    private static final int SWIPE_MAX_OFF_PATH = 250;
-    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
-    private GestureDetector mGestureDet = null;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,8 +81,13 @@ public class GuardtheBridge extends Activity {
         m_sslSF = new GtBSSLSocketFactoryWrapper(this);
         setContentView(R.layout.rideslist);
         initializeDb();
+        
+        ViewPager aVp = (ViewPager)findViewById(R.id.ridelist_pageview);
+        m_GFPA = new GTBAdapter(getSupportFragmentManager());
+        aVp.setAdapter(m_GFPA);
+        
         retrieveRides();
-        populateRides();
+        populateRides(OPENRIDES);
         mGDbHelper.close();
         mDbHelper.close();
         nGDbHelper.close();
@@ -158,16 +166,17 @@ public class GuardtheBridge extends Activity {
 		   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
    }
    
-   public void populateRides(){
-	   PatronInfo[] vPI = mGDbHelper.fetchAllPatrons();
+   public static PatronInfo[] populateRides(int ridetype){
+	   PatronInfo[] vPI = mGDbHelper.fetchAllPatrons(ridetype);
 	   if (vPI.length == 0)
 	   {
 		   String[] msg = new String[1];
 		   msg[0] = "No pending rides! Just chill";
 		   //ListView aLV = (ListView) findViewById(R.id.list);
 		   //aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.activelist, R.id.nameVal, msg));
-		   new ArrayAdapter<String>(this, R.layout.rideslist, msg);
+		   //new ArrayAdapter<String>(this, R.layout.rideslist, msg);
 		   Log.w(TAG, "No rides received.");
+		   return null;
 	   }
 	   else
 	   {
@@ -182,18 +191,21 @@ public class GuardtheBridge extends Activity {
 		   }
 		   new SimpleAdapter(this, listmap, R.layout.activelist, from, to));*/
 		   String[] msg = new String[vPI.length];
-		   ListView aLV = (ListView) findViewById(R.id.activelist_list);
+		   
+		   //ListView aLV = (ListView) findViewById(R.id.activelist_list);
 		   for(int i = 0; i<vPI.length; i++)
 		   {
 			   msg[i] = vPI[i].getPid() + " " + vPI[i].getTimeassigned() + 
 					   ": " + vPI[i].getName() + " - " + vPI[i].getPickup();
 		   }
 		   
-		   aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.rides, msg));
+		   /*aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.rides, msg));
 		   Log.v(TAG, "Finished compiling list of assigned rides");
 		   
 		   setActions(aLV, (Button)findViewById(R.id.dispatch), 
 				   (Button)findViewById(R.id.emergency));
+			*/
+		   return vPI;
 	   }
    }
    
@@ -259,9 +271,120 @@ public class GuardtheBridge extends Activity {
        setContentView(R.layout.rideslist);
        initializeDb();
        retrieveRides();
-       populateRides();
+       populateRides(resultCode);
        mGDbHelper.close();
        mDbHelper.close();
        nGDbHelper.close();
+   }
+   
+   public static class GTBAdapter extends FragmentPagerAdapter
+   {
+	   public GTBAdapter(FragmentManager fm)
+	   {
+		   super(fm);
+	   }
+	   public int getCount()
+	   {
+		   return NUM_ITEMS;
+	   }
+	   public Fragment getItem(int position)
+	   {
+		   return ArrayListFragment.newInstance(position);
+	   }
+   }
+   
+   public static class ArrayListFragment extends ListFragment
+   {
+	   private int mNum;
+	   private GtBDbAdapter m_ALFGDbHelper = null;
+	   
+	   static ArrayListFragment newInstance(int num)
+	   {
+		   Log.v(TAG, "ArrayListFragment: newInstance: num=" + num);
+		   ArrayListFragment f = new ArrayListFragment();
+		   
+		   Bundle args = new Bundle();
+		   args.putInt("num", num);
+		   f.setArguments(args);
+		   return f;
+	   }
+	   
+	   public void onCreate(Bundle savedInstanceState)
+	   {
+		   super.onCreate(savedInstanceState);
+		   Log.v(TAG, "ArrayListFragment: onCreate");
+		   m_ALFGDbHelper = new GtBDbAdapter(self);
+		   mNum = getArguments() != null ? getArguments().getInt("num") : 1;
+	   }
+	   
+	   public View onCreateView(LayoutInflater inflater, ViewGroup container,
+			   Bundle savedInstanceState)
+	   {
+		   Log.v(TAG, "ArrayListFragment: onCreateView");
+		   m_ALFGDbHelper.open();
+		   mGDbHelper.open();
+		   View v = inflater.inflate(R.layout.openrides, container, false);
+		   TextView aTV = (TextView)v.findViewById(R.id.openrides_title);
+		   aTV.setText(R.string.openrides_title);
+		   ListView aLV = (ListView) v.findViewById(android.R.id.list);
+		   aLV.setAdapter(new ArrayAdapter<PatronInfo>(getActivity(), R.layout.rides, GuardtheBridge.populateRides(OPENRIDES)));
+		   ((RelativeLayout)aLV.getParent()).removeView(aLV);
+		   return (View)aLV;
+	   }
+	   
+	   public void onActivityCreated(Bundle savedInstanceState)
+	   {
+		   super.onActivityCreated(savedInstanceState);
+		   Log.v(TAG, "ArrayListFragment: onActivityCreated");
+		   setListAdapter(new ArrayAdapter<PatronInfo>(getActivity(),
+				   R.layout.rides, GuardtheBridge.populateRides(OPENRIDES)));
+		   mGDbHelper.close();
+		   m_ALFGDbHelper.close();
+	   }
+	   
+	   public void onItemClick(AdapterView<?> av, 
+			   View v, 
+			   int position, 
+			   long id){
+			Log.v(TAG, "Displaying Ride: " + id);
+			Log.v(TAG, "Car Number: " + position);
+			TextView tv = (TextView) v;
+			long row = 0;
+			try
+			{
+				row = Long.parseLong(tv.getText().
+						toString().
+						substring(0, 1));
+			} catch (NumberFormatException e)
+			{
+				return;
+			}
+			Intent intent = new Intent(self, ShowPatron.class);
+			intent.putExtra(GtBDbAdapter.KEY_ROWID, row);
+			startActivityForResult(intent, PATRON_READ);
+	   }
+	   
+	   public boolean onItemLongClick(AdapterView<?> av, 
+			   View v, 
+			   int position, 
+			   long id){
+			Log.v(TAG, "Editing Ride: " + id);
+			Log.v(TAG, "Car Number: " + position);
+			TextView tv = (TextView) v;
+			long row = 0;
+			try
+			{
+				row = Long.parseLong(tv.getText().
+						toString().
+						substring(0, 1));
+			} catch (NumberFormatException e)
+			{
+				return false;
+			}
+			Intent intent = new Intent(self, EditPatron.class);
+			intent.putExtra(GtBDbAdapter.KEY_ROWID, row);
+			startActivityForResult(intent, PATRON_EDIT);
+			return true;
+	   }
    }
 }

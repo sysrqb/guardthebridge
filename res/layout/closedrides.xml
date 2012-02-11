@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/closedrides_layout" 
+    android:layout_width="fill_parent"	
+    android:layout_height="fill_parent">
+	<TextView 
+		android:id="@+id/closedrides_title_closed"
+		android:layout_height="wrap_content"
+		android:layout_width="match_parent" 
+		android:text="@string/closedrides_title_closed"/>
+	<ListView
+		android:id="@+id/closedrides_list_closed"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:layout_below="@+id/closedrides_title_closed" />
+</RelativeLayout>

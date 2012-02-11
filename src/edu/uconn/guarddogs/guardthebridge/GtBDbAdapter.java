@@ -169,14 +169,26 @@ public class GtBDbAdapter {
 
     /**
      * Return a Cursor over the list of all patrons in the database
-     * 
+     * @param ridetype Type of ride to return; 0: Open, 1: Closed
      * @return Cursor over all patrons
      */
-	public PatronInfo[] fetchAllPatrons() 
+	public PatronInfo[] fetchAllPatrons(int ridetype)  
 	{
 		Log.v(TAG, "fetchAllPatrons");
-        Cursor mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_PATRON,
-                KEY_PID}, null, null, null, null, null);
+		Cursor mCursor = null;
+		if (ridetype == 0)
+		{
+			mCursor = mDb.query(DATABASE_TABLE, new String[] {KEY_ROWID, KEY_PATRON,
+					KEY_PID}, null, null, null, null, null);
+		}
+		else
+			if (ridetype == 1)
+			{
+				mCursor = mDb.query(DATABASE_TABLE_CLOSED, new String[] {KEY_ROWID, KEY_PATRON,
+						KEY_PID}, null, null, null, null, null);
+			}
+			else
+				return null;
         Log.v(TAG, "mCursor = " + mCursor.getCount());
         if (mCursor.getCount() > 0)
         {

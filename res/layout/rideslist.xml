@@ -1,63 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android">
-	<RelativeLayout 
-    	android:id="@+id/activelist_layout"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ridelist_layout" 
+    android:layout_width="fill_parent" 
+    android:layout_height="fill_parent">
+	<android.support.v4.view.ViewPager
+		android:id="@+id/ridelist_pageview"
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent">
-		<TextView 
-		    android:id="@+id/activelist_title"
-		    android:layout_height="wrap_content"
-		    android:layout_width="match_parent"
-		    android:text="@string/activelist_title"/>
-   		
-        <ListView
-            android:id="@+id/activelist_list"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/activelist_title" />
-		<Button
-		    android:id="@+id/dispatch"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_alignParentBottom="true"
-		    android:text="@string/dispatch" />
-		
-		<Button
-		    android:id="@+id/emergency"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_alignParentBottom="true"
-		    android:layout_toRightOf="@+id/dispatch"
-		    android:text="@string/emergency" />
-	</RelativeLayout>
-	<RelativeLayout 
-    	android:id="@+id/activelist_layout_closed"
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent">
-		<TextView 
-		    android:id="@+id/activelist_title_closed"
-		    android:layout_height="wrap_content"
-		    android:layout_width="match_parent"
-		    android:text="@string/activelist_title_closed"/>
-   		
-        <ListView
-            android:id="@+id/activelist_list_closed"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/activelist_title_closed" />
-		<Button
-		    android:id="@+id/dispatch_closed"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_alignParentBottom="true"
-		    android:text="@string/dispatch" />
-		
-		<Button
-		    android:id="@+id/emergency_closed"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_alignParentBottom="true"
-		    android:layout_toRightOf="@+id/dispatch"
-		    android:text="@string/emergency" />
-	</RelativeLayout>
-</ViewFlipper>
+	</android.support.v4.view.ViewPager>
+	<Button
+		android:id="@+id/dispatch"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:text="@string/dispatch" />
+	
+	<Button
+		android:id="@+id/emergency"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_toRightOf="@+id/dispatch"
+		android:text="@string/emergency" />
+</RelativeLayout>
