@@ -78,7 +78,7 @@ public class GtBDbAdapter {
     
     private static final String SAFE_DATABASE_CLOSED_CREATE =
             "create table " + DATABASE_TABLE_CLOSED + "( " + KEY_ROWID + " integer primary key autoincrement, "
-            + KEY_PID + " integer, " + KEY_PATRON + " blob, " + KEY_STATUS + " text);";
+            + KEY_PID + " unique integer, " + KEY_PATRON + " blob, " + KEY_STATUS + " text);";
 
     private static final String DATABASE_NAME = "saferides";
     private static final int DATABASE_VERSION = 2;
@@ -323,16 +323,31 @@ public class GtBDbAdapter {
         
     }
     
+    public boolean isClosed(int pid)
+    {
+    	Cursor aCursor =
+                mDb.query(true, DATABASE_TABLE_CLOSED, new String[] {
+                        KEY_ROWID}, KEY_PID + "=" + pid, null,
+                        null, null, null, null);
+            if (aCursor != null)
+            	aCursor.moveToFirst();
+            return (aCursor.getCount() > 0) ? true : false;
+    }
+    
     public long setDone(long rowId, byte[] message, int pid)
     {
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PATRON, message);
         initialValues.put(KEY_PID, pid);
         initialValues.put(KEY_STATUS, "done");
-
-        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
-    	deletePatron(rowId);
-    	return insrtRow;
+        
+        if (!isClosed(pid))
+        {
+	        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
+	    	deletePatron(rowId);
+	    	return insrtRow;
+        }
+        return 0;
     }
     
     public long setCanceled(long rowId, byte[] message, int pid)
@@ -342,8 +357,12 @@ public class GtBDbAdapter {
         initialValues.put(KEY_PID, pid);
         initialValues.put(KEY_STATUS, "cancelled");
 
-        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
-    	deletePatron(rowId);
-    	return insrtRow;
+        if (!isClosed(pid))
+        {
+	        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
+	    	deletePatron(rowId);
+	    	return insrtRow;
+        }
+        return 0;
     }
 }
