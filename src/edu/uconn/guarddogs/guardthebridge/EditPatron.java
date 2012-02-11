@@ -34,7 +34,7 @@ import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 public class EditPatron extends Activity {
 	private final String TAG = "EP-GTBLOG";
 	private GtBDbAdapter mGDbHelper;
-	private Long mrowid;
+	private Long mpid;
 	private EditPatron self;
 	private PatronInfo m_aPI;
 	
@@ -44,12 +44,12 @@ public class EditPatron extends Activity {
 		mGDbHelper = new GtBDbAdapter(this);
 		mGDbHelper.open();
 		setContentView(R.layout.editpatron);
-		mrowid = (savedInstanceState == null) ? null :
+		mpid = (savedInstanceState == null) ? null :
 			(Long)savedInstanceState.getSerializable(GtBDbAdapter.KEY_ROWID);
-		if (mrowid == null)
+		if (mpid == null)
 		{
 			Bundle bundle = getIntent().getExtras();
-			mrowid = (bundle != null) ? bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
+			mpid = (bundle != null) ? bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
 		}
 		fillPatronInfo();
 		mGDbHelper.close();
@@ -104,9 +104,9 @@ public class EditPatron extends Activity {
 	
 	private void fillPatronInfo()
 	{
-		if (mrowid != null)
+		if (mpid != null)
 		{
-			m_aPI = mGDbHelper.fetchPatron(mrowid + 1);
+			m_aPI = mGDbHelper.fetchPatron(mpid);
 			if (m_aPI == null)
 				return;
 			EditText evName = null;
@@ -138,11 +138,11 @@ public class EditPatron extends Activity {
 	
 	private void savePatronInfo()
 	{
-		if (mrowid != null)
+		if (mpid != null)
 		{
 			mGDbHelper.open();
 			if (m_aPI == null)
-				m_aPI = mGDbHelper.fetchPatron(mrowid + 1);
+				m_aPI = mGDbHelper.fetchPatron(mpid);
 			
 			int npass = 0;
 			try {
@@ -167,7 +167,7 @@ public class EditPatron extends Activity {
 					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
 					build();
 			
-			Log.v(TAG, "Updating Patron: " + mrowid + ": " + mGDbHelper.updatePatron(mrowid + 1, aPI.toByteArray(), aPI.getPid()));
+			Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid()));
 			mGDbHelper.close();
 		}
 	}
@@ -175,11 +175,11 @@ public class EditPatron extends Activity {
 	private void donePatron()
 	{
 
-		if (mrowid != null)
+		if (mpid != null)
 		{
 			mGDbHelper.open();
 			if (m_aPI == null)
-				m_aPI = mGDbHelper.fetchPatron(mrowid + 1);
+				m_aPI = mGDbHelper.fetchPatron(mpid);
 			int npass = 0;
 			try {
 				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
@@ -204,8 +204,8 @@ public class EditPatron extends Activity {
 					setStatus("Done").
 					build();
 			
-			Log.v(TAG, "Updating Patron as DONE: " + mrowid);
-			mGDbHelper.setDone(mrowid + 1, aPI.toByteArray(), aPI.getPid());
+			Log.v(TAG, "Updating Patron as DONE: " + mpid);
+			mGDbHelper.setDone(mpid + 1, aPI.toByteArray(), aPI.getPid());
 			mGDbHelper.close();
 		}
 			
@@ -214,11 +214,11 @@ public class EditPatron extends Activity {
 	private void cancelPatron()
 	{
 
-		if (mrowid != null)
+		if (mpid != null)
 		{
 			mGDbHelper.open();
 			if (m_aPI == null)
-				m_aPI = mGDbHelper.fetchPatron(mrowid + 1);
+				m_aPI = mGDbHelper.fetchPatron(mpid);
 			int npass = 0;
 			try {
 				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
@@ -243,8 +243,8 @@ public class EditPatron extends Activity {
 					setStatus("cancelled").
 					build();
 			
-			Log.v(TAG, "Updating Patron as CANCELED: " + mrowid);
-			mGDbHelper.setCanceled(mrowid + 1, aPI.toByteArray(), aPI.getPid());
+			Log.v(TAG, "Updating Patron as CANCELED: " + mpid);
+			mGDbHelper.setCanceled(mpid + 1, aPI.toByteArray(), aPI.getPid());
 			mGDbHelper.close();
 		}
 			

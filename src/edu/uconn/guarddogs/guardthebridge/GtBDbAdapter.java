@@ -226,15 +226,15 @@ public class GtBDbAdapter {
     /**
      * Return a Cursor positioned at the patron that matches the given rowId
      * 
-     * @param rowId id of patron to retrieve
+     * @param pid id of patron to retrieve
      * @return Cursor positioned to matching note, if found
      * @throws SQLException if patron could not be found/retrieved
      */
-	public PatronInfo fetchPatron(long rowId) throws SQLException {
-		Log.v(TAG, "Requesing " + rowId + " patron");
+	public PatronInfo fetchPatron(long pid) throws SQLException {
+		Log.v(TAG, "Requesing " + pid + " patron");
         Cursor mCursor =
             mDb.query(true, DATABASE_TABLE, new String[] {
-                    KEY_PATRON, KEY_PID}, KEY_ROWID + "=" + rowId, null,
+                    KEY_PATRON, KEY_ROWID}, KEY_PID + "=" + pid, null,
                     null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
@@ -254,15 +254,22 @@ public class GtBDbAdapter {
 	
 	public boolean isNewPatron(int pid) throws SQLException {
 
-        Cursor mCursor =
-
+        Cursor aCursor =
             mDb.query(true, DATABASE_TABLE, new String[] {
                     KEY_ROWID}, KEY_PID + "=" + pid, null,
                     null, null, null, null);
-        if (mCursor != null) {
-            mCursor.moveToFirst();
+        if (aCursor != null)
+        	aCursor.moveToFirst();
+        if (aCursor.getCount() > 0)
+        	return false;
+        aCursor = 
+        mDb.query(true, DATABASE_TABLE_CLOSED, new String[] {
+                KEY_ROWID}, KEY_PID + "=" + pid, null,
+                null, null, null, null);
+        if (aCursor != null) {
+            aCursor.moveToFirst();
         }
-        return (mCursor.getCount() > 0) ? false : true;
+        return (aCursor.getCount() > 0) ? false : true;
     }
 
     /**
@@ -275,12 +282,12 @@ public class GtBDbAdapter {
      * @param body value to set note body to
      * @return true if the note was successfully updated, false otherwise
      */
-    public boolean updatePatron(long rowId, byte[] message, int pid) {
+    public boolean updatePatron(byte[] message, int pid) {
         ContentValues args = new ContentValues();
         args.put(KEY_PATRON, message);
         args.put(KEY_PID, pid);
 
-        return mDb.update(DATABASE_TABLE, args, KEY_ROWID + "=" + rowId, null) > 0;
+        return mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null) > 0;
     }
     
     public long setDone(long rowId, byte[] message, int pid)

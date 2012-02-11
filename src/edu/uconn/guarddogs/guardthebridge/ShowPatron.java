@@ -28,18 +28,18 @@ import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 
 public class ShowPatron extends Activity {
 	private GtBDbAdapter mGDbHelper;
-	private Long mrowid;
+	private Long mpid;
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
 		mGDbHelper = new GtBDbAdapter(this);
 		mGDbHelper.open();
 		setContentView(R.layout.showpatron);
-		mrowid = (savedInstanceState == null) ? null :
+		mpid = (savedInstanceState == null) ? null :
 			(Long)savedInstanceState.getSerializable(GtBDbAdapter.KEY_ROWID);
-		if (mrowid == null)
+		if (mpid == null)
 		{
 			Bundle bundle = getIntent().getExtras();
-			mrowid = (bundle != null) ? bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
+			mpid = (bundle != null) ? bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
 		}
 		fillPatronInfo();
 		
@@ -55,9 +55,9 @@ public class ShowPatron extends Activity {
 	
 	public void fillPatronInfo()
 	{
-		if (mrowid != null)
+		if (mpid != null)
 		{
-			PatronInfo aPI = mGDbHelper.fetchPatron(mrowid + 1);
+			PatronInfo aPI = mGDbHelper.fetchPatron(mpid);
 			if (aPI == null)
 				return;
 			TextView tvName = null;
