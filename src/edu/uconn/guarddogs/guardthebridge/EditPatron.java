@@ -86,7 +86,7 @@ public class EditPatron extends Activity {
 		bDone.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v){
-				self.cancelPatron();
+				self.donePatron();
 				setResult(RESULT_OK);
 				finish();
 			}
@@ -96,7 +96,7 @@ public class EditPatron extends Activity {
 		bCanceled.setOnClickListener(new OnClickListener()
 		{
 			public void onClick(View v){
-				self.donePatron();
+				self.cancelPatron();
 				setResult(RESULT_OK);
 				finish();
 			}
@@ -168,7 +168,10 @@ public class EditPatron extends Activity {
 					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
 					build();
 			
-			Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid()));
+			if(aPI.getStatus() == "Waiting" || aPI.getStatus() == "Riding")
+				Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid(), 0));
+			else
+				Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid(), 1));
 			mGDbHelper.close();
 		}
 	}

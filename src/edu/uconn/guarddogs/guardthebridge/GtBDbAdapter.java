@@ -250,7 +250,19 @@ public class GtBDbAdapter {
                     null, null, null, null);
         if (mCursor != null) {
             mCursor.moveToFirst();
-        
+            
+            if (mCursor.getCount() == 0)
+            {
+            	Log.v(TAG, "Requesing " + pid + " patron");
+                mCursor =
+                    mDb.query(true, DATABASE_TABLE_CLOSED, new String[] {
+                            KEY_PATRON, KEY_ROWID}, KEY_PID + "=" + pid, null,
+                            null, null, null, null);
+                if (mCursor != null)
+                    mCursor.moveToFirst();
+                else
+                	return null;
+            }
 	        PatronInfo patInfo = null;
 	        byte[] patron = mCursor.getBlob(0);
 	    	try {
@@ -285,21 +297,30 @@ public class GtBDbAdapter {
     }
 
     /**
-     * Update the note using the details provided. The note to be updated is
-     * specified using the rowId, and it is altered to use the title and body
-     * values passed in
+     * Update the patron using the details provided. The patron to be updated is
+     * specified using the pid, and it is altered to use the message values 
+     * passed in
      * 
-     * @param rowId id of note to update
-     * @param title value to set note title to
-     * @param body value to set note body to
+     * @param pid id of patron to update
+     * @param status value to set patron status to
+     * @param message value to set message to
      * @return true if the note was successfully updated, false otherwise
      */
-    public boolean updatePatron(byte[] message, int pid) {
+    public boolean updatePatron(byte[] message, int pid, int status) {
         ContentValues args = new ContentValues();
         args.put(KEY_PATRON, message);
         args.put(KEY_PID, pid);
-
-        return mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null) > 0;
+        
+        switch(status)
+        {
+        case 0:
+        	return mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null) > 0;
+        case 1:
+        	return mDb.update(DATABASE_TABLE_CLOSED, args, KEY_PID + "=" + pid, null) > 0;
+        default:
+        	return mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null) > 0;
+        }
+        
     }
     
     public long setDone(long rowId, byte[] message, int pid)

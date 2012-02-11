@@ -62,7 +62,7 @@ public class GuardtheBridge extends FragmentActivity {
 	private static final String TAG = "GTB";
 	private static final int OPENRIDES = 0;
 	private static final int CLOSEDRIDES = 1;
-	private static final int NUM_ITEMS = 2;
+	private static final int NUM_ITEMS = 10;
     private static GuardtheBridge self;
     
     private GTBAdapter m_GFPA = null; 
