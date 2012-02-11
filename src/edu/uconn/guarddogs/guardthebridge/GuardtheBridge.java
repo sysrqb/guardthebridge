@@ -30,8 +30,10 @@ import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -57,6 +59,16 @@ public class GuardtheBridge extends Activity {
     private TLSGtBDbAdapter nGDbHelper;
     private GtBSSLSocketFactoryWrapper m_sslSF;
     private GuardtheBridge self;
+    
+    private Animation slideLeftIn;
+    private Animation slideLeftOut;
+    private Animation slideRightIn;
+    private Animation slideRightOut;
+    
+    private static final int SWIPE_MIN_DISTANCE = 120;
+    private static final int SWIPE_MAX_OFF_PATH = 250;
+    private static final int SWIPE_THRESHOLD_VELOCITY = 200;
+    private GestureDetector mGestureDet = null;
     
     @Override
     public void onCreate(Bundle savedInstanceState) {

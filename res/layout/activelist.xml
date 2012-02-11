@@ -1,46 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    	android:id="@+id/activelist_layout"
-		android:layout_width="fill_parent"
-		android:layout_height="fill_parent">
-	<TextView 
-	    android:id="@+id/activelist_title"
-	    android:layout_height="wrap_content"
-	    android:layout_width="match_parent"
-	    android:text="@string/activelist_title"/>
-    	
-<!--    	<LinearLayout -->
-<!--    	    android:layout_width="match_parent" -->
-<!--    	    android:layout_height="wrap_content" -->
-<!--    	    android:layout_below="@+id/activelist_title" -->
-<!--    	    android:orientation="vertical" > -->
 
-   		<!-- <TextView
-   		    android:id="@+id/nameVal"
-   		    android:layout_width="fill_parent"
-   		    android:layout_height="wrap_content"
-   		    android:text="@string/nameVal" 
-   		    android:layout_below="@+id/activelist_title"/>-->
-   		
-        <ListView
-            android:id="@+id/activelist_list"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/activelist_title" />
-		<Button
-		    android:id="@+id/dispatch"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_alignParentBottom="true"
-		    android:text="@string/dispatch" />
-		
-		<Button
-		    android:id="@+id/emergency"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_alignParentBottom="true"
-		    android:layout_toRightOf="@+id/dispatch"
-		    android:text="@string/emergency" />
+		<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	    	android:id="@+id/activelist_layout"
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent">
+			<TextView 
+			    android:id="@+id/activelist_title"
+			    android:layout_height="wrap_content"
+			    android:layout_width="match_parent"
+			    android:text="@string/activelist_title"/>
+	   		
+	        <ListView
+	            android:id="@+id/activelist_list"
+	            android:layout_width="fill_parent"
+	            android:layout_height="wrap_content"
+	            android:layout_below="@+id/activelist_title" />
+			<Button
+			    android:id="@+id/dispatch"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_alignParentBottom="true"
+			    android:text="@string/dispatch" />
+			
+			<Button
+			    android:id="@+id/emergency"
+			    android:layout_width="wrap_content"
+			    android:layout_height="wrap_content"
+			    android:layout_alignParentBottom="true"
+			    android:layout_toRightOf="@+id/dispatch"
+			    android:text="@string/emergency" />
 		
 
-</RelativeLayout>
+		</RelativeLayout>
