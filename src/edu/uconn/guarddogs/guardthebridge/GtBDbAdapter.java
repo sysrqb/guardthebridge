@@ -1,6 +1,9 @@
 /*
  * Copyright (C) 2008 Google Inc.
  * 
+ * Modifications By: 
+ * Copyright (C) 2012 Matthew Finkel <Matthew.Finkel@gmail.com>
+ * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not
  * use this file except in compliance with the License. You may obtain a copy of
  * the License at
