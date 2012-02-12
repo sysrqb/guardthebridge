@@ -22,4 +22,12 @@
 		android:layout_alignParentBottom="true"
 		android:layout_toRightOf="@+id/dispatch"
 		android:text="@string/emergency" />
+	
+	<Button
+		android:id="@+id/refresh"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:layout_alignParentBottom="true"
+		android:layout_alignParentRight="true"
+		android:text="@string/refresh" />
 </RelativeLayout>

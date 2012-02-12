@@ -44,7 +44,7 @@ import android.util.Log;
 
 public final class GtBSSLSocketFactoryWrapper {
 	private static final String TAG = "SSF-GTBLOG";
-	private final String HOST = "empathos.dyndns.org";
+	private final String HOST = "guarddogs.dyndns.org";
 	private final int PORT = 4680;
 	private static SSLSocket m_sslSocket = null;
 	private static SSLSocketFactory m_aSSF;

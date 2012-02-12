@@ -38,6 +38,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -65,6 +66,9 @@ public class GuardtheBridge extends FragmentActivity {
 	private static final int NUM_ITEMS = 2;
     private static GuardtheBridge self;
     
+    private GtBDbAdapter mGDbHelper = null;
+	private GtBSSLSocketFactoryWrapper mSSLSF;
+    
     private GTBAdapter m_GFPA = null; 
     private ViewPager m_aVP = null;
     
@@ -79,19 +83,96 @@ public class GuardtheBridge extends FragmentActivity {
         ViewPager aVp = (ViewPager)findViewById(R.id.ridelist_pageview);
         m_GFPA = new GTBAdapter(getSupportFragmentManager());
         aVp.setAdapter(m_GFPA);
-        
-        /*retrieveRides();
-        populateRides(OPENRIDES);
+        mSSLSF = new GtBSSLSocketFactoryWrapper(this);
+        mGDbHelper = new GtBDbAdapter(this);
+        mGDbHelper.open();
+        retrieveRides();
+        //populateRides(OPENRIDES);
         mGDbHelper.close();
-        mDbHelper.close();
-        nGDbHelper.close();*/
+        //mDbHelper.close();
+        //nGDbHelper.close();
+        
+        Button aRfrshBtn = (Button)findViewById(R.id.refresh);
+        aRfrshBtn.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				mGDbHelper.open();
+				retrieveRides();
+				mGDbHelper.close();
+			}
+		});
     }
     
     public boolean onOptionItemSelected(MenuItem menu){
 		return super.onOptionsItemSelected(menu);
     }
    
-   
+    public void retrieveRides() {
+		   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();
+		   Request aPBReq = Request.newBuilder().
+				   setNReqId(1).
+				   setSReqType("CURR").
+				   setNCarId(5).
+		   		   addAllNParams(vRides).
+		   		   build();
+		   
+		   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
+		   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
+		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
+		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
+				   aPBReq.getSerializedSize());
+		   SSLSocket aSock = mSSLSF.getSSLSocket();
+		   if (aSock.isClosed())
+			   aSock = mSSLSF.createSSLSocket(self);
+		   if (mSSLSF.getSession() == null)
+		   {
+			   mSSLSF = mSSLSF.getNewSSLSFW(self);
+			   aSock = mSSLSF.getSSLSocket();
+		   }
+		   try {
+			   OutputStream aOS = aSock.getOutputStream();
+			   aOS.write(aPBReq.getSerializedSize());
+			   byte[] vbuf = aPBReq.toByteArray();
+			   //aPBReq.writeTo(aOS);
+			   aOS.write(vbuf);
+			   InputStream aIS = aSock.getInputStream();
+			   vbuf = new byte[8];
+			   aIS.read(vbuf);
+			   vbuf = new byte[vbuf[0]];
+			   aIS.read(vbuf);
+			   Response apbRes;
+			   try {
+				   apbRes = Response.parseFrom(vbuf);
+			
+				   Log.v(TAG, "Response Buffer:");
+				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
+				   Log.v(TAG, "PatronList Buffer: ");
+				   Log.v(TAG, TextFormat.shortDebugString(
+						   apbRes.getPlPatronList()));
+				   addToDb(apbRes.getPlPatronList());
+				   Log.v(TAG, "Added to DB");
+				} catch (InvalidProtocolBufferException e) {
+					// TODO Auto-generated catch block
+					String tmp = "";
+					for(int i = 0; i<vbuf.length; i++)
+						tmp = tmp + vbuf[i] + " ";
+					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
+						+ tmp);
+					e.printStackTrace();
+				}
+		   }catch (IOException e)
+		   {
+			   e.printStackTrace();
+		   }
+	   	}
+	   
+	   public void addToDb(PatronList list){
+		   for (PatronInfo patron : list.getPatronList())
+			   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
+	   }
+	   
    private void setActions(ListView lv, Button dispatch, Button emerg){
 	   lv.setOnItemClickListener(new OnItemClickListener() { 
 		   @Override
@@ -190,6 +271,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   nGDbHelper = new TLSGtBDbAdapter(self);
 		   mNum = getArguments() != null ? getArguments().getInt("num") : 1;
 		   initializeDb();
+		   retrieveRides();
 	   }
 	   
 	   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -218,6 +300,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   aLV.setAdapter(new ArrayAdapter<PatronInfo>(getActivity(), R.layout.rides, GuardtheBridge.populateRides(OPENRIDES)));
 		   ((RelativeLayout)aLV.getParent()).removeView(aLV);*/
 		   Log.v(TAG, "onCreateView: returning");
+		   m_ALFGDbHelper.close();
 		   return v;
 	   }
 	   
@@ -279,7 +362,6 @@ public class GuardtheBridge extends FragmentActivity {
 	   
 	   public void initializeDb()
 	   {
-		   m_ALFGDbHelper.open();
 	       mDbHelper.open();
 	       nGDbHelper.open();
 	   }
@@ -313,7 +395,7 @@ public class GuardtheBridge extends FragmentActivity {
 			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
 			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[1];
+			   vbuf = new byte[8];
 			   aIS.read(vbuf);
 			   vbuf = new byte[vbuf[0]];
 			   aIS.read(vbuf);
@@ -344,6 +426,7 @@ public class GuardtheBridge extends FragmentActivity {
 	   }
 	   
 	   public String[] populateRides(int ridetype){
+		   m_ALFGDbHelper.open();
 		   PatronInfo[] vPI = m_ALFGDbHelper.fetchAllPatrons(ridetype);
 		   if (vPI.length == 0)
 		   {
@@ -382,6 +465,7 @@ public class GuardtheBridge extends FragmentActivity {
 			   setActions(aLV, (Button)findViewById(R.id.dispatch), 
 					   (Button)findViewById(R.id.emergency));
 				*/
+			   m_ALFGDbHelper.close();
 			   return msg;
 		   }
 	   }

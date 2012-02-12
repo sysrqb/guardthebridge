@@ -43,6 +43,7 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 public class CarNumList extends ListActivity {
 	private static final String TAG = "CNL-GTBLOG";
     private CarsGtBDbAdapter m_aCDbHelper;
+    private int m_num = 0;
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
