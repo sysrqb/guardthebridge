@@ -78,7 +78,7 @@ public class GtBDbAdapter {
     
     private static final String SAFE_DATABASE_CLOSED_CREATE =
             "create table " + DATABASE_TABLE_CLOSED + "( " + KEY_ROWID + " integer primary key autoincrement, "
-            + KEY_PID + " unique integer, " + KEY_PATRON + " blob, " + KEY_STATUS + " text);";
+            + KEY_PID + " integer, " + KEY_PATRON + " blob, " + KEY_STATUS + " text);";
 
     private static final String DATABASE_NAME = "saferides";
     private static final int DATABASE_VERSION = 2;
