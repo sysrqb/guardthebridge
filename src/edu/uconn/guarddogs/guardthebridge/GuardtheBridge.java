@@ -86,7 +86,7 @@ public class GuardtheBridge extends FragmentActivity {
         mSSLSF = new GtBSSLSocketFactoryWrapper(this);
         mGDbHelper = new GtBDbAdapter(this);
         mGDbHelper.open();
-        retrieveRides();
+        //retrieveRides();
         //populateRides(OPENRIDES);
         mGDbHelper.close();
         //mDbHelper.close();
@@ -138,12 +138,15 @@ public class GuardtheBridge extends FragmentActivity {
 			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
 			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[8];
+			   vbuf = new byte[73];
 			   aIS.read(vbuf);
-			   vbuf = new byte[vbuf[0]];
-			   aIS.read(vbuf);
-			   Response apbRes;
-			   try {
+			   try
+			   {
+				   Response apbTmpSize = null;
+				   apbTmpSize = Response.parseFrom(vbuf);
+				   vbuf = new byte[apbTmpSize.getNRespId()];
+				   aIS.read(vbuf);
+				   Response apbRes;
 				   apbRes = Response.parseFrom(vbuf);
 			
 				   Log.v(TAG, "Response Buffer:");
@@ -367,6 +370,7 @@ public class GuardtheBridge extends FragmentActivity {
 	   }
    
 	   public void retrieveRides() {
+		   m_ALFGDbHelper.open();
 		   ArrayList<Integer> vRides = m_ALFGDbHelper.fetchAllPid();
 		   Request aPBReq = Request.newBuilder().
 				   setNReqId(1).
@@ -395,12 +399,15 @@ public class GuardtheBridge extends FragmentActivity {
 			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
 			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[8];
+			   vbuf = new byte[73];
 			   aIS.read(vbuf);
-			   vbuf = new byte[vbuf[0]];
-			   aIS.read(vbuf);
-			   Response apbRes;
-			   try {
+			   try 
+			   {
+				   Response apbTmpSize = null;
+				   apbTmpSize = Response.parseFrom(vbuf);
+				   vbuf = new byte[apbTmpSize.getNRespId()];
+				   aIS.read(vbuf);
+				   Response apbRes;
 				   apbRes = Response.parseFrom(vbuf);
 			
 				   Log.v(TAG, "Response Buffer:");
@@ -418,6 +425,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   {
 			   e.printStackTrace();
 		   }
+		   m_ALFGDbHelper.close();
 	   	}
 	   
 	   public void addToDb(PatronList list){
