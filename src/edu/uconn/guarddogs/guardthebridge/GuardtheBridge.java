@@ -349,14 +349,16 @@ public class GuardtheBridge extends FragmentActivity {
 			long pid = 0;
 			try
 			{
-				Pattern pPidRegex = Pattern.compile("(\\d+):");
+				Pattern pPidRegex = Pattern.compile("\\d*:");
 				String atmp = "";
 				try
 				{
 					atmp = tv.getText().
 							toString().split(pPidRegex.pattern())[0];
+					atmp = atmp.substring(0, atmp.length()-1);
 				} catch (NullPointerException ex)
 				{
+					Log.w(TAG, "NULL Pointer on pid read: " + atmp);
 					return;
 				}
 				pid = Long.parseLong(atmp);
