@@ -23,7 +23,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
+import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 
 import android.content.Intent;
@@ -133,7 +135,26 @@ public class GuardtheBridge extends FragmentActivity {
 		   }
 		   try {
 			   OutputStream aOS = aSock.getOutputStream();
-			   aOS.write(aPBReq.getSerializedSize());
+			   try
+			   {
+				   aOS.write(aPBReq.getSerializedSize());
+			   } catch (SSLProtocolException ex)
+			   {
+				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+					mSSLSF.forceReHandshake(this);
+					aSock = mSSLSF.getSSLSocket();
+					aOS = aSock.getOutputStream();
+					try
+					{
+						aOS.write(aPBReq.getSerializedSize());
+					} catch (SSLProtocolException exc)
+					{
+						mSSLSF = mSSLSF.getNewSSLSFW(this);
+						aSock = mSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+						aOS.write(aPBReq.getSerializedSize());
+					}
+			   }
 			   byte[] vbuf = aPBReq.toByteArray();
 			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
@@ -328,9 +349,17 @@ public class GuardtheBridge extends FragmentActivity {
 			long pid = 0;
 			try
 			{
-				pid = Long.parseLong(tv.getText().
-						toString().
-						substring(0, 1));
+				Pattern pPidRegex = Pattern.compile("(\\d+):");
+				String atmp = "";
+				try
+				{
+					atmp = tv.getText().
+							toString().split(pPidRegex.pattern())[0];
+				} catch (NullPointerException ex)
+				{
+					return;
+				}
+				pid = Long.parseLong(atmp);
 			} catch (NumberFormatException e)
 			{
 				return;
@@ -399,7 +428,7 @@ public class GuardtheBridge extends FragmentActivity {
 			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
 			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[73];
+			   vbuf = new byte[9];
 			   aIS.read(vbuf);
 			   try 
 			   {
