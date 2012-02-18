@@ -159,7 +159,7 @@ public class GuardtheBridge extends FragmentActivity {
 			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
 			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[73];
+			   vbuf = new byte[9];
 			   aIS.read(vbuf);
 			   try
 			   {
@@ -425,7 +425,26 @@ public class GuardtheBridge extends FragmentActivity {
 		   }
 		   try {
 			   OutputStream aOS = aSock.getOutputStream();
-			   aOS.write(aPBReq.getSerializedSize());
+			   try
+			   {
+				   aOS.write(aPBReq.getSerializedSize());
+			   } catch (SSLProtocolException ex)
+			   {
+				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+					m_sslSF.forceReHandshake(self);
+					aSock = m_sslSF.getSSLSocket();
+					aOS = aSock.getOutputStream();
+					try
+					{
+						aOS.write(aPBReq.getSerializedSize());
+					} catch (SSLProtocolException exc)
+					{
+						m_sslSF = m_sslSF.getNewSSLSFW(self);
+						aSock = m_sslSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+						aOS.write(aPBReq.getSerializedSize());
+					}
+			   }
 			   byte[] vbuf = aPBReq.toByteArray();
 			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
@@ -450,6 +469,12 @@ public class GuardtheBridge extends FragmentActivity {
 				   Log.v(TAG, "Added to DB");
 				} catch (InvalidProtocolBufferException e) {
 					// TODO Auto-generated catch block
+					e.printStackTrace();
+					String tmp = "";
+					for(int i = 0; i<vbuf.length; i++)
+						tmp = tmp + vbuf[i] + " ";
+					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
+						+ tmp);
 					e.printStackTrace();
 				}
 		   }catch (IOException e)
