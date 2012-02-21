@@ -542,7 +542,7 @@ public class GuardtheBridge extends FragmentActivity {
 				   listmap.add(map);
 			   }
 			   new SimpleAdapter(this, listmap, R.layout.activelist, from, to));*/
-			   String[] msg = new String[vPI.length];
+			   String[] msg = new String[vPI.length + 3];
 			   
 			   //ListView aLV = (ListView) findViewById(R.id.activelist_list);
 			   for(int i = 0; i<vPI.length; i++)
@@ -550,6 +550,13 @@ public class GuardtheBridge extends FragmentActivity {
 				   msg[i] = vPI[i].getPid() + " " + vPI[i].getTimeassigned() + 
 						   ": " + vPI[i].getName() + " - " + vPI[i].getPickup();
 			   }
+			   
+			   /* 
+			    * Adds three lines such that the last three rides are 
+			    * not covered by the buttons
+			    */
+			   for(int i = vPI.length; i<msg.length; i++)
+				   msg[i] = "";
 			   
 			   /*aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.rides, msg));
 			   Log.v(TAG, "Finished compiling list of assigned rides");
