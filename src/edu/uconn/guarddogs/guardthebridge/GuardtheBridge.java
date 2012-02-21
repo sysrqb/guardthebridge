@@ -161,6 +161,20 @@ public class GuardtheBridge extends FragmentActivity {
 			   InputStream aIS = aSock.getInputStream();
 			   vbuf = new byte[9];
 			   aIS.read(vbuf);
+			   /* Handle messages smaller than 9 bytes */
+			   int nsize = (vbuf.length - 1);
+			   for (; nsize>0; nsize--)
+			   {
+				   if(vbuf[nsize] == 0)
+				   {
+					   continue;
+				   }
+				   break;
+			   }
+			   byte[] vbuf2 = new byte[nsize + 1];
+			   for(int i = 0; i != nsize + 1; i++)
+				   vbuf2[i] = vbuf[i];
+			   vbuf = vbuf2;
 			   try
 			   {
 				   Response apbTmpSize = null;
@@ -451,6 +465,20 @@ public class GuardtheBridge extends FragmentActivity {
 			   InputStream aIS = aSock.getInputStream();
 			   vbuf = new byte[9];
 			   aIS.read(vbuf);
+			   /* Handle messages smaller than 9 bytes */
+			   int nsize = (vbuf.length - 1);
+			   for (; nsize>0; nsize--)
+			   {
+				   if(vbuf[nsize] == 0)
+				   {
+					   continue;
+				   }
+				   break;
+			   }
+			   byte[] vbuf2 = new byte[nsize + 1];
+			   for(int i = 0; i != nsize + 1; i++)
+				   vbuf2[i] = vbuf[i];
+			   vbuf = vbuf2;
 			   try 
 			   {
 				   Response apbTmpSize = null;
