@@ -126,8 +126,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
 				   aPBReq.getSerializedSize());
 		   SSLSocket aSock = mSSLSF.getSSLSocket();
-		   if (aSock.isClosed())
-			   aSock = mSSLSF.createSSLSocket(self);
+		   aSock = mSSLSF.createSSLSocket(self);
 		   if (mSSLSF.getSession() == null)
 		   {
 			   mSSLSF = mSSLSF.getNewSSLSFW(self);
@@ -430,8 +429,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
 				   aPBReq.getSerializedSize());
 		   SSLSocket aSock = m_sslSF.getSSLSocket();
-		   if (aSock.isClosed())
-			   aSock = m_sslSF.createSSLSocket(self);
+		   aSock = m_sslSF.createSSLSocket(self);
 		   if (m_sslSF.getSession() == null)
 		   {
 			   m_sslSF = m_sslSF.getNewSSLSFW(self);
