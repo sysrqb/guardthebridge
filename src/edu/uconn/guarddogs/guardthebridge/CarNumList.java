@@ -70,7 +70,9 @@ public class CarNumList extends ListActivity {
 		protected void onPreExecute()
 		{
 			mProgBar = new ProgressDialog(self);
+			mProgBar.setCancelable(true);
 			mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			mProgBar.setMessage("Establishing Connection with server...");
 			mProgBar.show();
 		}
 
@@ -282,7 +284,29 @@ public class CarNumList extends ListActivity {
 		
 		protected void onProgressUpdate(Integer... progress)
 		{
-			mProgBar.setProgress(mProgBar.getProgress() + progress[0]);
+			int nTotalProgress = mProgBar.getProgress() + progress[0];
+			switch (nTotalProgress)
+			{
+				case 0:
+				case 20:
+					mProgBar.setMessage("Establishing Connection with server...");
+					break;
+				case 40:
+					mProgBar.setMessage("Connection Established, Sending request...");
+					break;
+				case 60:
+					mProgBar.setMessage("Receiving response...");
+					break;
+				case 80:
+					mProgBar.setMessage("Reading response...");
+					break;
+				case 100:
+					mProgBar.setMessage("Done!");
+					break;
+			}
+				
+			
+			mProgBar.setProgress(nTotalProgress);
 		}
 	}
 }
