@@ -25,10 +25,8 @@ import java.io.OutputStream;
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 
-import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -53,7 +51,7 @@ public class CarNumList extends ListActivity {
 		super.onCreate(savedInstanceState);
 		m_aCDbHelper = new CarsGtBDbAdapter(this);
         m_aCDbHelper.open();
-        listCars();
+		new CarsTask().execute();
 	}
 	
 	@Override
@@ -66,207 +64,18 @@ public class CarNumList extends ListActivity {
 		finish();
 	}
 	
-	public void listCars()
-	{
-		new CarsTask().execute();
-	}
-	
-	private void getConnFailedDialog(String msg){
-		Log.w(TAG, "Failed to Connect to server");
-		AlertDialog.Builder builder = new AlertDialog.Builder(this);
-		builder.setMessage(msg);
-		builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-           public void onClick(DialogInterface dialog, int id) {
-           	    finish();
-           }
-        });
-		builder.show();
-	}
-		
-	public int numberOfCars()
-	{
-		Request aPBReq;
-		Response aPBRes = null;
-		GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper(this);
-		Log.v(TAG, "Getting Car");
-		
-		SSLSocket aSock = aSSLSF.getSSLSocket();
-		if(aSock.isBound())
-		{
-			if(!aSock.isClosed())
-			{
-				Log.v(TAG, "Socket is not closed!");	
-			}
-			else
-			{
-				Log.w(TAG, "Socket IS closed!");
-				aSock = aSSLSF.createSSLSocket(this);
-			}
-		}
-		else
-			Log.w(TAG, "Socket is NOT bound!");
-		
-		if (aSock.isOutputShutdown())
-		{
-			Log.w(TAG, "Output Stream is Shutdown!");
-			aSock = aSSLSF.getSSLSocket();
-		}
-		if (aSSLSF.getSession() != null)
-			Log.v(TAG, "Session is still valid");
-		else
-		{
-			Log.w(TAG, "Session is NO LONGER VALID");
-			aSSLSF = new GtBSSLSocketFactoryWrapper(this);
-			aSock = aSSLSF.getSSLSocket();
-		}
-		
-		try
-		{
-			OutputStream aOS = null;
-			try
-			{
-				aOS = aSock.getOutputStream();
-			} catch (IOException e)
-			{
-				aSSLSF.forceReHandshake(this);
-				aSock = aSSLSF.getSSLSocket();
-				aOS = aSock.getOutputStream();
-			}
-			
-			aPBReq = Request.newBuilder().
-					setNReqId(3).
-					setSReqType("CARS").
-					build();
-			Log.v(TAG, "Request type: " + aPBReq.getSReqType());
-			Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
-			Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + aPBReq.getSerializedSize());
-			try 
-			{
-				aOS.write(aPBReq.getSerializedSize());
-			}catch (SSLProtocolException e)
-			{
-				Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-				aSSLSF.forceReHandshake(this);
-				aSock = aSSLSF.getSSLSocket();
-				aOS = aSock.getOutputStream();
-				try
-				{
-					aOS.write(aPBReq.getSerializedSize());
-				} catch (SSLProtocolException ex)
-				{
-					aSSLSF = aSSLSF.getNewSSLSFW(this);
-					aSock = aSSLSF.getSSLSocket();
-					aOS = aSock.getOutputStream();
-					aOS.write(aPBReq.getSerializedSize());
-				}
-			}
-			aPBReq.writeTo(aOS);
-			aOS.close();
-			InputStream aIS = aSock.getInputStream();
-			byte[] vbuf = new byte[11];
-			aIS.read(vbuf);
-			aSock.close(); //Server Side is already closed
-			try
-			{
-				aPBRes = Response.parseFrom(vbuf);
-			} catch (InvalidProtocolBufferException e)
-			{
-				e.printStackTrace();
-				aSock = aSSLSF.getSSLSocket();
-				aOS = aSock.getOutputStream();
-				aOS.write(aPBReq.getSerializedSize());
-				aPBReq.writeTo(aOS);
-				aOS.close();
-				aIS = aSock.getInputStream();
-				vbuf = new byte[11];
-				aIS.read(vbuf);
-				String tmp = "";
-				for (int i = 0; i<vbuf.length; i++)
-					tmp = tmp + vbuf[i] + " ";
-				Log.v(TAG, tmp);
-			}
-			aIS.close();
-			if (!aPBRes.hasNRespId())
-			{
-				aIS = aSock.getInputStream();
-				aPBRes = Response.parseFrom(aIS);
-				if (!aPBRes.hasNRespId())
-				{
-					getConnFailedDialog("Connection to server could not be established. " + 
-							"Please try again in a minute or call Dispatch.");
-					return -1;
-				}
-				if (aPBRes.getNRespId() != 0)
-				{
-					Log.e(TAG, "Error: " + aPBRes.getSResValue());
-					getConnFailedDialog("Connection to server could not be established. " + 
-							"Please try again in a minute or call Dispatch.");
-					return -1;
-				}
-				int numofcars;
-				if (aPBRes.getNResAddCount()==1)
-				{
-					numofcars = aPBRes.getNResAdd(1);
-				    Log.v(TAG, "Number of Cars: " + numofcars);
-				    return numofcars;
-				}
-				else
-					return numberOfCars();
-			}
-			else
-			{
-				if (aPBRes.getNRespId() != 0)
-				{
-					Log.w(TAG, "Reponse ID: " + aPBRes.getNRespId());
-					Log.w(TAG, "Reponse Type: " + aPBRes.getSResValue());
-					getConnFailedDialog("Connection to server could not be established. " + 
-							"Please try again in a minute or call Dispatch.");
-					return -1;
-				}
-				else {	
-					int numofcars;
-					if (aPBRes.getNResAddCount()==1)
-					{
-						numofcars = aPBRes.getNResAdd(0);
-					    Log.v(TAG, "Number of Cars: " + numofcars);
-					    return numofcars;
-					}
-					else
-						aSSLSF.forceReHandshake(this);
-						return numberOfCars();
-				}
-			}
-		} catch (InvalidProtocolBufferException e)
-		{
-			e.printStackTrace();
-			return -2;
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-			aSSLSF.forceReHandshake(this);
-			aSock = aSSLSF.getSSLSocket();
-			getConnFailedDialog("Connection to server could not be established. " + 
-					"Please try again in a minute or call Dispatch.");
-			return -2;
-		}
-	}
-	
 	private class CarsTask extends AsyncTask<Void, Integer, Integer>
 	{
 		
 		protected void onPreExecute()
 		{
-			/*View aVS = ((ViewStub) findViewById(R.id.stub_progress)).inflate();
-			ProgressBar aProgBar = (ProgressBar) aVS.findViewById(R.id.progbar);
-			aProgBar.setIndeterminate(false);
-			aProgBar.bringToFront();*/
 			mProgBar = new ProgressDialog(self);
 			mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			mProgBar.show();
 		}
 
 		@Override
 		protected Integer doInBackground(Void... params) {
-			// TODO Auto-generated method stub
 			int numOfCars = numberOfCars();
 			return numOfCars;
 		}
@@ -450,6 +259,8 @@ public class CarNumList extends ListActivity {
 		{
 			int num = res;
 			String cars[] = null;
+			
+			mProgBar.dismiss();
 			if(num < 1)
 			{
 				Log.w(TAG, "Failed to retrieve number of cars!");
