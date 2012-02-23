@@ -43,8 +43,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -60,7 +58,6 @@ import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 public class GuardtheBridge extends FragmentActivity {
-	private static final int PATRON_READ = 100;
 	private static final int PATRON_EDIT = 101;
 	private static final String TAG = "GTB";
 	private static final int OPENRIDES = 0;
@@ -71,8 +68,7 @@ public class GuardtheBridge extends FragmentActivity {
     private GtBDbAdapter mGDbHelper = null;
 	private GtBSSLSocketFactoryWrapper mSSLSF;
     
-    private GTBAdapter m_GFPA = null; 
-    private ViewPager m_aVP = null;
+    private GTBAdapter m_GFPA = null;
     
     
     @Override
@@ -88,18 +84,13 @@ public class GuardtheBridge extends FragmentActivity {
         mSSLSF = new GtBSSLSocketFactoryWrapper(this);
         mGDbHelper = new GtBDbAdapter(this);
         mGDbHelper.open();
-        //retrieveRides();
-        //populateRides(OPENRIDES);
         mGDbHelper.close();
-        //mDbHelper.close();
-        //nGDbHelper.close();
         
         Button aRfrshBtn = (Button)findViewById(R.id.refresh);
         aRfrshBtn.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
 				mGDbHelper.open();
 				retrieveRides();
 				mGDbHelper.close();
@@ -155,7 +146,6 @@ public class GuardtheBridge extends FragmentActivity {
 					}
 			   }
 			   byte[] vbuf = aPBReq.toByteArray();
-			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
 			   InputStream aIS = aSock.getInputStream();
 			   vbuf = new byte[9];
@@ -191,7 +181,6 @@ public class GuardtheBridge extends FragmentActivity {
 				   addToDb(apbRes.getPlPatronList());
 				   Log.v(TAG, "Added to DB");
 				} catch (InvalidProtocolBufferException e) {
-					// TODO Auto-generated catch block
 					String tmp = "";
 					for(int i = 0; i<vbuf.length; i++)
 						tmp = tmp + vbuf[i] + " ";
@@ -209,59 +198,6 @@ public class GuardtheBridge extends FragmentActivity {
 		   for (PatronInfo patron : list.getPatronList())
 			   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
 	   }
-	   
-   private void setActions(ListView lv, Button dispatch, Button emerg){
-	   lv.setOnItemClickListener(new OnItemClickListener() { 
-		   @Override
-		   public void onItemClick(AdapterView<?> av, 
-				   View v, 
-				   int position, 
-				   long id){
-				Log.v(TAG, "Displaying Ride: " + id);
-				Log.v(TAG, "Car Number: " + position);
-				TextView tv = (TextView) v;
-				long row = 0;
-				try
-				{
-					row = Long.parseLong(tv.getText().
-							toString().
-							substring(0, 1));
-				} catch (NumberFormatException e)
-				{
-					return;
-				}
-				Intent intent = new Intent(self, ShowPatron.class);
-				intent.putExtra(GtBDbAdapter.KEY_ROWID, row);
-				startActivityForResult(intent, PATRON_READ);
-		   }
-	   });
-	   lv.setOnItemLongClickListener(new OnItemLongClickListener() { 
-		   @Override
-		   public boolean onItemLongClick(AdapterView<?> av, 
-				   View v, 
-				   int position, 
-				   long id){
-				Log.v(TAG, "Editing Ride: " + id);
-				Log.v(TAG, "Car Number: " + position);
-				TextView tv = (TextView) v;
-				long row = 0;
-				try
-				{
-					row = Long.parseLong(tv.getText().
-							toString().
-							substring(0, 1));
-				} catch (NumberFormatException e)
-				{
-					return false;
-				}
-				Intent intent = new Intent(self, EditPatron.class);
-				intent.putExtra(GtBDbAdapter.KEY_ROWID, row);
-				startActivityForResult(intent, PATRON_EDIT);
-				return true;
-		   }
-	   });
-	   
-   }
    
    public static class GTBAdapter extends FragmentPagerAdapter
    {
@@ -333,9 +269,6 @@ public class GuardtheBridge extends FragmentActivity {
 			   aTV.setText(R.string.closedrides_title);
 		   }
 		   ((RelativeLayout)aTV.getParent()).removeView(aTV);
-		   /*ListView aLV = (ListView) v.findViewById(android.R.id.list);
-		   aLV.setAdapter(new ArrayAdapter<PatronInfo>(getActivity(), R.layout.rides, GuardtheBridge.populateRides(OPENRIDES)));
-		   ((RelativeLayout)aLV.getParent()).removeView(aLV);*/
 		   Log.v(TAG, "onCreateView: returning");
 		   m_ALFGDbHelper.close();
 		   return v;
@@ -458,7 +391,6 @@ public class GuardtheBridge extends FragmentActivity {
 					}
 			   }
 			   byte[] vbuf = aPBReq.toByteArray();
-			   //aPBReq.writeTo(aOS);
 			   aOS.write(vbuf);
 			   InputStream aIS = aSock.getInputStream();
 			   vbuf = new byte[9];
@@ -494,7 +426,6 @@ public class GuardtheBridge extends FragmentActivity {
 				   addToDb(apbRes.getPlPatronList());
 				   Log.v(TAG, "Added to DB");
 				} catch (InvalidProtocolBufferException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					String tmp = "";
 					for(int i = 0; i<vbuf.length; i++)
@@ -522,27 +453,13 @@ public class GuardtheBridge extends FragmentActivity {
 		   {
 			   String[] msg = new String[1];
 			   msg[0] = "No pending rides! Just chill";
-			   //ListView aLV = (ListView) findViewById(R.id.list);
-			   //aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.activelist, R.id.nameVal, msg));
-			   //new ArrayAdapter<String>(this, R.layout.rideslist, msg);
 			   Log.w(TAG, "No rides received.");
 			   return msg;
 		   }
 		   else
 		   {
-			   /*int[] to = new int[]{R.string.nameVal, R.string.ttVal};
-			   String[] from = new String[]{vPI[i].getName(), vPI[i].getTimetaken()};
-			   ArrayList<Map<String, String>> listmap = new ArrayList<Map<String, String>>(vPI.length);
-			   TreeMap<String, String> map = new TreeMap<String, String>();
-			   for (int i = 0; i < vPI.length; i++){
-				   
-				   map.put(vPI[i].getTimetaken(), Integer.toString(i));
-				   listmap.add(map);
-			   }
-			   new SimpleAdapter(this, listmap, R.layout.activelist, from, to));*/
 			   String[] msg = new String[vPI.length + 3];
 			   
-			   //ListView aLV = (ListView) findViewById(R.id.activelist_list);
 			   for(int i = 0; i<vPI.length; i++)
 			   {
 				   msg[i] = vPI[i].getPid() + " " + vPI[i].getTimeassigned() + 
@@ -556,12 +473,6 @@ public class GuardtheBridge extends FragmentActivity {
 			   for(int i = vPI.length; i<msg.length; i++)
 				   msg[i] = "";
 			   
-			   /*aLV.setAdapter(new ArrayAdapter<String>(this, R.layout.rides, msg));
-			   Log.v(TAG, "Finished compiling list of assigned rides");
-			   
-			   setActions(aLV, (Button)findViewById(R.id.dispatch), 
-					   (Button)findViewById(R.id.emergency));
-				*/
 			   m_ALFGDbHelper.close();
 			   return msg;
 		   }
