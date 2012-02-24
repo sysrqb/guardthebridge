@@ -28,7 +28,9 @@ import java.util.regex.Pattern;
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -45,6 +47,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -63,9 +66,11 @@ public class GuardtheBridge extends FragmentActivity {
 	private static final int OPENRIDES = 0;
 	private static final int CLOSEDRIDES = 1;
 	private static final int NUM_ITEMS = 2;
-    private static GuardtheBridge self;
+    private static GuardtheBridge sself;
+    private ProgressDialog mProgBar = null;
     
     private GtBDbAdapter mGDbHelper = null;
+	private CarsGtBDbAdapter mCDbHelper = null;
 	private GtBSSLSocketFactoryWrapper mSSLSF;
     
     private GTBAdapter m_GFPA = null;
@@ -75,25 +80,30 @@ public class GuardtheBridge extends FragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         
         super.onCreate(savedInstanceState);
-        self = this;
+        sself = this;
         setContentView(R.layout.rideslist);
         
-        ViewPager aVp = (ViewPager)findViewById(R.id.ridelist_pageview);
-        m_GFPA = new GTBAdapter(getSupportFragmentManager());
-        aVp.setAdapter(m_GFPA);
+        updateList();
         mSSLSF = new GtBSSLSocketFactoryWrapper(this);
         mGDbHelper = new GtBDbAdapter(this);
-        mGDbHelper.open();
-        mGDbHelper.close();
+        mCDbHelper = new CarsGtBDbAdapter(this);
         
         Button aRfrshBtn = (Button)findViewById(R.id.refresh);
         aRfrshBtn.setOnClickListener(new OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				mGDbHelper.open();
-				retrieveRides();
-				mGDbHelper.close();
+				new CurrTask().execute();
+		        ArrayListFragment aALF = (ArrayListFragment) GTBAdapter.getFragment().getActivity().
+		        		getSupportFragmentManager().
+		        		findFragmentByTag("android:switch:" + R.id.ridelist_pageview + ":0");
+		        if (aALF != null && aALF.getView() != null)
+		        	aALF.updateView();
+		        aALF = (ArrayListFragment) GTBAdapter.getFragment().getActivity().
+		        		getSupportFragmentManager().
+		        		findFragmentByTag("android:switch:" + R.id.ridelist_pageview + ":1");
+		        if (aALF != null && aALF.getView() != null)
+		        	aALF.updateView();
 			}
 		});
     }
@@ -101,106 +111,25 @@ public class GuardtheBridge extends FragmentActivity {
     public boolean onOptionItemSelected(MenuItem menu){
 		return super.onOptionsItemSelected(menu);
     }
-   
-    public void retrieveRides() {
-		   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();
-		   Request aPBReq = Request.newBuilder().
-				   setNReqId(1).
-				   setSReqType("CURR").
-				   setNCarId(5).
-		   		   addAllNParams(vRides).
-		   		   build();
-		   
-		   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
-		   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
-		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
-		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
-				   aPBReq.getSerializedSize());
-		   SSLSocket aSock = mSSLSF.getSSLSocket();
-		   aSock = mSSLSF.createSSLSocket(self);
-		   if (mSSLSF.getSession() == null)
-		   {
-			   mSSLSF = mSSLSF.getNewSSLSFW(self);
-			   aSock = mSSLSF.getSSLSocket();
-		   }
-		   try {
-			   OutputStream aOS = aSock.getOutputStream();
-			   try
-			   {
-				   aOS.write(aPBReq.getSerializedSize());
-			   } catch (SSLProtocolException ex)
-			   {
-				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					mSSLSF.forceReHandshake(this);
-					aSock = mSSLSF.getSSLSocket();
-					aOS = aSock.getOutputStream();
-					try
-					{
-						aOS.write(aPBReq.getSerializedSize());
-					} catch (SSLProtocolException exc)
-					{
-						mSSLSF = mSSLSF.getNewSSLSFW(this);
-						aSock = mSSLSF.getSSLSocket();
-						aOS = aSock.getOutputStream();
-						aOS.write(aPBReq.getSerializedSize());
-					}
-			   }
-			   byte[] vbuf = aPBReq.toByteArray();
-			   aOS.write(vbuf);
-			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[9];
-			   aIS.read(vbuf);
-			   /* Handle messages smaller than 9 bytes */
-			   int nsize = (vbuf.length - 1);
-			   for (; nsize>0; nsize--)
-			   {
-				   if(vbuf[nsize] == 0)
-				   {
-					   continue;
-				   }
-				   break;
-			   }
-			   byte[] vbuf2 = new byte[nsize + 1];
-			   for(int i = 0; i != nsize + 1; i++)
-				   vbuf2[i] = vbuf[i];
-			   vbuf = vbuf2;
-			   try
-			   {
-				   Response apbTmpSize = null;
-				   apbTmpSize = Response.parseFrom(vbuf);
-				   vbuf = new byte[apbTmpSize.getNRespId()];
-				   aIS.read(vbuf);
-				   Response apbRes;
-				   apbRes = Response.parseFrom(vbuf);
-			
-				   Log.v(TAG, "Response Buffer:");
-				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
-				   Log.v(TAG, "PatronList Buffer: ");
-				   Log.v(TAG, TextFormat.shortDebugString(
-						   apbRes.getPlPatronList()));
-				   addToDb(apbRes.getPlPatronList());
-				   Log.v(TAG, "Added to DB");
-				} catch (InvalidProtocolBufferException e) {
-					String tmp = "";
-					for(int i = 0; i<vbuf.length; i++)
-						tmp = tmp + vbuf[i] + " ";
-					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
-						+ tmp);
-					e.printStackTrace();
-				}
-		   }catch (IOException e)
-		   {
-			   e.printStackTrace();
-		   }
-	   	}
-	   
-	   public void addToDb(PatronList list){
-		   for (PatronInfo patron : list.getPatronList())
+    
+    private void updateList()
+    {
+        ViewPager aVp = (ViewPager)findViewById(R.id.ridelist_pageview);
+        m_GFPA = new GTBAdapter(getSupportFragmentManager());
+        aVp.setAdapter(m_GFPA);
+    }
+   	   
+	public void addToDb(PatronList list)
+	{
+		mGDbHelper.open();
+		for (PatronInfo patron : list.getPatronList())
 			   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
-	   }
+		mGDbHelper.close();
+	}
    
    public static class GTBAdapter extends FragmentPagerAdapter
    {
+	   private static ArrayListFragment mFrag = null;
 	   public GTBAdapter(FragmentManager fm)
 	   {
 		   super(fm);
@@ -211,7 +140,13 @@ public class GuardtheBridge extends FragmentActivity {
 	   }
 	   public Fragment getItem(int position)
 	   {
-		   return ArrayListFragment.newInstance(position);
+		   mFrag = ArrayListFragment.newInstance(position);
+		   return mFrag;
+	   }
+	   
+	   public static ArrayListFragment getFragment()
+	   {
+		   return mFrag;
 	   }
    }
    
@@ -221,9 +156,9 @@ public class GuardtheBridge extends FragmentActivity {
 	   private static GtBDbAdapter m_ALFGDbHelper = null;
 	   private CarsGtBDbAdapter mDbHelper = null;
 	   private TLSGtBDbAdapter nGDbHelper = null;
-	   private GtBSSLSocketFactoryWrapper m_sslSF;
+	   //private GtBSSLSocketFactoryWrapper m_sslSF;
 	    
-	   static ArrayListFragment newInstance(int num)
+	   public static ArrayListFragment newInstance(int num)
 	   {
 		   Log.v(TAG, "ArrayListFragment: newInstance: num=" + num);
 		   ArrayListFragment f = new ArrayListFragment();
@@ -238,13 +173,15 @@ public class GuardtheBridge extends FragmentActivity {
 	   {
 		   super.onCreate(savedInstanceState);
 		   Log.v(TAG, "ArrayListFragment: onCreate");
-	       m_sslSF = new GtBSSLSocketFactoryWrapper(self);
-		   m_ALFGDbHelper = new GtBDbAdapter(self);
-		   mDbHelper = new CarsGtBDbAdapter(self);
-		   nGDbHelper = new TLSGtBDbAdapter(self);
+	       //m_sslSF = new GtBSSLSocketFactoryWrapper(sself);
+		   m_ALFGDbHelper = new GtBDbAdapter(sself);
+		   mDbHelper = new CarsGtBDbAdapter(sself);
+		   nGDbHelper = new TLSGtBDbAdapter(sself);
 		   mNum = getArguments() != null ? getArguments().getInt("num") : 1;
-		   initializeDb();
-		   retrieveRides();
+		   //initializeDb();
+		   //sself.new CurrTask().execute();
+		   //updateView();
+		   //retrieveRides();
 	   }
 	   
 	   public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -278,13 +215,7 @@ public class GuardtheBridge extends FragmentActivity {
 	   {
 		   super.onActivityCreated(savedInstanceState);
 		   Log.v(TAG, "ArrayListFragment: onActivityCreated");
-		   if (mNum == 0)
-			   setListAdapter(new ArrayAdapter<String>(getActivity(),
-				   R.layout.rides, populateRides(OPENRIDES)));
-		   else /* if (mNum == 1)*/
-			   setListAdapter(new ArrayAdapter<String>(getActivity(),
-				   R.layout.rides, populateRides(CLOSEDRIDES)));
-		   m_ALFGDbHelper.close();
+		   updateView();
 	   }
 	   
 	   @Override
@@ -312,7 +243,7 @@ public class GuardtheBridge extends FragmentActivity {
 			{
 				return;
 			}
-			Intent intent = new Intent(self, ShowPatron.class);
+			Intent intent = new Intent(sself, ShowPatron.class);
 			intent.putExtra(GtBDbAdapter.KEY_ROWID, pid);
 			startActivity(intent);
 	   }
@@ -320,7 +251,8 @@ public class GuardtheBridge extends FragmentActivity {
 	   public boolean onListItemLongClick(AdapterView<?> av, 
 			   View v, 
 			   int position, 
-			   long id){
+			   long id)
+	   {
 			Log.v(TAG, "Editing Ride: " + id);
 			Log.v(TAG, "Car Number: " + position);
 			TextView tv = (TextView) v;
@@ -334,10 +266,32 @@ public class GuardtheBridge extends FragmentActivity {
 			{
 				return false;
 			}
-			Intent intent = new Intent(self, EditPatron.class);
+			Intent intent = new Intent(sself, EditPatron.class);
 			intent.putExtra(GtBDbAdapter.KEY_ROWID, row);
 			startActivityForResult(intent, PATRON_EDIT);
 			return true;
+	   }
+	   
+	@SuppressWarnings("unchecked")
+	public void updateView()
+	   {
+		   Log.v(TAG, "ArrayListFragment: updateView");
+		   ListAdapter aVAA = getListAdapter();
+		   if (aVAA == null)
+		   {
+			   if (mNum == 0)
+				   aVAA = new ArrayAdapter<String>(getActivity(),
+						   R.layout.rides, populateRides(OPENRIDES));
+			   else /* if (mNum == 1)*/
+				   aVAA = new ArrayAdapter<String>(getActivity(),
+						   R.layout.rides, populateRides(CLOSEDRIDES));
+		   }
+		   if (aVAA.equals(new ArrayAdapter<String>(getActivity(),
+						   R.layout.rides, populateRides(OPENRIDES))) || 
+						   aVAA.equals(new ArrayAdapter<String>(getActivity(),
+								   R.layout.rides, populateRides(CLOSEDRIDES))))
+			   ((ArrayAdapter<String>)aVAA).notifyDataSetChanged();
+		   setListAdapter(aVAA);
 	   }
 	   
 	   public void initializeDb()
@@ -346,101 +300,6 @@ public class GuardtheBridge extends FragmentActivity {
 	       nGDbHelper.open();
 	   }
    
-	   public void retrieveRides() {
-		   m_ALFGDbHelper.open();
-		   ArrayList<Integer> vRides = m_ALFGDbHelper.fetchAllPid();
-		   Request aPBReq = Request.newBuilder().
-				   setNReqId(1).
-				   setSReqType("CURR").
-				   setNCarId(mDbHelper.getCar()).
-		   		   addAllNParams(vRides).
-		   		   build();
-		   
-		   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
-		   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
-		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
-		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
-				   aPBReq.getSerializedSize());
-		   SSLSocket aSock = m_sslSF.getSSLSocket();
-		   aSock = m_sslSF.createSSLSocket(self);
-		   if (m_sslSF.getSession() == null)
-		   {
-			   m_sslSF = m_sslSF.getNewSSLSFW(self);
-			   aSock = m_sslSF.getSSLSocket();
-		   }
-		   try {
-			   OutputStream aOS = aSock.getOutputStream();
-			   try
-			   {
-				   aOS.write(aPBReq.getSerializedSize());
-			   } catch (SSLProtocolException ex)
-			   {
-				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					m_sslSF.forceReHandshake(self);
-					aSock = m_sslSF.getSSLSocket();
-					aOS = aSock.getOutputStream();
-					try
-					{
-						aOS.write(aPBReq.getSerializedSize());
-					} catch (SSLProtocolException exc)
-					{
-						m_sslSF = m_sslSF.getNewSSLSFW(self);
-						aSock = m_sslSF.getSSLSocket();
-						aOS = aSock.getOutputStream();
-						aOS.write(aPBReq.getSerializedSize());
-					}
-			   }
-			   byte[] vbuf = aPBReq.toByteArray();
-			   aOS.write(vbuf);
-			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[9];
-			   aIS.read(vbuf);
-			   /* Handle messages smaller than 9 bytes */
-			   int nsize = (vbuf.length - 1);
-			   for (; nsize>0; nsize--)
-			   {
-				   if(vbuf[nsize] == 0)
-				   {
-					   continue;
-				   }
-				   break;
-			   }
-			   byte[] vbuf2 = new byte[nsize + 1];
-			   for(int i = 0; i != nsize + 1; i++)
-				   vbuf2[i] = vbuf[i];
-			   vbuf = vbuf2;
-			   try 
-			   {
-				   Response apbTmpSize = null;
-				   apbTmpSize = Response.parseFrom(vbuf);
-				   vbuf = new byte[apbTmpSize.getNRespId()];
-				   aIS.read(vbuf);
-				   Response apbRes;
-				   apbRes = Response.parseFrom(vbuf);
-			
-				   Log.v(TAG, "Response Buffer:");
-				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
-				   Log.v(TAG, "PatronList Buffer: ");
-				   Log.v(TAG, TextFormat.shortDebugString(
-						   apbRes.getPlPatronList()));
-				   addToDb(apbRes.getPlPatronList());
-				   Log.v(TAG, "Added to DB");
-				} catch (InvalidProtocolBufferException e) {
-					e.printStackTrace();
-					String tmp = "";
-					for(int i = 0; i<vbuf.length; i++)
-						tmp = tmp + vbuf[i] + " ";
-					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
-						+ tmp);
-					e.printStackTrace();
-				}
-		   }catch (IOException e)
-		   {
-			   e.printStackTrace();
-		   }
-		   m_ALFGDbHelper.close();
-	   	}
-	   
 	   public void addToDb(PatronList list){
 		   for (PatronInfo patron : list.getPatronList())
 			   m_ALFGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
@@ -449,6 +308,7 @@ public class GuardtheBridge extends FragmentActivity {
 	   public String[] populateRides(int ridetype){
 		   m_ALFGDbHelper.open();
 		   PatronInfo[] vPI = m_ALFGDbHelper.fetchAllPatrons(ridetype);
+		   m_ALFGDbHelper.close();
 		   if (vPI.length == 0)
 		   {
 			   String[] msg = new String[1];
@@ -472,10 +332,162 @@ public class GuardtheBridge extends FragmentActivity {
 			    */
 			   for(int i = vPI.length; i<msg.length; i++)
 				   msg[i] = "";
-			   
-			   m_ALFGDbHelper.close();
 			   return msg;
 		   }
+	   }
+   }
+   
+   private class CurrTask extends AsyncTask<Void, Integer, Integer>
+   {
+	   static final int INCREMENT_PROGRESS = 20;
+	   protected void onPreExecute()
+	   {
+		   mProgBar = new ProgressDialog(sself);
+		   mProgBar.setCancelable(true);
+		   mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		   mProgBar.setMessage("Establishing Connection with server...");
+		   mProgBar.show();
+	   }
+
+	   @Override
+	   protected Integer doInBackground(Void... params)
+	   {
+		   return retrieveRides();
+	   }	 
+	   
+	   protected void onProgressUpdate(Integer... progress)
+	   {
+		   int nTotalProgress = mProgBar.getProgress() + progress[0];
+		   switch (nTotalProgress)
+		   {
+		   case 0:
+		   case 20:
+			   mProgBar.setMessage("Establishing Connection with server...");
+			   break;
+		   case 40:
+			   mProgBar.setMessage("Connection Established, Sending request...");
+			   break;
+		   case 60:
+			   mProgBar.setMessage("Receiving response...");
+			   break;
+		   case 80:
+			   mProgBar.setMessage("Reading new rides...");
+			   break;
+		   case 100:
+			   mProgBar.setMessage("Done!");
+			   break;
+		   }		
+		   mProgBar.setProgress(nTotalProgress);
+	   }
+	   
+	   protected void onPostExecute(Integer res)
+	   {
+		   
+		  publishProgress(INCREMENT_PROGRESS);
+		  mProgBar.dismiss();
+		  
+	   }
+	   
+	   public int retrieveRides()
+	   {
+		   mGDbHelper.open();
+		   mCDbHelper.open();
+		   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();
+		   mGDbHelper.close();
+		   Request aPBReq = Request.newBuilder().
+				   setNReqId(1).
+				   setSReqType("CURR").
+				   setNCarId(mCDbHelper.getCar()).
+		   		   addAllNParams(vRides).
+		   		   build();
+		   mCDbHelper.close();
+		   publishProgress(INCREMENT_PROGRESS);
+		   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
+		   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
+		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
+		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
+				   aPBReq.getSerializedSize());
+		   SSLSocket aSock = mSSLSF.createSSLSocket(sself);
+		   if (mSSLSF.getSession() == null)
+		   {
+			   mSSLSF = mSSLSF.getNewSSLSFW(sself);
+			   aSock = mSSLSF.getSSLSocket();
+		   }
+		   publishProgress(INCREMENT_PROGRESS);
+		   try {
+			   OutputStream aOS = aSock.getOutputStream();
+			   try
+			   {
+				   aOS.write(aPBReq.getSerializedSize());
+			   } catch (SSLProtocolException ex)
+			   {
+				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+					mSSLSF.forceReHandshake(sself);
+					aSock = mSSLSF.getSSLSocket();
+					aOS = aSock.getOutputStream();
+					try
+					{
+						aOS.write(aPBReq.getSerializedSize());
+					} catch (SSLProtocolException exc)
+					{
+						mSSLSF = mSSLSF.getNewSSLSFW(sself);
+						aSock = mSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+						aOS.write(aPBReq.getSerializedSize());
+					}
+			   }
+			   byte[] vbuf = aPBReq.toByteArray();
+			   aOS.write(vbuf);
+			   publishProgress(INCREMENT_PROGRESS);
+			   InputStream aIS = aSock.getInputStream();
+			   vbuf = new byte[9];
+			   aIS.read(vbuf);
+			   /* Handle messages smaller than 9 bytes */
+			   int nsize = (vbuf.length - 1);
+			   for (; nsize>0; nsize--)
+			   {
+				   if(vbuf[nsize] == 0)
+				   {
+					   continue;
+				   }
+				   break;
+			   }
+			   byte[] vbuf2 = new byte[nsize + 1];
+			   for(int i = 0; i != nsize + 1; i++)
+				   vbuf2[i] = vbuf[i];
+			   vbuf = vbuf2;
+			   Response apbRes = null;
+			   try 
+			   {
+				   Response apbTmpSize = null;
+				   apbTmpSize = Response.parseFrom(vbuf);
+				   vbuf = new byte[apbTmpSize.getNRespId()];
+				   aIS.read(vbuf);
+				   apbRes = Response.parseFrom(vbuf);
+				   publishProgress(INCREMENT_PROGRESS);
+				   
+				   Log.v(TAG, "Response Buffer:");
+				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
+				   Log.v(TAG, "PatronList Buffer: ");
+				   Log.v(TAG, TextFormat.shortDebugString(
+						   apbRes.getPlPatronList()));
+				   addToDb(apbRes.getPlPatronList());
+				   Log.v(TAG, "Added to DB");
+				   
+				} catch (InvalidProtocolBufferException e) {
+					e.printStackTrace();
+					String tmp = "";
+					for(int i = 0; i<vbuf.length; i++)
+						tmp = tmp + vbuf[i] + " ";
+					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
+						+ tmp);
+					e.printStackTrace();
+				}
+		   }catch (IOException e)
+		   {
+			   e.printStackTrace();
+		   }
+		   return 0;
 	   }
    }
 }
