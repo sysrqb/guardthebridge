@@ -164,7 +164,7 @@ public class GtBDbAdapter {
      */
     public boolean deletePatron(long rowId) {
 
-        return mDb.delete(DATABASE_TABLE, KEY_ROWID + "=" + rowId, null) > 0;
+        return mDb.delete(DATABASE_TABLE, KEY_PID + "=" + rowId, null) > 0;
     }
 
     /**
@@ -344,7 +344,7 @@ public class GtBDbAdapter {
         if (!isClosed(pid))
         {
 	        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
-	    	deletePatron(rowId);
+	    	deletePatron(pid);
 	    	return insrtRow;
         }
         return 0;
@@ -360,7 +360,7 @@ public class GtBDbAdapter {
         if (!isClosed(pid))
         {
 	        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
-	    	deletePatron(rowId);
+	    	deletePatron(pid);
 	    	return insrtRow;
         }
         return 0;
