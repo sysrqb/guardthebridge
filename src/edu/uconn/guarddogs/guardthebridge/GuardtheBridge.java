@@ -226,7 +226,7 @@ public class GuardtheBridge extends FragmentActivity {
 			long pid = 0;
 			try
 			{
-				Pattern pPidRegex = Pattern.compile("\\d*:");
+				Pattern pPidRegex = Pattern.compile("\\d* ");
 				String atmp = "";
 				try
 				{
@@ -322,8 +322,8 @@ public class GuardtheBridge extends FragmentActivity {
 			   
 			   for(int i = 0; i<vPI.length; i++)
 			   {
-				   msg[i] = vPI[i].getPid() + " " + vPI[i].getTimeassigned() + 
-						   ": " + vPI[i].getName() + " - " + vPI[i].getPickup();
+				   msg[i] = vPI[i].getPid() + ": " + vPI[i].getTimeassigned() + 
+						   " " + vPI[i].getName() + " - " + vPI[i].getPickup();
 			   }
 			   
 			   /* 
