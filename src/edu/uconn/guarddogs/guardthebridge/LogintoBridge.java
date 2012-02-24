@@ -61,7 +61,6 @@ public class LogintoBridge extends ListActivity {
 		
 		//Re-establish connections to databases
 		mDbHelper = new CarsGtBDbAdapter(this);
-        mDbHelper.open();
         
         setContentView(R.layout.cars);
         setTitle(R.string.app_name);
@@ -102,7 +101,9 @@ public class LogintoBridge extends ListActivity {
 	            }
 
 	        });
+	        mDbHelper.open();
 	        mCarNum = Integer.toString(mDbHelper.getCar());
+	        mDbHelper.close();
 	        Log.v(TAG, "Ret Car Number: " + mCarNum);
 	        TextView showcarnum = (TextView)findViewById(R.id.showcarnum);
 	        showcarnum.setText("You Selected Car Number: " + mCarNum);
@@ -119,7 +120,7 @@ public class LogintoBridge extends ListActivity {
 	 
 	 private class AuthTask extends AsyncTask<Void, Integer, Integer>
 	 {
-		 static final int INCREMENT_PROGRESS = 10;
+		 static final int INCREMENT_PROGRESS = 20;
 		 protected void onPreExecute()
 		 {
 			 mProgBar = new ProgressDialog(self);
@@ -218,6 +219,7 @@ public class LogintoBridge extends ListActivity {
 				 dealwitherrors(res);
 			 }
 			 else{
+				 
 				 mProgBar.dismiss();
 				 Intent i = new Intent (self, GuardtheBridge.class);
 				 startActivity(i);
