@@ -16,12 +16,26 @@
 	    android:layout_width="wrap_content"
 	    android:layout_toRightOf="@+id/showpatron_namelabel"
 	    android:text="@string/showpatron_nameVal"/>
+
+	<TextView 
+	    android:id="@+id/showpatron_phonelabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/showpatron_namelabel"
+	    android:text="@string/showpatron_phonelabel"/>
+	<TextView 
+	    android:id="@+id/showpatron_phoneVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_toRightOf="@+id/showpatron_phonelabel"
+	    android:layout_alignTop="@+id/showpatron_phonelabel"
+	    android:text="@string/showpatron_phoneVal"/>
 	
 	<TextView 
 	    android:id="@+id/showpatron_passlabel"
 	    android:layout_height="wrap_content"
 	    android:layout_width="wrap_content"
-	    android:layout_below="@+id/showpatron_namelabel"
+	    android:layout_below="@+id/showpatron_phonelabel"
 	    android:text="@string/showpatron_passlabel"/>
 	<TextView 
 	    android:id="@+id/showpatron_passVal"

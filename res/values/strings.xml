@@ -21,6 +21,8 @@
     <!-- List of Rides -->
     <string name="showpatron_namelabel">Name: </string>
     <string name="showpatron_nameVal"></string>
+    <string name="showpatron_phonelabel">Phone #: </string>
+    <string name="showpatron_phoneVal"></string>
     <string name="showpatron_passlabel"># of Passangers: </string>
     <string name="showpatron_passVal"></string>
     <string name="showpatron_pulabel">Pickup: </string>

@@ -14,10 +14,23 @@
 	    android:id="@+id/editpatron_nameVal"
 	    android:layout_height="wrap_content"
 	    android:layout_width="wrap_content"
-	    android:layout_below="@+id/editpatron_back"
 	    android:layout_alignParentRight="true"
 	    android:text="@string/showpatron_nameVal"
 	    android:inputType="text"/>
+
+	<TextView 
+	    android:id="@+id/editpatron_phonelabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_alignTop="@+id/editpatron_phoneVal"
+	    android:text="@string/showpatron_phonelabel"/>
+	<EditText
+	    android:id="@+id/editpatron_phoneVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/editpatron_nameVal"
+	    android:layout_alignParentRight="true"
+	    android:text="@string/showpatron_phoneVal" />
 	
 	<TextView 
 	    android:id="@+id/editpatron_passlabel"
@@ -29,7 +42,7 @@
 	    android:id="@+id/editpatron_passVal"
 	    android:layout_height="wrap_content"
 	    android:layout_width="wrap_content"
-	    android:layout_below="@+id/editpatron_nameVal"
+	    android:layout_below="@+id/editpatron_phoneVal"
 	    android:layout_alignParentRight="true"
 	    android:text="@string/showpatron_passVal"
 	    android:inputType="number"/>

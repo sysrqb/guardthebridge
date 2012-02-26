@@ -105,6 +105,10 @@ public class EditPatron extends Activity {
 				evName = (EditText)findViewById(R.id.editpatron_nameVal);
 				evName.setText(" " + m_aPI.getName());
 			}
+			if(m_aPI.getPhone() != null){
+				evName = (EditText)findViewById(R.id.editpatron_phoneVal);
+				evName.setText(" " + m_aPI.getPhone());
+			}
 			if(m_aPI.getPassangers() > 0){
 				evName = (EditText)findViewById(R.id.editpatron_passVal);
 				evName.setText(" " + Integer.toString(m_aPI.getPassangers()));
@@ -152,6 +156,7 @@ public class EditPatron extends Activity {
 			}
 			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
 					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
+					setPhone(((EditText)findViewById(R.id.editpatron_phoneVal)).getText().toString()).
 					setPassangers(npass).
 					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
 					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
@@ -191,6 +196,7 @@ public class EditPatron extends Activity {
 			}
 			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
 					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
+					setPhone(((EditText)findViewById(R.id.editpatron_phoneVal)).getText().toString()).
 					setPassangers(npass).
 					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
 					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
@@ -230,6 +236,7 @@ public class EditPatron extends Activity {
 			}
 			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
 					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
+					setPhone(((EditText)findViewById(R.id.editpatron_phoneVal)).getText().toString()).
 					setPassangers(npass).
 					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
 					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).

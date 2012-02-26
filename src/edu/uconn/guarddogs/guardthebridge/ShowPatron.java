@@ -80,6 +80,10 @@ public class ShowPatron extends Activity {
 				tvName = (TextView)findViewById(R.id.showpatron_nameVal);
 				tvName.setText(" " + aPI.getName());
 			}
+			if(aPI.getPhone() != null){
+				tvName = (TextView)findViewById(R.id.showpatron_phoneVal);
+				tvName.setText(" " + aPI.getPhone());
+			}
 			if(aPI.getPassangers() > 0){
 				tvName = (TextView)findViewById(R.id.showpatron_passVal);
 				tvName.setText(" " + Integer.toString(aPI.getPassangers()));
