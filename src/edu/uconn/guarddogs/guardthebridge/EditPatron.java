@@ -163,7 +163,7 @@ public class EditPatron extends Activity {
 					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
 					build();
 			
-			if(aPI.getStatus() == "Waiting" || aPI.getStatus() == "Riding")
+			if(aPI.getStatus().compareToIgnoreCase("Waiting")  == 0|| aPI.getStatus().compareToIgnoreCase("Riding") == 0)
 				Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid(), 0));
 			else
 				Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid(), 1));
