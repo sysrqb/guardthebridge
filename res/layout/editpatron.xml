@@ -4,13 +4,6 @@
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent">
 		
-    <TextView 
-        android:id="@+id/editpatron_back"
-        android:layout_height="wrap_content"
-        android:layout_width="wrap_content"
-	    android:layout_alignParentTop="true"
-        android:text="@string/back" />
-		
 	<TextView 
 	    android:id="@+id/editpatron_namelabel"
 	    android:layout_height="wrap_content"
