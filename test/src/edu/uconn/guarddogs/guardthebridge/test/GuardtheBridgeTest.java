@@ -3,10 +3,10 @@ package edu.uconn.guarddogs.guardthebridge.test;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 
 import javax.net.ssl.SSLSocket;
 
+import android.support.v4.view.ViewPager;
 import android.test.ActivityInstrumentationTestCase2;
 import android.util.Log;
 
@@ -17,8 +17,7 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 import edu.uconn.guarddogs.guardthebridge.GtBDbAdapter;
 import edu.uconn.guarddogs.guardthebridge.GtBSSLSocketFactoryWrapper;
 import edu.uconn.guarddogs.guardthebridge.GuardtheBridge;
-import edu.uconn.guarddogs.guardthebridge.Patron;
-import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
+import edu.uconn.guarddogs.guardthebridge.R;
 
 public class GuardtheBridgeTest extends
 		ActivityInstrumentationTestCase2<GuardtheBridge> {
@@ -33,6 +32,12 @@ public class GuardtheBridgeTest extends
 		super.setUp();
 		setActivityInitialTouchMode(false);
 		m_aGTBAct = getActivity();
+	}
+	
+	public void testGetView()
+	{
+		 ViewPager aVp = (ViewPager)m_aGTBAct.findViewById(R.id.ridelist_pageview);
+		 assertNotNull(aVp);
 	}
 	
 	public void testGetCurrent()
@@ -88,7 +93,8 @@ public class GuardtheBridgeTest extends
 		
 		GtBDbAdapter aGDbHelper = new GtBDbAdapter(m_aGTBAct);
 		aGDbHelper.open();
-		PatronInfo atmp = aGDbHelper.fetchPatron(1);
-		Patron.PatronInfo[] vPI = aGDbHelper.fetchAllPatrons();
-	}	
+		aGDbHelper.fetchPatron(1);
+		aGDbHelper.fetchAllPatrons(1);
+	}
+	
 }
