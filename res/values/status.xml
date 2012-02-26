@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="statuslist">Set Status</string>
+    <string-array name="statusarray">
+	    <item>Waiting</item>
+	    <item>Riding</item>
+	    <item>Done</item>
+	    <item>Cancelled</item>
+    </string-array>
+</resources>

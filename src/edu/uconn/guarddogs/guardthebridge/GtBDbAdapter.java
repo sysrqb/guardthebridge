@@ -354,7 +354,10 @@ public class GtBDbAdapter {
 	    	deletePatron(pid);
 	    	return insrtRow;
         }
-        return 0;
+        else
+        {
+        	return mDb.update(DATABASE_TABLE_CLOSED, initialValues, KEY_PID + "=" + pid, null);
+        }
     }
     
     public long setCanceled(long rowId, byte[] message, int pid)
@@ -370,7 +373,10 @@ public class GtBDbAdapter {
 	    	deletePatron(pid);
 	    	return insrtRow;
         }
-        return 0;
+        else
+        {
+        	return mDb.update(DATABASE_TABLE_CLOSED, initialValues, KEY_PID + "=" + pid, null);
+        }
     }
     
     public long setRiding(long rowId, byte[] message, int pid)
@@ -385,7 +391,6 @@ public class GtBDbAdapter {
         {
         	if ((nRetVal = mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null)) > 0)
         	{
-	    	 deleteClosedPatron(pid);
 	    	 return nRetVal;
         	}
 	    	return 0;
@@ -413,7 +418,6 @@ public class GtBDbAdapter {
         {
         	if ((nRetVal = mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null)) > 0)
         	{
-	    	 deleteClosedPatron(pid);
 	    	 return nRetVal;
         	}
 	    	return 0;

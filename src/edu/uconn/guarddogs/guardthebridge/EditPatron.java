@@ -23,14 +23,14 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Spinner;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 
 
@@ -40,6 +40,7 @@ public class EditPatron extends Activity {
 	private Long mpid;
 	private EditPatron self;
 	private PatronInfo m_aPI;
+	private String mStatus;
 	
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -76,14 +77,11 @@ public class EditPatron extends Activity {
 			}
 		});
 		
-		final Button bStatus = (Button) findViewById(R.id.editpatron_setstatus);
-		bStatus.setOnClickListener(new OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				registerForContextMenu(bStatus);
-			}
-		});
+		Spinner spStatus = (Spinner) findViewById(R.id.editpatron_setstatus);
+		ArrayAdapter<CharSequence> aAdapter = ArrayAdapter.createFromResource
+				(this, R.array.statusarray, android.R.layout.simple_spinner_item);
+		aAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		spStatus.setAdapter(aAdapter);
 		
 		Button bDone = (Button) findViewById(R.id.editpatron_done);
 		bDone.setOnClickListener(new OnClickListener()
@@ -104,54 +102,6 @@ public class EditPatron extends Activity {
 				finish();
 			}
 		});
-	}
-	
-	public void onCreateContextMenu (ContextMenu menu, View v,
-                                ContextMenuInfo menuInfo)
-	{
-		super.onCreateContextMenu(menu, v, menuInfo);
-		MenuInflater aInflator = getMenuInflater();
-		aInflator.inflate(R.menu.status, menu);
-	}
-	
-	public boolean onContextItemSelected (MenuItem item)
-	{
-		PatronInfo aPI = null;
-		mGDbHelper.open();
-		switch (item.getItemId())
-		{
-		case R.id.statusmenu_waiting:
-			aPI = PatronInfo.newBuilder(m_aPI).
-			setStatus("waiting").
-			build();
-			mGDbHelper.setStatus(0, aPI.toByteArray(), m_aPI.getPid(), "waiting");
-			mGDbHelper.close();
-			return true;
-		case R.id.statusmenu_riding:
-			aPI = PatronInfo.newBuilder(m_aPI).
-			setStatus("riding").
-			build();
-			mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "riding");
-			mGDbHelper.close();
-			return true;
-		case R.id.statusmenu_done:
-			aPI = PatronInfo.newBuilder(m_aPI).
-			setStatus("done").
-			build();
-			mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "done");
-			mGDbHelper.close();
-			return true;
-		case R.id.statusmenu_canceled:
-			aPI = PatronInfo.newBuilder(m_aPI).
-			setStatus("cancelled").
-			build();
-			mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "cancelled");
-			mGDbHelper.close();
-			return true;
-		default:
-			mGDbHelper.close();
-			return false;
-		}
 	}
 	
 	private void fillPatronInfo()
@@ -189,6 +139,14 @@ public class EditPatron extends Activity {
 				evName = (EditText)findViewById(R.id.editpatron_ttVal);
 				evName.setText(" " + m_aPI.getTimetaken());
 			}
+			if(m_aPI.getStatus() != null)
+			{
+				mStatus = m_aPI.getStatus();
+			}
+			else
+			{
+				mStatus = "waiting";
+			}
 		}
 	}
 	
@@ -222,12 +180,10 @@ public class EditPatron extends Activity {
 					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
 					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
 					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
+					setStatus(mStatus).
 					build();
 			
-			if(aPI.getStatus().compareToIgnoreCase("Waiting")  == 0|| aPI.getStatus().compareToIgnoreCase("Riding") == 0)
-				Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid(), 0));
-			else
-				Log.v(TAG, "Updating Patron: " + mpid + ": " + mGDbHelper.updatePatron(aPI.toByteArray(), aPI.getPid(), 1));
+			mGDbHelper.setStatus(0, aPI.toByteArray(), aPI.getPid(), mStatus);
 			mGDbHelper.close();
 		}
 	}
@@ -310,5 +266,58 @@ public class EditPatron extends Activity {
 			mGDbHelper.close();
 		}
 			
+	}
+	
+	public class StatusOnItemSelectedListener 
+			implements OnItemSelectedListener 
+	{
+		public void onItemSelected(
+				AdapterView<?> parent, View view, int pos, long id)
+		{
+			PatronInfo aPI = null;
+			mGDbHelper.open();
+			switch (pos)
+			{
+			case 0:
+				mStatus = "waiting";
+				aPI = PatronInfo.newBuilder(m_aPI).
+				setStatus("waiting").
+				build();
+				mGDbHelper.setStatus(0, aPI.toByteArray(), m_aPI.getPid(), "waiting");
+				mGDbHelper.close();
+				break;
+			case 1:
+				mStatus = "riding";
+				aPI = PatronInfo.newBuilder(m_aPI).
+				setStatus("riding").
+				build();
+				mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "riding");
+				mGDbHelper.close();
+				break;
+			case 2:
+				mStatus = "done";
+				aPI = PatronInfo.newBuilder(m_aPI).
+				setStatus("done").
+				build();
+				mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "done");
+				mGDbHelper.close();
+				break;
+			case 3:
+				mStatus = "cancelled";
+				aPI = PatronInfo.newBuilder(m_aPI).
+				setStatus("cancelled").
+				build();
+				mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "cancelled");
+				mGDbHelper.close();
+				break;
+			default:
+				mGDbHelper.close();
+			}
+		}
+		
+		public void onNothingSelected(AdapterView<?> parent)
+		{
+			
+		}
 	}
 }

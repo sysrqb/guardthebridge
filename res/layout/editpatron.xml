@@ -123,11 +123,11 @@
 	    android:layout_alignParentRight="true"
 	    android:text="@string/rideCanceled" />
 	
-	<Button
+	<Spinner
 	    android:id="@+id/editpatron_setstatus"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
-	    android:layout_alignParentRight="true"
-	    android:layout_above="@+id/editpatron_canceled"
-	    android:text="@string/setStatus" />
+	    android:prompt="@string/statuslist"
+	    android:layout_alignParentBottom="true"
+	    android:layout_toLeftOf="@+id/editpatron_done"/>
 </RelativeLayout>
