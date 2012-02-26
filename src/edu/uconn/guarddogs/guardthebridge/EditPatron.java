@@ -23,6 +23,10 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -72,6 +76,15 @@ public class EditPatron extends Activity {
 			}
 		});
 		
+		final Button bStatus = (Button) findViewById(R.id.editpatron_setstatus);
+		bStatus.setOnClickListener(new OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				registerForContextMenu(bStatus);
+			}
+		});
+		
 		Button bDone = (Button) findViewById(R.id.editpatron_done);
 		bDone.setOnClickListener(new OnClickListener()
 		{
@@ -91,6 +104,54 @@ public class EditPatron extends Activity {
 				finish();
 			}
 		});
+	}
+	
+	public void onCreateContextMenu (ContextMenu menu, View v,
+                                ContextMenuInfo menuInfo)
+	{
+		super.onCreateContextMenu(menu, v, menuInfo);
+		MenuInflater aInflator = getMenuInflater();
+		aInflator.inflate(R.menu.status, menu);
+	}
+	
+	public boolean onContextItemSelected (MenuItem item)
+	{
+		PatronInfo aPI = null;
+		mGDbHelper.open();
+		switch (item.getItemId())
+		{
+		case R.id.statusmenu_waiting:
+			aPI = PatronInfo.newBuilder(m_aPI).
+			setStatus("waiting").
+			build();
+			mGDbHelper.setStatus(0, aPI.toByteArray(), m_aPI.getPid(), "waiting");
+			mGDbHelper.close();
+			return true;
+		case R.id.statusmenu_riding:
+			aPI = PatronInfo.newBuilder(m_aPI).
+			setStatus("riding").
+			build();
+			mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "riding");
+			mGDbHelper.close();
+			return true;
+		case R.id.statusmenu_done:
+			aPI = PatronInfo.newBuilder(m_aPI).
+			setStatus("done").
+			build();
+			mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "done");
+			mGDbHelper.close();
+			return true;
+		case R.id.statusmenu_canceled:
+			aPI = PatronInfo.newBuilder(m_aPI).
+			setStatus("cancelled").
+			build();
+			mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "cancelled");
+			mGDbHelper.close();
+			return true;
+		default:
+			mGDbHelper.close();
+			return false;
+		}
 	}
 	
 	private void fillPatronInfo()
@@ -201,7 +262,7 @@ public class EditPatron extends Activity {
 					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
 					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
 					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
-					setStatus("Done").
+					setStatus("done").
 					build();
 			
 			Log.v(TAG, "Updating Patron as DONE: " + mpid);

@@ -41,6 +41,7 @@
     <string name="cancel">Cancel</string>
     <string name="edit">Edit</string>
     <string name="refresh">Refresh</string>
-    <string name="rideDone">Ride Done</string>
-    <string name="rideCanceled">Ride Canceled</string>
+    <string name="rideDone">Ride (un)Done</string>
+    <string name="rideCanceled">Ride (un)Canceled</string>
+    <string name="setStatus">Set Status</string>
 </resources>

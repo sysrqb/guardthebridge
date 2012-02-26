@@ -74,7 +74,7 @@ public class GtBDbAdapter {
     
     private static final String SAFE_DATABASE_CREATE =
         "create table " + DATABASE_TABLE + "( " + KEY_ROWID + " integer primary key autoincrement, "
-        + KEY_PID + " integer, " + KEY_PATRON + " blob);";
+        + KEY_PID + " integer, " + KEY_PATRON + " blob, " + KEY_STATUS + " text);";
     
     private static final String SAFE_DATABASE_CLOSED_CREATE =
             "create table " + DATABASE_TABLE_CLOSED + "( " + KEY_ROWID + " integer primary key autoincrement, "
@@ -146,12 +146,13 @@ public class GtBDbAdapter {
      * @param body the body of the note
      * @return rowId or -1 if failed
      */
-    public long createPatron(byte[] message, int pid) {
+    public long createPatron(byte[] message, int pid, String status) {
     	if(!isNewPatron(pid))
     		return 0;
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PATRON, message);
         initialValues.put(KEY_PID, pid);
+        initialValues.put(KEY_STATUS, status);
 
         return mDb.insert(DATABASE_TABLE, null, initialValues);
     }
@@ -162,9 +163,14 @@ public class GtBDbAdapter {
      * @param rowId id of note to delete
      * @return true if deleted, false otherwise
      */
-    public boolean deletePatron(long rowId) {
+    public boolean deletePatron(long pid) {
 
-        return mDb.delete(DATABASE_TABLE, KEY_PID + "=" + rowId, null) > 0;
+        return mDb.delete(DATABASE_TABLE, KEY_PID + "=" + pid, null) > 0;
+    }
+    
+    public boolean deleteClosedPatron(long pid) {
+
+        return mDb.delete(DATABASE_TABLE_CLOSED, KEY_PID + "=" + pid, null) > 0;
     }
 
     /**
@@ -310,6 +316,7 @@ public class GtBDbAdapter {
         ContentValues args = new ContentValues();
         args.put(KEY_PATRON, message);
         args.put(KEY_PID, pid);
+        Log.v(TAG, "Updating patron " + pid + " " + message);
         
         switch(status)
         {
@@ -362,6 +369,109 @@ public class GtBDbAdapter {
 	        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
 	    	deletePatron(pid);
 	    	return insrtRow;
+        }
+        return 0;
+    }
+    
+    public long setRiding(long rowId, byte[] message, int pid)
+    {
+    	long nRetVal = 0;
+    	ContentValues args = new ContentValues();
+        args.put(KEY_PATRON, message);
+        args.put(KEY_PID, pid);
+        args.put(KEY_STATUS, "riding");
+
+        if (!isClosed(pid))
+        {
+        	if ((nRetVal = mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null)) > 0)
+        	{
+	    	 deleteClosedPatron(pid);
+	    	 return nRetVal;
+        	}
+	    	return 0;
+        }
+        else
+        {
+        	if ((nRetVal = mDb.insert(DATABASE_TABLE, null, args)) > 0)
+        	{
+	    	 deleteClosedPatron(pid);
+	    	 return nRetVal;
+        	}
+        }
+        return 0;
+    }
+    
+    public long setWaiting(long rowId, byte[] message, int pid)
+    {
+    	long nRetVal = 0;
+    	ContentValues args = new ContentValues();
+        args.put(KEY_PATRON, message);
+        args.put(KEY_PID, pid);
+        args.put(KEY_STATUS, "waiting");
+
+        if (!isClosed(pid))
+        {
+        	if ((nRetVal = mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null)) > 0)
+        	{
+	    	 deleteClosedPatron(pid);
+	    	 return nRetVal;
+        	}
+	    	return 0;
+        }
+        else
+        {
+        	if ((nRetVal = mDb.insert(DATABASE_TABLE, null, args)) > 0)
+        	{
+	    	 deleteClosedPatron(pid);
+	    	 return nRetVal;
+        	}
+        }
+        return 0;
+    }
+    
+    public long setStatus(long rowId, byte[] message, int pid, String status)
+    {
+    	ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_PATRON, message);
+        initialValues.put(KEY_PID, pid);
+        initialValues.put(KEY_STATUS, status);
+
+        if (status.compareToIgnoreCase("done") == 0 || status.compareToIgnoreCase("cancelled") == 0)
+        {
+	        if (!isClosed(pid))
+	        {
+		        long insrtRow = mDb.insert(DATABASE_TABLE_CLOSED, null, initialValues);
+		    	deletePatron(pid);
+		    	return insrtRow;
+	        }
+	        else
+	        {
+		        if (status.compareToIgnoreCase("done") == 0)
+		        {
+		        	setDone(rowId, message, pid);
+		        }
+		        else if (status.compareToIgnoreCase("cancelled") == 0)
+		        {
+		        	setCanceled(rowId, message, pid);
+		        }
+	        }
+	        return 0;
+        }
+        if (status.compareToIgnoreCase("waiting") == 0 || status.compareToIgnoreCase("riding") == 0)
+        {
+                
+            if (isClosed(pid))
+            {
+            	if (status.compareToIgnoreCase("waiting") == 0)
+		        {
+		        	setWaiting(rowId, message, pid);
+		        }
+		        else if (status.compareToIgnoreCase("riding") == 0)
+		        {
+		        	setRiding(rowId, message, pid);
+		        }
+            }
+            return 0;
         }
         return 0;
     }

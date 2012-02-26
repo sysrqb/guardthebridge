@@ -123,7 +123,7 @@ public class GuardtheBridge extends FragmentActivity {
 	{
 		mGDbHelper.open();
 		for (PatronInfo patron : list.getPatronList())
-			   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
+			   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid(), patron.getStatus());
 		mGDbHelper.close();
 	}
    
@@ -302,7 +302,7 @@ public class GuardtheBridge extends FragmentActivity {
    
 	   public void addToDb(PatronList list){
 		   for (PatronInfo patron : list.getPatronList())
-			   m_ALFGDbHelper.createPatron(patron.toByteArray(), patron.getPid());
+			   m_ALFGDbHelper.createPatron(patron.toByteArray(), patron.getPid(), patron.getStatus());
 	   }
 	   
 	   public String[] populateRides(int ridetype){
