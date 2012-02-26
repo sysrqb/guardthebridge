@@ -27,7 +27,6 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 
 
@@ -53,14 +52,6 @@ public class EditPatron extends Activity {
 		}
 		fillPatronInfo();
 		mGDbHelper.close();
-		TextView tvBack = (TextView) findViewById(R.id.editpatron_back);
-		tvBack.setOnClickListener( new OnClickListener()
-		{
-			public void onClick(View v){
-				setResult(RESULT_OK);
-				finish();
-			}
-		});
 		
 		Button bCancel = (Button) findViewById(R.id.editpatron_cancel);
 		bCancel.setOnClickListener(new OnClickListener()
