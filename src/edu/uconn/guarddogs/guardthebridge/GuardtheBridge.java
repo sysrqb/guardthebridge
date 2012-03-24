@@ -65,8 +65,8 @@ public class GuardtheBridge extends FragmentActivity {
 	private static final String TAG = "GTB";
 	private static final int OPENRIDES = 0;
 	private static final int CLOSEDRIDES = 1;
-	private static final int NUM_ITEMS = 2;
-    private static GuardtheBridge sself;
+	private static final int NUM_ITEMS = 2;  // Number of panels
+    private static GuardtheBridge sself;  // Static Self
     private ProgressDialog mProgBar = null;
     
     private GtBDbAdapter mGDbHelper = null;
@@ -93,7 +93,9 @@ public class GuardtheBridge extends FragmentActivity {
 			
 			@Override
 			public void onClick(View v) {
-				new CurrTask().execute();
+				new CurrTask().execute();  // Request the update
+
+			/* Update both fragments */  // Not working
 		        ArrayListFragment aALF = (ArrayListFragment) GTBAdapter.getFragment().getActivity().
 		        		getSupportFragmentManager().
 		        		findFragmentByTag("android:switch:" + R.id.ridelist_pageview + ":0");
@@ -122,11 +124,12 @@ public class GuardtheBridge extends FragmentActivity {
 	public void addToDb(PatronList list)
 	{
 		mGDbHelper.open();
-		for (PatronInfo patron : list.getPatronList())
+		for (PatronInfo patron : list.getPatronList())  // For each patron in the patron list, add
 			   mGDbHelper.createPatron(patron.toByteArray(), patron.getPid(), patron.getStatus());
 		mGDbHelper.close();
 	}
    
+   /* Used to populate the fragments */
    public static class GTBAdapter extends FragmentPagerAdapter
    {
 	   private static ArrayListFragment mFrag = null;
@@ -150,6 +153,7 @@ public class GuardtheBridge extends FragmentActivity {
 	   }
    }
    
+   /* The fragment */
    public static class ArrayListFragment extends ListFragment
    {
 	   private int mNum;
@@ -184,6 +188,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   //retrieveRides();
 	   }
 	   
+	   /* Populating the view */
 	   public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			   Bundle savedInstanceState)
 	   {
@@ -226,7 +231,7 @@ public class GuardtheBridge extends FragmentActivity {
 			long pid = 0;
 			try
 			{
-				Pattern pPidRegex = Pattern.compile("\\d* ");
+				Pattern pPidRegex = Pattern.compile("\\d* ");  // PID is stored as the first sequence of numbers on each line
 				String atmp = "";
 				try
 				{
@@ -248,6 +253,7 @@ public class GuardtheBridge extends FragmentActivity {
 			startActivity(intent);
 	   }
 	   
+	   /* Never used/called, can't long press on fragment */
 	   public boolean onListItemLongClick(AdapterView<?> av, 
 			   View v, 
 			   int position, 
@@ -273,6 +279,7 @@ public class GuardtheBridge extends FragmentActivity {
 	   }
 	   
 	@SuppressWarnings("unchecked")
+	/* Doesn't work */
 	public void updateView()
 	   {
 		   Log.v(TAG, "ArrayListFragment: updateView");
@@ -337,6 +344,9 @@ public class GuardtheBridge extends FragmentActivity {
 	   }
    }
    
+   /*
+    * Retrieves new rides assigned to this van
+    */
    private class CurrTask extends AsyncTask<Void, Integer, Integer>
    {
 	   static final int INCREMENT_PROGRESS = 20;
@@ -392,7 +402,7 @@ public class GuardtheBridge extends FragmentActivity {
 	   {
 		   mGDbHelper.open();
 		   mCDbHelper.open();
-		   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();
+		   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();  // We only want the server to send us new rides, so we send the set of pids we already have
 		   mGDbHelper.close();
 		   Request aPBReq = Request.newBuilder().
 				   setNReqId(1).
@@ -407,6 +417,7 @@ public class GuardtheBridge extends FragmentActivity {
 		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
 		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
 				   aPBReq.getSerializedSize());
+                   /* Make sure the connection is established and valid */
 		   SSLSocket aSock = mSSLSF.createSSLSocket(sself);
 		   if (mSSLSF.getSession() == null)
 		   {
@@ -437,12 +448,12 @@ public class GuardtheBridge extends FragmentActivity {
 					}
 			   }
 			   byte[] vbuf = aPBReq.toByteArray();
-			   aOS.write(vbuf);
+			   aOS.write(vbuf);  // Send
 			   publishProgress(INCREMENT_PROGRESS);
 			   InputStream aIS = aSock.getInputStream();
 			   vbuf = new byte[9];
-			   aIS.read(vbuf);
-			   /* Handle messages smaller than 9 bytes */
+			   aIS.read(vbuf);  // Receive
+			   /* Handle messages smaller than 9 bytes; Bufs aren't terminated, so removes trailing 0s */
 			   int nsize = (vbuf.length - 1);
 			   for (; nsize>0; nsize--)
 			   {
@@ -452,7 +463,7 @@ public class GuardtheBridge extends FragmentActivity {
 				   }
 				   break;
 			   }
-			   byte[] vbuf2 = new byte[nsize + 1];
+			   byte[] vbuf2 = new byte[nsize + 1];  // Copy the received buf into an array of the correct size so parsing is successful
 			   for(int i = 0; i != nsize + 1; i++)
 				   vbuf2[i] = vbuf[i];
 			   vbuf = vbuf2;
