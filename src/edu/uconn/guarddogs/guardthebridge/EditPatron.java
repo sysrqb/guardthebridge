@@ -408,7 +408,7 @@ public class EditPatron extends Activity {
 		                    addPatron(pbPat).
 				    build();
 		   Request aPBReq = Request.newBuilder().
-				   setNReqId(1).
+				   setNReqId(4).
 				   setSReqType("UPDT").
 				   setNCarId(mCDbHelper.getCar()).
 		   		   setPlPatronList(apbPL).
