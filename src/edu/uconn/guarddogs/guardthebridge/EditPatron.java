@@ -18,9 +18,18 @@
 
 
 package edu.uconn.guarddogs.guardthebridge;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
+import javax.net.ssl.SSLProtocolException;
+import javax.net.ssl.SSLSocket;
+
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -31,7 +40,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.TextFormat;
+
+import edu.uconn.guarddogs.guardthebridge.Communication.Request;
+import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
+import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
 
 public class EditPatron extends Activity {
@@ -41,6 +57,9 @@ public class EditPatron extends Activity {
 	private EditPatron self;
 	private PatronInfo m_aPI;
 	private String mStatus;
+	private String mDialogMsg = "";
+	private ProgressDialog mProgBar;
+	private CarsGtBDbAdapter mCDbHelper = null;
 	
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -185,6 +204,7 @@ public class EditPatron extends Activity {
 			
 			mGDbHelper.setStatus(0, aPI.toByteArray(), aPI.getPid(), mStatus);
 			mGDbHelper.close();
+			new UpdtTask().execute();
 		}
 	}
 	
@@ -320,4 +340,214 @@ public class EditPatron extends Activity {
 			
 		}
 	}
+
+   /*
+    * Update ride assigned to this van
+    */
+   private class UpdtTask extends AsyncTask<Void, Integer, Integer>
+   {
+	   static final int INCREMENT_PROGRESS = 20;
+	   protected void onPreExecute()
+	   {
+		   mProgBar = new ProgressDialog(self);
+		   mProgBar.setCancelable(true);
+		   mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		   mProgBar.setMessage("Establishing Connection with server...");
+		   mProgBar.show();
+	   }
+
+	   @Override
+	   protected Integer doInBackground(Void... params)
+	   {
+		   return updateRide();
+	   }	 
+	   
+	   protected void onProgressUpdate(Integer... progress)
+	   {
+		   int nTotalProgress = mProgBar.getProgress() + progress[0];
+		   switch (nTotalProgress)
+		   {
+		   case 0:
+		   case 20:
+			   mProgBar.setMessage("Establishing Connection with server...");
+			   break;
+		   case 40:
+			   mProgBar.setMessage("Connection Established, Sending request...");
+			   break;
+		   case 60:
+			   mProgBar.setMessage("Updating ride...");
+			   break;
+		   case 80:
+			   mProgBar.setMessage("Reading response...");
+			   break;
+		   case 100:
+			   mProgBar.setMessage("Done!");
+			   break;
+		   }		
+		   mProgBar.setProgress(nTotalProgress);
+	   }
+	   
+	   protected void onPostExecute(Integer res)
+	   {
+		   
+		  publishProgress(INCREMENT_PROGRESS);
+		  mProgBar.dismiss();
+		  
+	   }
+	   
+	   public int updateRide()
+	   {
+		   GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+		   mGDbHelper.open();
+		   mCDbHelper = new CarsGtBDbAdapter(self);
+		   mCDbHelper.open();
+		   //ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();  // We only want the server to send us new rides, so we send the set of pids we already have
+                   PatronInfo pbPat = mGDbHelper.fetchPatron(mpid);  // Get current patron info from DB 
+		   mGDbHelper.close();
+		   PatronList apbPL = PatronList.newBuilder().
+		                    addPatron(pbPat).
+				    build();
+		   Request aPBReq = Request.newBuilder().
+				   setNReqId(1).
+				   setSReqType("UPDT").
+				   setNCarId(mCDbHelper.getCar()).
+		   		   setPlPatronList(apbPL).
+		   		   build();
+		   mCDbHelper.close();
+		   publishProgress(INCREMENT_PROGRESS);  // <---- start from here
+		   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
+		   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
+		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
+		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
+				   aPBReq.getSerializedSize());
+                   /* Make sure the connection is established and valid */
+		   SSLSocket aSock = aSSLSF.createSSLSocket(self);
+		   if (aSSLSF.getSession() == null)
+		   {
+			   aSSLSF = aSSLSF.getNewSSLSFW(self);
+			   aSock = aSSLSF.getSSLSocket();
+		   }
+		   publishProgress(INCREMENT_PROGRESS);
+		   try {
+			   OutputStream aOS = aSock.getOutputStream();
+			   try
+			   {
+				   aOS.write(aPBReq.getSerializedSize());
+			   } catch (SSLProtocolException ex)
+			   {
+				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+					aSSLSF.forceReHandshake(self);
+					aSock = aSSLSF.getSSLSocket();
+					aOS = aSock.getOutputStream();
+					try
+					{
+						aOS.write(aPBReq.getSerializedSize());
+					} catch (SSLProtocolException exc)
+					{
+						aSSLSF = aSSLSF.getNewSSLSFW(self);
+						aSock = aSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+						aOS.write(aPBReq.getSerializedSize());
+					}
+			   }
+			   byte[] vbuf = aPBReq.toByteArray();
+			   aOS.write(vbuf);  // Send
+			   publishProgress(INCREMENT_PROGRESS);
+			   InputStream aIS = aSock.getInputStream();
+			   vbuf = new byte[9];
+			   aIS.read(vbuf);  // Receive
+			   /* Handle messages smaller than 9 bytes; Bufs aren't terminated, so removes trailing 0s */
+			   int nsize = (vbuf.length - 1);
+			   for (; nsize>0; nsize--)
+			   {
+				   if(vbuf[nsize] == 0)
+				   {
+					   continue;
+				   }
+				   break;
+			   }
+			   byte[] vbuf2 = new byte[nsize + 1];  // Copy the received buf into an array of the correct size so parsing is successful
+			   for(int i = 0; i != nsize + 1; i++)
+				   vbuf2[i] = vbuf[i];
+			   vbuf = vbuf2;
+			   Response apbRes = null;
+			   try 
+			   {
+				   Response apbTmpSize = null;
+				   apbTmpSize = Response.parseFrom(vbuf);
+				   vbuf = new byte[apbTmpSize.getNRespId()];
+				   aIS.read(vbuf);
+				   apbRes = Response.parseFrom(vbuf);  // Still deciding what will be contained in the response
+				   publishProgress(INCREMENT_PROGRESS);
+				   
+				   Log.v(TAG, "Response Buffer:");
+				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
+				   Log.v(TAG, "PatronList Buffer: ");
+				   Log.v(TAG, TextFormat.shortDebugString(
+						   apbRes.getPlPatronList()));
+                                   /* I'd rather have the dispatchers handle merge conflicts
+				    * because it would be easier, but what should this return
+				    * on error/conflict to the client?
+				    *
+				    * Maybe we'll just have to return a message generated
+				    * by the server, on both failure and success. On merge
+				    * conflict, flag is set and message asks if he/she would
+				    * like to resolve the conflict
+				    */
+				   if ( apbRes.getNResAddCount() == 1 )
+				   {
+				     if ( apbRes.getNResAdd(0) == mpid )
+				     {
+				    	 mDialogMsg = apbRes.getSResAdd(0);
+				    	 self.runOnUiThread( new Runnable () {
+				    		 public void run() {
+				    			 String sErrorMessage = mDialogMsg;
+				    			 AlertDialog.Builder builder = new AlertDialog.Builder(self);
+				    			 builder.setMessage("Save returned error message:\n" + sErrorMessage + "\nCan/Would you like to resolve this?");
+				    			 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+				    				 public void onClick(DialogInterface dialog, int id) {
+				    					 dialog.dismiss();
+				    					 new AlertDialog.Builder(self).
+						    			 setMessage("Sorry, we haven't gotten this far yet.\nHopefully you can resolve the problem :-/ ").
+						    			 setPositiveButton("Fiiiiiine", new DialogInterface.OnClickListener() {
+						    				 public void onClick(DialogInterface dialog, int id) {
+						    					 dialog.dismiss();
+						    					 
+						    				 }
+						    			 }).
+						    			 show();
+				    				 }
+				    			 });
+				    			 builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+									
+									@Override
+									public void onClick(DialogInterface dialog, int which) {
+										return;  // Do nothing
+									}
+								});
+				    			 builder.show();
+				    			 
+				    		 }
+				    	 });
+				     }
+				   }
+				   //addToDb(apbRes.getPlPatronList());  
+				   //Log.v(TAG, "Added to DB");
+				   
+				} catch (InvalidProtocolBufferException e) {
+					e.printStackTrace();
+					String tmp = "";
+					for(int i = 0; i<vbuf.length; i++)
+						tmp = tmp + vbuf[i] + " ";
+					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
+						+ tmp);
+					e.printStackTrace();
+				}
+		   }catch (IOException e)
+		   {
+			   e.printStackTrace();
+		   }
+		   return 0;
+	   }
+   }
 }
