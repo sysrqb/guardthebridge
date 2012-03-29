@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.http.Header;
-import org.apache.http.HeaderIterator;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -131,7 +129,7 @@ public class GTBLocationManager {
 
 	        // Execute HTTP Post Request
 	        HttpResponse aRespGPS = httpclient.execute(httppost);
-	        Header aHdrGPS;
+	        //Header aHdrGPS;
 	        
 	        HttpEntity aEntityGPS = aRespGPS.getEntity();
 	        
@@ -144,7 +142,7 @@ public class GTBLocationManager {
 	        }
 	        
 	        Log.v(TAG, "GPS POST response: " + sContent);
-	        String sHeaders = "";
+	        /*String sHeaders = "";
 	        for(HeaderIterator ahdrIt = aRespGPS.headerIterator();ahdrIt.hasNext(); ahdrIt.next())
 	        {
 	        	if (ahdrIt.hasNext())
@@ -154,7 +152,7 @@ public class GTBLocationManager {
 	        	}
 	        }
 	        
-	        Log.v(TAG, "GPS POST response: " + sHeaders);
+	        Log.v(TAG, "GPS POST response: " + sHeaders);*/
 	        
 	    } catch (ClientProtocolException e) {
 	    	Log.e(TAG, "ClientProtocolException caught. Is the server down?");
