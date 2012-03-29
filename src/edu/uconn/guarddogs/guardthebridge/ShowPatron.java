@@ -103,6 +103,11 @@ public class ShowPatron extends Activity {
 				tvName = (TextView)findViewById(R.id.showpatron_ttVal);
 				tvName.setText(" " + aPI.getTimetaken());
 			}
+			if(aPI.getStatus() != null)
+			{
+				tvName = (TextView)findViewById(R.id.showpatron_statusVal);
+				tvName.setText(" " + aPI.getStatus());
+			}
 		}
 	}
 	
