@@ -474,9 +474,21 @@ public class GtBDbAdapter {
 		        {
 		        	setRiding(rowId, message, pid);
 		        }
+            	return 0;
             }
-            return 0;
+            else
+            {
+            	if (status.compareToIgnoreCase("waiting") == 0)
+		        {
+		        	setWaiting(rowId, message, pid);
+		        }
+		        else if (status.compareToIgnoreCase("riding") == 0)
+		        {
+		        	setRiding(rowId, message, pid);
+		        }
+            	return 0;
+            }
         }
-        return 0;
+        return -1;
     }
 }
