@@ -44,6 +44,7 @@ public class CarsGtBDbAdapter {
     private static final String TAG = "CarGtBDbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
+    private int nThreadSafeCount = 0;
 
     /**
      * Database creation sql statement
@@ -53,7 +54,7 @@ public class CarsGtBDbAdapter {
     private static final String CAR_DATABASE_NAME = "carnumdb";
     private static final int DATABASE_VERSION = 2;
 
-    private final Context mCtx;
+    private Context mCtx = null;
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
 
@@ -95,14 +96,24 @@ public class CarsGtBDbAdapter {
      *         initialization call)
      * @throws SQLException if the database could be neither opened or created
      */
-    public CarsGtBDbAdapter open() throws SQLException {
+    public CarsGtBDbAdapter open() throws SQLException 
+    {
+    	
+    	if (mDbHelper == null )
+    	{
     		mDbHelper = new DatabaseHelper(mCtx);
-    		mDb = mDbHelper.getWritableDatabase();
+    	}
+		mDb = mDbHelper.getWritableDatabase();
+		nThreadSafeCount++;
         return this;
     }
 
     public void close() {
-        mDbHelper.close();
+    	nThreadSafeCount--;
+    	if (nThreadSafeCount == 0)
+    		mDbHelper.close();
+    	else
+    		Log.v(TAG,"Another thread is still using this, delaying close until all threads done!");
     }
 
 
