@@ -202,7 +202,15 @@ public class EditPatron extends Activity {
 					setStatus(mStatus).
 					build();
 			
-			mGDbHelper.setStatus(0, aPI.toByteArray(), aPI.getPid(), mStatus);
+			long nRetval = mGDbHelper.setStatus(0, 
+					aPI.toByteArray(), 
+					aPI.getPid(), 
+					mStatus);
+			Log.v(TAG, "setStatus returned " + nRetval);
+			Log.v(TAG, "updatePatron returned " 
+					+ mGDbHelper.updatePatron(aPI.toByteArray(), 
+							aPI.getPid(), 
+							getStatusOpenness(mStatus)));
 			mGDbHelper.close();
 			new UpdtTask().execute();
 		}
