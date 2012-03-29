@@ -58,7 +58,7 @@ public class GTBLocationManager {
 					
 				}
 			};
-			mGPSManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, aLocationListener);
+			mGPSManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, aLocationListener);
 	}
 	
 	GTBLocationManager(Activity aCallingAct, int LOCSERV)
