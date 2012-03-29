@@ -17,5 +17,6 @@
         <activity android:name="edu.uconn.guarddogs.guardthebridge.CarNumList"/>
         <activity android:name="edu.uconn.guarddogs.guardthebridge.ShowPatron" android:label="@string/showpatron_label"/>
         <activity android:name="edu.uconn.guarddogs.guardthebridge.EditPatron" android:label="@string/editpatron_label"/>
+        <service android:permission="android.permission.ACCESS_FINE_LOCATION" android:name="GTBLocationManager"></service>
     </application>
 </manifest> 

@@ -72,7 +72,6 @@ public class GuardtheBridge extends FragmentActivity {
     private GtBDbAdapter mGDbHelper = null;
 	private CarsGtBDbAdapter mCDbHelper = null;
 	private GtBSSLSocketFactoryWrapper mSSLSF;
-	private GTBLocationManager mGPSManager = null;
     
 	private ViewPager mVp = null;
     private GTBAdapter m_GFPA = null;
@@ -84,6 +83,8 @@ public class GuardtheBridge extends FragmentActivity {
         super.onCreate(savedInstanceState);
         sself = this;
         setContentView(R.layout.rideslist);
+        
+        
         
         updateList();
         mSSLSF = new GtBSSLSocketFactoryWrapper(this);
@@ -134,35 +135,8 @@ public class GuardtheBridge extends FragmentActivity {
 	        }
 	  })).start();
 		
-		mGPSManager = new GTBLocationManager(this);
-		(new Thread (new Runnable() 
-		  {	
-		    public void run()
-	        {
-		    	Looper.prepare();
-	          new Handler().postDelayed( new Runnable()
-	            {
-		          public void run()
-		          {
-	                for(;;)
-		            {
-	                	
-	                  mCDbHelper.open();
-		              mGPSManager.postLocation(mCDbHelper.getCar());
-		              mCDbHelper.close();
-	                	
-		              try {
-						Thread.sleep(10000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						break;
-					}
-		            }
-		          }
-	            }, 10000); // Execute background update every 30 seconds
-	          Looper.loop();
-	        }
-	  })).start();
+		Intent i = new Intent(this, GTBLocationManager.class);
+		this.startService(i);
 		
         
     }
@@ -200,36 +174,9 @@ public class GuardtheBridge extends FragmentActivity {
 	          Looper.loop();
 	        }
 	  })).start();
-		
-		mGPSManager = new GTBLocationManager(this);
-		(new Thread (new Runnable() 
-		  {	
-		    public void run()
-	        {
-		    	Looper.prepare();
-	          new Handler().postDelayed( new Runnable()
-	            {
-		          public void run()
-		          {
-	                for(;;)
-		            {
-	                	
-	                  mCDbHelper.open();
-		              mGPSManager.postLocation(mCDbHelper.getCar());
-		              mCDbHelper.close();
-	                	
-		              try {
-						Thread.sleep(10000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						break;
-					}
-		            }
-		          }
-	            }, 10000); // Execute background update every 30 seconds
-	          Looper.loop();
-	        }
-	  })).start();
+    	
+    	Intent i = new Intent(this, GTBLocationManager.class);
+		this.startService(i);
     }
     
     public boolean onOptionItemSelected(MenuItem menu){

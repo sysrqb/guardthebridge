@@ -15,24 +15,37 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-import android.app.Activity;
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
 import android.util.Log;
 
-public class GTBLocationManager {
+public class GTBLocationManager extends Service {
 	private static final String TAG = "GTBLocationManager";
 	private LocationManager mGPSManager = null;
 	private Location aLastLocation = null;
 	private double nLat =0, nLong = 0, nSpeed = 0, nHeading = 0, nAccur = 0, nAlt = 0;
 	private GTBLocationManager self = null;
-
-	GTBLocationManager(Activity aCallingAct) {
-		self = this;
-		mGPSManager = (LocationManager)aCallingAct.getSystemService(Context.LOCATION_SERVICE);
+	private CarsGtBDbAdapter mCDbHelper = null;
+	
+	@Override
+	public int onStartCommand(Intent intent, int flags, int startId) 
+	{
+		String sLocServ = "";
+		if (intent != null && intent.getExtras() != null)
+		{
+			sLocServ = intent.getExtras().getString("LocServ");
+		}
+		if (sLocServ == null || sLocServ.compareTo("") == 0)
+			sLocServ = LocationManager.GPS_PROVIDER;
+		mGPSManager = (LocationManager)getSystemService(Context.LOCATION_SERVICE);
 		LocationListener aLocationListener = new LocationListener()
 			{
 				public void onLocationChanged(Location location) {
@@ -58,13 +71,47 @@ public class GTBLocationManager {
 					
 				}
 			};
-			mGPSManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, aLocationListener);
+			mGPSManager.requestLocationUpdates(sLocServ, 0, 0, aLocationListener);
+			backgroundIt();
+		return START_STICKY;
+	}
+
+	@Override
+	public void onCreate() {
+		self = this;
+		mCDbHelper = new CarsGtBDbAdapter(this);
 	}
 	
-	GTBLocationManager(Activity aCallingAct, int LOCSERV)
+	private void backgroundIt()
 	{
-		self = this;
-		mGPSManager = (LocationManager)aCallingAct.getSystemService(Context.LOCATION_SERVICE);
+		(new Thread (new Runnable() 
+		  {	
+		    public void run()
+	        {
+		    	Looper.prepare();
+	          new Handler().postDelayed( new Runnable()
+	            {
+		          public void run()
+		          {
+	                for(;;)
+		            {
+	                	
+	                  mCDbHelper.open();
+		              postLocation(mCDbHelper.getCar());
+		              mCDbHelper.close();
+	                	
+		              try {
+						Thread.sleep(10000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						break;
+					}
+		            }
+		          }
+	            }, 10000); // Execute background update every 30 seconds
+	          Looper.loop();
+	        }
+	  })).start();
 		
 	}
 	
@@ -160,5 +207,11 @@ public class GTBLocationManager {
 	    } catch (IOException e) {
 	    	Log.e(TAG, "IOException caught. Is the server down?");
 	    }
+	}
+
+	@Override
+	public IBinder onBind(Intent intent) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
