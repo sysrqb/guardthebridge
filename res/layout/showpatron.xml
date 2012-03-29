@@ -87,6 +87,20 @@
 	    android:layout_alignTop="@+id/showpatron_ttlabel"
 	    android:text="@string/showpatron_ttVal"/>
 	
+	<TextView 
+	    android:id="@+id/showpatron_statuslabel"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_below="@+id/showpatron_ttlabel"
+	    android:text="@string/showpatron_statuslabel" />
+	<TextView 
+	    android:id="@+id/showpatron_statusVal"
+	    android:layout_height="wrap_content"
+	    android:layout_width="wrap_content"
+	    android:layout_toRightOf="@+id/showpatron_statuslabel"
+	    android:layout_alignTop="@+id/showpatron_statuslabel"
+	    android:text="@string/showpatron_statusVal" />
+	
 	<Button
 	    android:id="@+id/showpatron_edit"
 	    android:layout_width="wrap_content"
