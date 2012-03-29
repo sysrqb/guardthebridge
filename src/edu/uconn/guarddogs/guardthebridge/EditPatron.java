@@ -166,6 +166,9 @@ public class EditPatron extends Activity {
 			{
 				mStatus = "waiting";
 			}
+			Spinner aStatSpinn = (Spinner)findViewById(R.id.editpatron_setstatus);
+			aStatSpinn.setSelection(getStatusPositionID(mStatus));
+			aStatSpinn.invalidate();
 		}
 	}
 	
@@ -199,7 +202,7 @@ public class EditPatron extends Activity {
 					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
 					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
 					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
-					setStatus(mStatus).
+					setStatus(((Spinner)findViewById(R.id.editpatron_setstatus)).getSelectedItem().toString()).
 					build();
 			
 			long nRetval = mGDbHelper.setStatus(0, 
@@ -296,6 +299,24 @@ public class EditPatron extends Activity {
 			
 	}
 	
+	private int getStatusPositionID(String sStat)
+	{
+		/* Determined by position in/order of in 
+		 * stringarray in res/values/status.xml 
+		 */
+		String sLowerStat = sStat.toLowerCase();
+		
+		if (sLowerStat.compareTo("waiting") == 0)
+			return 0;
+		if (sLowerStat.compareTo("riding") == 0)
+			return 1;
+		if (sLowerStat.compareTo("Done") == 0)
+			return 2;
+		if (sLowerStat.compareTo("Cancelled") == 0)
+			return 3;
+		return 0;
+	}
+	
 	public class StatusOnItemSelectedListener 
 			implements OnItemSelectedListener 
 	{
@@ -347,6 +368,16 @@ public class EditPatron extends Activity {
 		{
 			
 		}
+	}
+	
+	private int getStatusOpenness(String isStatus)
+	{
+		String sStatusLower = isStatus.toLowerCase();
+		if (sStatusLower.compareTo("waiting") == 0 || sStatusLower.compareTo("riding") == 0)
+			return 0;
+		else /*if (sStatusLower == "done" || sStatusLower == "cancelled") */
+			return 1;
+		
 	}
 
    /*
