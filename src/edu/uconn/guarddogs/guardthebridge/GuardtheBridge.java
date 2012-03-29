@@ -107,6 +107,31 @@ public class GuardtheBridge extends FragmentActivity {
 		     */
 			}
 		});
+        
+		(new Thread (new Runnable() 
+		  {	
+		    public void run()
+	        {
+		    	Looper.prepare();
+	          new Handler().post( new Runnable()
+	            {
+		          public void run()
+		          {
+	                for(;;)
+		            {
+		              new CurrUpdtTask().execute();
+		              try {
+						Thread.sleep(30000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						break;
+					}
+		            }
+		          }
+	            }); // Execute background update every 30 seconds
+	          Looper.loop();
+	        }
+	  })).start();
     }
     
     public boolean onOptionItemSelected(MenuItem menu){
