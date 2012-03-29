@@ -600,7 +600,10 @@ public class GuardtheBridge extends FragmentActivity {
 	   protected void onPostExecute(Integer res)
 	   {
 		   
-		  sself.m_GFPA.notifyDataSetChanged();  // Should update ListFrag
+		   /* this, right here, updates the frag */
+			  mVp = (ViewPager)findViewById(R.id.ridelist_pageview);
+		      m_GFPA = new GTBAdapter(getSupportFragmentManager());
+		      mVp.setAdapter(m_GFPA);
 	   }
 	   
 	   public int retrieveBackgroundRides()
