@@ -31,6 +31,8 @@
     <string name="showpatron_doVal"></string>
     <string name="showpatron_ttlabel">Time Taken: </string>
     <string name="showpatron_ttVal"></string>
+    <string name="showpatron_statuslabel">Status: </string>
+    <string name="showpatron_statusVal"></string>
     
     <!-- List of Rides -->
     
