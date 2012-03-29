@@ -167,6 +167,71 @@ public class GuardtheBridge extends FragmentActivity {
         
     }
     
+    
+    public void onRestart()
+    {
+    	sself = this;
+        mSSLSF = new GtBSSLSocketFactoryWrapper(this);
+        mGDbHelper = new GtBDbAdapter(this);
+        mCDbHelper = new CarsGtBDbAdapter(this);
+        
+    	super.onRestart();
+    	(new Thread (new Runnable() 
+		  {	
+		    public void run()
+	        {
+		    	Looper.prepare();
+	          new Handler().post( new Runnable()
+	            {
+		          public void run()
+		          {
+	                for(;;)
+		            {
+		              new CurrUpdtTask().execute();
+		              try {
+						Thread.sleep(30000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						break;
+					}
+		            }
+		          }
+	            }); // Execute background update every 30 seconds
+	          Looper.loop();
+	        }
+	  })).start();
+		
+		mGPSManager = new GTBLocationManager(this);
+		(new Thread (new Runnable() 
+		  {	
+		    public void run()
+	        {
+		    	Looper.prepare();
+	          new Handler().postDelayed( new Runnable()
+	            {
+		          public void run()
+		          {
+	                for(;;)
+		            {
+	                	
+	                  mCDbHelper.open();
+		              mGPSManager.postLocation(mCDbHelper.getCar());
+		              mCDbHelper.close();
+	                	
+		              try {
+						Thread.sleep(10000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						break;
+					}
+		            }
+		          }
+	            }, 10000); // Execute background update every 30 seconds
+	          Looper.loop();
+	        }
+	  })).start();
+    }
+    
     public boolean onOptionItemSelected(MenuItem menu){
 		return super.onOptionsItemSelected(menu);
     }
