@@ -45,6 +45,12 @@ public class ShowPatron extends Activity {
 		{
 			Bundle bundle = getIntent().getExtras();
 			mpid = (bundle != null) ? bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
+			if (mpid == null)
+			{
+				Intent i = new Intent (self, GuardtheBridge.class);
+                startActivity(i);				
+			}
+				
 		}
 		fillPatronInfo();
 		
