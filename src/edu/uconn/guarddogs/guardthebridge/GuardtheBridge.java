@@ -32,6 +32,8 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -47,9 +49,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.protobuf.InvalidProtocolBufferException;
@@ -73,6 +73,7 @@ public class GuardtheBridge extends FragmentActivity {
 	private CarsGtBDbAdapter mCDbHelper = null;
 	private GtBSSLSocketFactoryWrapper mSSLSF;
     
+	private ViewPager mVp = null;
     private GTBAdapter m_GFPA = null;
     
     
@@ -90,22 +91,20 @@ public class GuardtheBridge extends FragmentActivity {
         
         Button aRfrshBtn = (Button)findViewById(R.id.refresh);
         aRfrshBtn.setOnClickListener(new OnClickListener() {
-			
 			@Override
 			public void onClick(View v) {
 				new CurrTask().execute();  // Request the update
 
 			/* Update both fragments */  // Not working
-		        ArrayListFragment aALF = (ArrayListFragment) GTBAdapter.getFragment().getActivity().
-		        		getSupportFragmentManager().
+		        /*ArrayListFragment aALF = (ArrayListFragment) getSupportFragmentManager().
 		        		findFragmentByTag("android:switch:" + R.id.ridelist_pageview + ":0");
 		        if (aALF != null && aALF.getView() != null)
 		        	aALF.updateView();
-		        aALF = (ArrayListFragment) GTBAdapter.getFragment().getActivity().
-		        		getSupportFragmentManager().
+		        aALF = (ArrayListFragment) getSupportFragmentManager().
 		        		findFragmentByTag("android:switch:" + R.id.ridelist_pageview + ":1");
 		        if (aALF != null && aALF.getView() != null)
 		        	aALF.updateView();
+		     */
 			}
 		});
     }
@@ -116,9 +115,9 @@ public class GuardtheBridge extends FragmentActivity {
     
     private void updateList()
     {
-        ViewPager aVp = (ViewPager)findViewById(R.id.ridelist_pageview);
+        mVp = (ViewPager)findViewById(R.id.ridelist_pageview);
         m_GFPA = new GTBAdapter(getSupportFragmentManager());
-        aVp.setAdapter(m_GFPA);
+        mVp.setAdapter(m_GFPA);
     }
    	   
 	public void addToDb(PatronList list)
@@ -193,26 +192,27 @@ public class GuardtheBridge extends FragmentActivity {
 			   Bundle savedInstanceState)
 	   {
 		   Log.v(TAG, "ArrayListFragment: onCreateView");
-		   m_ALFGDbHelper.open();
-		   TextView aTV = null;
+		   //m_ALFGDbHelper.open();
+		   //TextView aTV = null;
 		   View v = null;
 		   if (mNum == 0)
 		   {
 			   Log.v(TAG, "onCreateView: Current: mNum = " + mNum);
 			   v = inflater.inflate(R.layout.openrides, container, false);
-			   aTV = (TextView)v.findViewById(R.id.openrides_title);
-			   aTV.setText(R.string.openrides_title);
+			   //aTV = (TextView)v.findViewById(R.id.openrides_title);
+			   //aTV.setText(R.string.openrides_title);
 		   }
 		   else/* if (mNum == 1)*/
 		   {
 			   Log.v(TAG, "onCreateView: Closed: mNum = " + mNum);
 			   v = inflater.inflate(R.layout.closedrides, container, false);
-			   aTV = (TextView)v.findViewById(R.id.closedrides_title);
-			   aTV.setText(R.string.closedrides_title);
+			   //aTV = (TextView)v.findViewById(R.id.closedrides_title);
+			   //aTV.setText(R.string.closedrides_title);
 		   }
-		   ((RelativeLayout)aTV.getParent()).removeView(aTV);
+		   getActivity().getSupportFragmentManager().beginTransaction().replace(R.id.fragrideslist, new ArrayListFragment());
+		   //((RelativeLayout)aTV.getParent()).removeView(aTV);
 		   Log.v(TAG, "onCreateView: returning");
-		   m_ALFGDbHelper.close();
+		   //m_ALFGDbHelper.close();
 		   return v;
 	   }
 	   
@@ -278,27 +278,40 @@ public class GuardtheBridge extends FragmentActivity {
 			return true;
 	   }
 	   
-	@SuppressWarnings("unchecked")
-	/* Doesn't work */
+	   public ArrayListFragment setNum(int nNum)
+	   {
+		   mNum = nNum;
+		   return this;
+	   }
+	   
+	/* Works, but does not update */
 	public void updateView()
 	   {
 		   Log.v(TAG, "ArrayListFragment: updateView");
-		   ListAdapter aVAA = getListAdapter();
-		   if (aVAA == null)
+		   //ListAdapter aVAA = getListAdapter();
+		   /*if (aVAA == null)
 		   {
+			   if (mNum == 0)
+				   aVAA = new ArrayAdapter<String>(getActivity(),
+						   R.layout.rides, populateRides(OPENRIDES));
+			   else *//* if (mNum == 1)*/
+				   /*aVAA = new ArrayAdapter<String>(getActivity(),
+						   R.layout.rides, populateRides(CLOSEDRIDES));
+		   }
+		   if (aVAA.equals(new ArrayAdapter<String>(getActivity(),
+						   R.layout.rides, populateRides(OPENRIDES))) || 
+						   aVAA.equals(new ArrayAdapter<String>(getActivity(),
+								   R.layout.rides, populateRides(CLOSEDRIDES))))*/
+		   ArrayAdapter<String> aVAA = null;
 			   if (mNum == 0)
 				   aVAA = new ArrayAdapter<String>(getActivity(),
 						   R.layout.rides, populateRides(OPENRIDES));
 			   else /* if (mNum == 1)*/
 				   aVAA = new ArrayAdapter<String>(getActivity(),
 						   R.layout.rides, populateRides(CLOSEDRIDES));
-		   }
-		   if (aVAA.equals(new ArrayAdapter<String>(getActivity(),
-						   R.layout.rides, populateRides(OPENRIDES))) || 
-						   aVAA.equals(new ArrayAdapter<String>(getActivity(),
-								   R.layout.rides, populateRides(CLOSEDRIDES))))
-			   ((ArrayAdapter<String>)aVAA).notifyDataSetChanged();
-		   setListAdapter(aVAA);
+			   setListAdapter(aVAA);
+			   //((ArrayAdapter<String>)aVAA).notifyDataSetChanged();
+			   //sself.mVp.invalidate();
 	   }
 	   
 	   public void initializeDb()
@@ -319,8 +332,16 @@ public class GuardtheBridge extends FragmentActivity {
 		   if (vPI.length == 0)
 		   {
 			   String[] msg = new String[1];
-			   msg[0] = "No pending rides! Just chill";
-			   Log.w(TAG, "No rides received.");
+			   if (ridetype == OPENRIDES)
+			   {
+				   msg[0] = "No pending rides! Just chill";
+				   
+			   }
+			   else /* ridetype == CLOSEDRIDES */
+			   {
+				   msg[0] = "No closed rides...yet!";
+			   }
+			   Log.w(TAG, "No rides populated.");
 			   return msg;
 		   }
 		   else
@@ -352,11 +373,13 @@ public class GuardtheBridge extends FragmentActivity {
 	   static final int INCREMENT_PROGRESS = 20;
 	   protected void onPreExecute()
 	   {
+
 		   mProgBar = new ProgressDialog(sself);
 		   mProgBar.setCancelable(true);
 		   mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		   mProgBar.setMessage("Establishing Connection with server...");
-		   mProgBar.show();
+		   mProgBar.show();		 
+		   //mBkgdCurrRunnable.sleep(30000);  // Sleep background thread for 30 seconds because we are forcing an update
 	   }
 
 	   @Override
@@ -396,6 +419,10 @@ public class GuardtheBridge extends FragmentActivity {
 		  publishProgress(INCREMENT_PROGRESS);
 		  mProgBar.dismiss();
 		  
+		  /* this, right here, updates the frag */
+		  mVp = (ViewPager)findViewById(R.id.ridelist_pageview);
+	      m_GFPA = new GTBAdapter(getSupportFragmentManager());
+	      mVp.setAdapter(m_GFPA);
 	   }
 	   
 	   public int retrieveRides()
@@ -477,6 +504,122 @@ public class GuardtheBridge extends FragmentActivity {
 				   apbRes = Response.parseFrom(vbuf);
 				   publishProgress(INCREMENT_PROGRESS);
 				   
+				   Log.v(TAG, "Response Buffer:");
+				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
+				   Log.v(TAG, "PatronList Buffer: ");
+				   Log.v(TAG, TextFormat.shortDebugString(
+						   apbRes.getPlPatronList()));
+				   addToDb(apbRes.getPlPatronList());
+				   Log.v(TAG, "Added to DB");
+				   
+				} catch (InvalidProtocolBufferException e) {
+					e.printStackTrace();
+					String tmp = "";
+					for(int i = 0; i<vbuf.length; i++)
+						tmp = tmp + vbuf[i] + " ";
+					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
+						+ tmp);
+					e.printStackTrace();
+				}
+		   }catch (IOException e)
+		   {
+			   e.printStackTrace();
+		   }
+		   return 0;
+	   }
+   }
+   /*
+    * Retrieves new rides assigned to this van
+    */
+   private class CurrUpdtTask extends AsyncTask<Void, Integer, Integer>
+   {
+	   @Override
+	   protected Integer doInBackground(Void... params)
+	   {
+		   return retrieveBackgroundRides();
+	   }	 
+	   
+	   protected void onPostExecute(Integer res)
+	   {
+		   
+		  sself.m_GFPA.notifyDataSetChanged();  // Should update ListFrag
+	   }
+	   
+	   public int retrieveBackgroundRides()
+	   {
+		   mGDbHelper.open();
+		   mCDbHelper.open();
+		   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();  // We only want the server to send us new rides, so we send the set of pids we already have
+		   mGDbHelper.close();
+		   Request aPBReq = Request.newBuilder().
+				   setNReqId(1).
+				   setSReqType("CURR").
+				   setNCarId(mCDbHelper.getCar()).
+		   		   addAllNParams(vRides).
+		   		   build();
+		   mCDbHelper.close();
+		   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
+		   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
+		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
+		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
+				   aPBReq.getSerializedSize());
+                   /* Make sure the connection is established and valid */
+		   SSLSocket aSock = mSSLSF.createSSLSocket(sself);
+		   if (mSSLSF.getSession() == null)
+		   {
+			   mSSLSF = mSSLSF.getNewSSLSFW(sself);
+			   aSock = mSSLSF.getSSLSocket();
+		   }
+		   try {
+			   OutputStream aOS = aSock.getOutputStream();
+			   try
+			   {
+				   aOS.write(aPBReq.getSerializedSize());
+			   } catch (SSLProtocolException ex)
+			   {
+				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+					mSSLSF.forceReHandshake(sself);
+					aSock = mSSLSF.getSSLSocket();
+					aOS = aSock.getOutputStream();
+					try
+					{
+						aOS.write(aPBReq.getSerializedSize());
+					} catch (SSLProtocolException exc)
+					{
+						mSSLSF = mSSLSF.getNewSSLSFW(sself);
+						aSock = mSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+						aOS.write(aPBReq.getSerializedSize());
+					}
+			   }
+			   byte[] vbuf = aPBReq.toByteArray();
+			   aOS.write(vbuf);  // Send
+			   InputStream aIS = aSock.getInputStream();
+			   vbuf = new byte[9];
+			   aIS.read(vbuf);  // Receive
+			   /* Handle messages smaller than 9 bytes; Bufs aren't terminated, so removes trailing 0s */
+			   int nsize = (vbuf.length - 1);
+			   for (; nsize>0; nsize--)
+			   {
+				   if(vbuf[nsize] == 0)
+				   {
+					   continue;
+				   }
+				   break;
+			   }
+			   byte[] vbuf2 = new byte[nsize + 1];  // Copy the received buf into an array of the correct size so parsing is successful
+			   for(int i = 0; i != nsize + 1; i++)
+				   vbuf2[i] = vbuf[i];
+			   vbuf = vbuf2;
+			   Response apbRes = null;
+			   try 
+			   {
+				   Response apbTmpSize = null;
+				   apbTmpSize = Response.parseFrom(vbuf);
+				   vbuf = new byte[apbTmpSize.getNRespId()];
+				   aIS.read(vbuf);
+				   apbRes = Response.parseFrom(vbuf);
+
 				   Log.v(TAG, "Response Buffer:");
 				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
 				   Log.v(TAG, "PatronList Buffer: ");
