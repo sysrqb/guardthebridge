@@ -21,12 +21,17 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,9 +47,10 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
 public class CarNumList extends ListActivity {
 	private static final String TAG = "CNL-GTBLOG";
-    private CarsGtBDbAdapter m_aCDbHelper;
-    private CarNumList self = this;
-    private ProgressDialog mProgBar = null;
+	private CarsGtBDbAdapter m_aCDbHelper;
+	private CarNumList self = this;
+	private ProgressDialog mProgBar = null;
+	private String exceptionalMessage = "";
     
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +92,34 @@ public class CarNumList extends ListActivity {
 		{
 			Request aPBReq;
 			Response aPBRes = null;
-			GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+			GtBSSLSocketFactoryWrapper aSSLSF = null;
+			try {
+				aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+			} catch (UnrecoverableKeyException e1) 
+			{
+				exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+				cancel(true);
+			} catch (KeyStoreException e1) 
+			{
+				exceptionalMessage = "We couldn't find or open the KeyStore." +
+						"This is manditory to use this app so please notify " +
+						"the IT Officer. Sorry.";
+				cancel(true);
+			} catch (NoSuchAlgorithmException e1) 
+			{
+				exceptionalMessage = "This tablet doesn't support an " +
+						"algorithm we need to use. Please notify the " +
+						"IT Officer so it can be updated. Sorry.";
+				cancel(true);
+			} catch (GTBSSLSocketException e1) 
+			{
+				exceptionalMessage = e1.getMessage();
+				cancel(true);
+			}
+			if(isCancelled())
+				return 0;
+			
 			final int INCREMENT_PROGRESS = 20;
 			Log.v(TAG, "Getting Car");
 			
@@ -101,7 +134,32 @@ public class CarNumList extends ListActivity {
 				else
 				{
 					Log.w(TAG, "Socket IS closed!");
-					aSock = aSSLSF.createSSLSocket(self);
+					try {
+						aSock = aSSLSF.createSSLSocket(self);
+					} catch (UnrecoverableKeyException e1) 
+					{
+						exceptionalMessage = "We ran into an unrecoverable key" +
+							" exception. Please notify the IT Officer. Sorry.";
+						cancel(true);
+					} catch (KeyStoreException e1) 
+					{
+						exceptionalMessage = "We couldn't find or open the KeyStore." +
+								"This is manditory to use this app so please notify " +
+								"the IT Officer. Sorry.";
+						cancel(true);
+					} catch (NoSuchAlgorithmException e1) 
+					{
+						exceptionalMessage = "This tablet doesn't support an " +
+								"algorithm we need to use. Please notify the " +
+								"IT Officer so it can be updated. Sorry.";
+						cancel(true);
+					} catch (GTBSSLSocketException e1) 
+					{
+						exceptionalMessage = e1.getMessage();
+						cancel(true);
+					}
+					if(isCancelled())
+						return 0;
 				}
 			}
 			else
@@ -117,7 +175,32 @@ public class CarNumList extends ListActivity {
 			else
 			{
 				Log.w(TAG, "Session is NO LONGER VALID");
-				aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+				try {
+					aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+				} catch (UnrecoverableKeyException e1) 
+				{
+					exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1) 
+				{
+					exceptionalMessage = "We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so please notify " +
+							"the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1) 
+				{
+					exceptionalMessage = "This tablet doesn't support an " +
+							"algorithm we need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1) 
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}
+				if(isCancelled())
+					return 0;
 				aSock = aSSLSF.getSSLSocket();
 			}
 
@@ -130,7 +213,32 @@ public class CarNumList extends ListActivity {
 					aOS = aSock.getOutputStream();
 				} catch (IOException e)
 				{
-					aSSLSF.forceReHandshake(self);
+					try {
+						aSSLSF.forceReHandshake(self);
+					} catch (UnrecoverableKeyException e1) 
+					{
+						exceptionalMessage = "We ran into an unrecoverable key" +
+							" exception. Please notify the IT Officer. Sorry.";
+						cancel(true);
+					} catch (KeyStoreException e1) 
+					{
+						exceptionalMessage = "We couldn't find or open the KeyStore." +
+								"This is manditory to use this app so please notify " +
+								"the IT Officer. Sorry.";
+						cancel(true);
+					} catch (NoSuchAlgorithmException e1) 
+					{
+						exceptionalMessage = "This tablet doesn't support an " +
+								"algorithm we need to use. Please notify the " +
+								"IT Officer so it can be updated. Sorry.";
+						cancel(true);
+					} catch (GTBSSLSocketException e1) 
+					{
+						exceptionalMessage = e1.getMessage();
+						cancel(true);
+					}
+					if(isCancelled())
+						return 0;
 					aSock = aSSLSF.getSSLSocket();
 					aOS = aSock.getOutputStream();
 				}
@@ -148,7 +256,33 @@ public class CarNumList extends ListActivity {
 				}catch (SSLProtocolException e)
 				{
 					Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					aSSLSF.forceReHandshake(self);
+					try {
+						aSSLSF.forceReHandshake(self);
+					} catch (UnrecoverableKeyException e1) 
+					{
+						exceptionalMessage = "We ran into an unrecoverable key" +
+							" exception. Please notify the IT Officer. Sorry.";
+						cancel(true);
+					} catch (KeyStoreException e1) 
+					{
+						exceptionalMessage = "We couldn't find or open the KeyStore." +
+								"This is manditory to use this app so please notify " +
+								"the IT Officer. Sorry.";
+						cancel(true);
+					} catch (NoSuchAlgorithmException e1) 
+					{
+						exceptionalMessage = "This tablet doesn't support an " +
+								"algorithm we need to use. Please notify the " +
+								"IT Officer so it can be updated. Sorry.";
+						cancel(true);
+					} catch (GTBSSLSocketException e1) 
+					{
+						exceptionalMessage = e1.getMessage();
+						cancel(true);
+					}
+					if(isCancelled())
+						return 0;
+
 					aSock = aSSLSF.getSSLSocket();
 					aOS = aSock.getOutputStream();
 					try
@@ -156,7 +290,33 @@ public class CarNumList extends ListActivity {
 						aOS.write(aPBReq.getSerializedSize());
 					} catch (SSLProtocolException ex)
 					{
-						aSSLSF = aSSLSF.getNewSSLSFW(self);
+						try {
+							aSSLSF = aSSLSF.getNewSSLSFW(self);
+						} catch (UnrecoverableKeyException e1) 
+						{
+							exceptionalMessage = "We ran into an unrecoverable key" +
+								" exception. Please notify the IT Officer. Sorry.";
+							cancel(true);
+						} catch (KeyStoreException e1) 
+						{
+							exceptionalMessage = "We couldn't find or open the KeyStore." +
+									"This is manditory to use this app so please notify " +
+									"the IT Officer. Sorry.";
+							cancel(true);
+						} catch (NoSuchAlgorithmException e1) 
+						{
+							exceptionalMessage = "This tablet doesn't support an " +
+									"algorithm we need to use. Please notify the " +
+									"IT Officer so it can be updated. Sorry.";
+							cancel(true);
+						} catch (GTBSSLSocketException e1) 
+						{
+							exceptionalMessage = e1.getMessage();
+							cancel(true);
+						}
+						if(isCancelled())
+							return 0;
+
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
 						aOS.write(aPBReq.getSerializedSize());
@@ -239,7 +399,33 @@ public class CarNumList extends ListActivity {
 						}
 						else{
 							publishProgress(-mProgBar.getProgress());
-							aSSLSF.forceReHandshake(self);
+							try {
+								aSSLSF.forceReHandshake(self);
+							} catch (UnrecoverableKeyException e1) 
+							{
+								exceptionalMessage = "We ran into an unrecoverable key" +
+									" exception. Please notify the IT Officer. Sorry.";
+								cancel(true);
+							} catch (KeyStoreException e1) 
+							{
+								exceptionalMessage = "We couldn't find or open the KeyStore." +
+										"This is manditory to use this app so please notify " +
+										"the IT Officer. Sorry.";
+								cancel(true);
+							} catch (NoSuchAlgorithmException e1) 
+							{
+								exceptionalMessage = "This tablet doesn't support an " +
+										"algorithm we need to use. Please notify the " +
+										"IT Officer so it can be updated. Sorry.";
+								cancel(true);
+							} catch (GTBSSLSocketException e1) 
+							{
+								exceptionalMessage = e1.getMessage();
+								cancel(true);
+							}
+							if(isCancelled())
+								return 0;
+
 							return numberOfCars();
 						}
 					}
@@ -251,7 +437,33 @@ public class CarNumList extends ListActivity {
 			} catch (IOException e)
 			{
 				e.printStackTrace();
-				aSSLSF.forceReHandshake(self);
+				try {
+					aSSLSF.forceReHandshake(self);
+				} catch (UnrecoverableKeyException e1) 
+				{
+					exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1) 
+				{
+					exceptionalMessage = "We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so please notify " +
+							"the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1) 
+				{
+					exceptionalMessage = "This tablet doesn't support an " +
+							"algorithm we need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1) 
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}
+				if(isCancelled())
+					return 0;
+
 				aSock = aSSLSF.getSSLSocket();
 				return -2;
 			}
@@ -304,9 +516,50 @@ public class CarNumList extends ListActivity {
 					mProgBar.setMessage("Done!");
 					break;
 			}
-				
-			
 			mProgBar.setProgress(nTotalProgress);
+		}
+		
+		protected void onCancelled()
+		{
+			mProgBar.dismiss();
+			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
+			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
+					" like to continue without a connection to the" +
+					" server? This will be must more annoying " +
+					"because you will be asked this question every time" +
+					" we need to connect to the server.");
+			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					/* We're setting this to 8 for no actual reason. 
+					 * Thus far, GUARD Dogs has not exceeded 8 vans
+					 * so this works for us.
+					 */
+					int num = 8;
+					String[] cars = new String[num];
+					for(int i = 0; i<num; i++){
+						cars[i] = "Car " + (i+1);
+					}
+					setListAdapter(new ArrayAdapter<String>(self, R.layout.carnums, cars));
+					Log.v(TAG, "Failed connection Num of Cars: " + cars.length);
+				}
+			}	);
+			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					new AlertDialog.Builder(self).
+						setMessage("Sorry for the inconvenience. " +
+								"GUARD the Bridge is now exiting.");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						finish();
+					}
+					finish();
+				}
+			}	);
 		}
 	}
 }

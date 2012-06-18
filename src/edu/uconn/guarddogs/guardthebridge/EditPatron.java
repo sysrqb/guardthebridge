@@ -21,6 +21,9 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
@@ -60,6 +63,7 @@ public class EditPatron extends Activity {
 	private String mDialogMsg = "";
 	private ProgressDialog mProgBar;
 	private CarsGtBDbAdapter mCDbHelper = null;
+	private String exceptionalMessage = "";
 	
 	protected void onCreate(Bundle savedInstanceState){
 		super.onCreate(savedInstanceState);
@@ -430,13 +434,41 @@ public class EditPatron extends Activity {
 	   {
 		   
 		  publishProgress(INCREMENT_PROGRESS);
-		  mProgBar.dismiss();
+		  //mProgBar.dismiss();  // Can not call because ShowPatron while update is taking place
+		  // therefore dismissing progbar would be dismissing an object that doesn't exist.
 		  
 	   }
 	   
 	   public int updateRide()
 	   {
-		   GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+		   GtBSSLSocketFactoryWrapper aSSLSF = null;
+		try {
+			aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+		} catch (UnrecoverableKeyException e1) 
+		{
+		exceptionalMessage = "We ran into an unrecoverable key" +
+					" exception. Please notify the IT Officer. Sorry.";
+			cancel(true);
+		} catch (KeyStoreException e1) 
+		{
+			exceptionalMessage = "We couldn't find or open the KeyStore." +
+					"This is manditory to use this app so please notify " +
+					"the IT Officer. Sorry.";
+			cancel(true);
+		} catch (NoSuchAlgorithmException e1) 
+		{
+			exceptionalMessage = "This tablet doesn't support an " +
+					"algorithm we need to use. Please notify the " +
+					"IT Officer so it can be updated. Sorry.";
+			cancel(true);
+		} catch (GTBSSLSocketException e1) 
+		{
+			exceptionalMessage = e1.getMessage();
+			cancel(true);
+		}
+		if(isCancelled())
+			return 0;
+
 		   mGDbHelper.open();
 		   mCDbHelper = new CarsGtBDbAdapter(self);
 		   mCDbHelper.open();
@@ -459,13 +491,40 @@ public class EditPatron extends Activity {
 		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
 		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
 				   aPBReq.getSerializedSize());
-                   /* Make sure the connection is established and valid */
-		   SSLSocket aSock = aSSLSF.createSSLSocket(self);
-		   if (aSSLSF.getSession() == null)
-		   {
+           /* Make sure the connection is established and valid */
+		   SSLSocket aSock = null;
+		try {
+			aSock = aSSLSF.createSSLSocket(self);
+			if (aSSLSF.getSession() == null)
+			{
 			   aSSLSF = aSSLSF.getNewSSLSFW(self);
 			   aSock = aSSLSF.getSSLSocket();
-		   }
+			}
+		} catch (UnrecoverableKeyException e1) 
+		{
+		exceptionalMessage = "We ran into an unrecoverable key" +
+					" exception. Please notify the IT Officer. Sorry.";
+			cancel(true);
+		} catch (KeyStoreException e1) 
+		{
+			exceptionalMessage = "We couldn't find or open the KeyStore." +
+				"This is manditory to use this app so please notify " +
+					"the IT Officer. Sorry.";
+			cancel(true);
+		} catch (NoSuchAlgorithmException e1) 
+		{
+			exceptionalMessage = "This tablet doesn't support an " +
+					"algorithm we need to use. Please notify the " +
+					"IT Officer so it can be updated. Sorry.";
+			cancel(true);
+		} catch (GTBSSLSocketException e1) 
+		{
+			exceptionalMessage = e1.getMessage();
+			cancel(true);
+		}
+		if(isCancelled())
+			return 0;
+
 		   publishProgress(INCREMENT_PROGRESS);
 		   try {
 			   OutputStream aOS = aSock.getOutputStream();
@@ -475,19 +534,45 @@ public class EditPatron extends Activity {
 			   } catch (SSLProtocolException ex)
 			   {
 				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					aSSLSF.forceReHandshake(self);
-					aSock = aSSLSF.getSSLSocket();
-					aOS = aSock.getOutputStream();
-					try
-					{
-						aOS.write(aPBReq.getSerializedSize());
-					} catch (SSLProtocolException exc)
-					{
-						aSSLSF = aSSLSF.getNewSSLSFW(self);
+					try {
+						aSSLSF.forceReHandshake(self);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
-						aOS.write(aPBReq.getSerializedSize());
+						try
+						{
+							aOS.write(aPBReq.getSerializedSize());
+						} catch (SSLProtocolException exc)
+						{
+							aSSLSF = aSSLSF.getNewSSLSFW(self);
+							aSock = aSSLSF.getSSLSocket();
+							aOS = aSock.getOutputStream();
+							aOS.write(aPBReq.getSerializedSize());
+						}
+					} catch (UnrecoverableKeyException e1) 
+					{
+						exceptionalMessage = "We ran into an unrecoverable key" +
+								" exception. Please notify the IT Officer. Sorry.";
+						cancel(true);
+					} catch (KeyStoreException e1) 
+					{
+						exceptionalMessage = "We couldn't find or open the KeyStore." +
+								"This is manditory to use this app so please notify " +
+								"the IT Officer. Sorry.";
+						cancel(true);
+					} catch (NoSuchAlgorithmException e1) 
+					{
+						exceptionalMessage = "This tablet doesn't support an " +
+								"algorithm we need to use. Please notify the " +
+								"IT Officer so it can be updated. Sorry.";
+						cancel(true);
+					} catch (GTBSSLSocketException e1) 
+					{
+						exceptionalMessage = e1.getMessage();
+						cancel(true);
 					}
+					if(isCancelled())
+						return 0;
+	
 			   }
 			   byte[] vbuf = aPBReq.toByteArray();
 			   aOS.write(vbuf);  // Send
@@ -524,7 +609,7 @@ public class EditPatron extends Activity {
 				   Log.v(TAG, "PatronList Buffer: ");
 				   Log.v(TAG, TextFormat.shortDebugString(
 						   apbRes.getPlPatronList()));
-                                   /* I'd rather have the dispatchers handle merge conflicts
+                   /* I'd rather have the dispatchers handle merge conflicts
 				    * because it would be easier, but what should this return
 				    * on error/conflict to the client?
 				    *
@@ -588,5 +673,33 @@ public class EditPatron extends Activity {
 		   }
 		   return 0;
 	   }
-   }
+
+		protected void onCancelled()
+		{
+			mProgBar.dismiss();
+			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
+			msgBox.setMessage(exceptionalMessage + "\n\n Would you like to try" +
+					" to send the update again? If you have no signal right now" +
+					" sending the update will not be successful. ");
+			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					mProgBar = new ProgressDialog(self);
+					mProgBar.setCancelable(true);
+					mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+					mProgBar.setMessage("Establishing Connection with server...");
+					mProgBar.show();
+					updateRide();
+				}
+			}	);
+			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					return;
+				}
+			}	);
+		}
+	}
 }

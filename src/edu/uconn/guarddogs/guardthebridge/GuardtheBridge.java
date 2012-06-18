@@ -22,13 +22,18 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -75,6 +80,8 @@ public class GuardtheBridge extends FragmentActivity {
     
 	private ViewPager mVp = null;
     private GTBAdapter m_GFPA = null;
+	private String exceptionalMessage = "";
+	private boolean failedConnection = false;
     
     
     @Override
@@ -87,9 +94,68 @@ public class GuardtheBridge extends FragmentActivity {
         
         
         updateList();
-        mSSLSF = new GtBSSLSocketFactoryWrapper(this);
-        mGDbHelper = new GtBDbAdapter(this);
-        mCDbHelper = new CarsGtBDbAdapter(this);
+        (new Thread (new Runnable() 
+		  {	
+		    public void run()
+	        {
+		    	Looper.prepare();
+	          new Handler().post( new Runnable()
+	            {
+		          public void run()
+		          {
+		        	  do
+		        	  {
+					failedConnection = false;
+				          try {
+								mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
+						} catch (UnrecoverableKeyException e1) 
+						{
+							exceptionalMessage = "We ran into an unrecoverable key" +
+									" exception. Please notify the IT Officer. Sorry.";
+							failedConnection = true;
+						} catch (KeyStoreException e1) 
+						{
+							exceptionalMessage = "We couldn't find or open the KeyStore." +
+									"This is manditory to use this app so please notify " +
+									"the IT Officer. Sorry.";
+							failedConnection = true;
+						} catch (NoSuchAlgorithmException e1) 
+						{
+							exceptionalMessage = "This tablet doesn't support an " +
+										"algorithm we need to use. Please notify the " +
+									"IT Officer so it can be updated. Sorry.";
+							failedConnection = true;
+						} catch (GTBSSLSocketException e1) 
+						{
+							exceptionalMessage = e1.getMessage();
+							failedConnection = true;
+						}
+						if(!failedConnection)
+						{
+				
+				              mGDbHelper = new GtBDbAdapter(sself);
+				              mCDbHelper = new CarsGtBDbAdapter(sself);
+			                for(;;)
+				            {
+				              new CurrUpdtTask().execute();
+				              try {
+								Thread.sleep(30000);
+							} catch (InterruptedException e) {
+								// TODO Auto-generated catch block
+								break;
+							}
+				            }
+						}
+						try {
+							Thread.sleep(30000);
+						} catch (InterruptedException e) {
+						}
+		        	  } while(failedConnection);
+		          }
+	            }); // Execute background update every 30 seconds
+	          Looper.loop();
+	        }
+	  })).start();
         
         Button aRfrshBtn = (Button)findViewById(R.id.refresh);
         aRfrshBtn.setOnClickListener(new OnClickListener() {
@@ -144,8 +210,38 @@ public class GuardtheBridge extends FragmentActivity {
     
     public void onRestart()
     {
-    	sself = this;
-        mSSLSF = new GtBSSLSocketFactoryWrapper(this);
+	sself = this;
+
+	do
+	{
+		failedConnection = false;
+		try 
+		{
+			mSSLSF = new GtBSSLSocketFactoryWrapper(this);
+		} catch (UnrecoverableKeyException e1) 
+		{
+			exceptionalMessage = "We ran into an unrecoverable key" +
+					" exception. Please notify the IT Officer. Sorry.";
+			failedConnection = true;
+		} catch (KeyStoreException e1) 
+		{
+			exceptionalMessage = "We couldn't find or open the KeyStore." +
+					"This is manditory to use this app so please notify " +
+					"the IT Officer. Sorry.";
+			failedConnection = true;
+		} catch (NoSuchAlgorithmException e1) 
+		{
+			exceptionalMessage = "This tablet doesn't support an " +
+					"algorithm we need to use. Please notify the " +
+					"the IT Officer. Sorry.";
+			failedConnection = true;
+		} catch (GTBSSLSocketException e1) 
+		{
+			exceptionalMessage = e1.getMessage();
+			failedConnection = true;
+		}
+	} while(failedConnection);
+
         mGDbHelper = new GtBDbAdapter(this);
         mCDbHelper = new CarsGtBDbAdapter(this);
         
@@ -515,12 +611,39 @@ public class GuardtheBridge extends FragmentActivity {
 		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
 				   aPBReq.getSerializedSize());
                    /* Make sure the connection is established and valid */
-		   SSLSocket aSock = mSSLSF.createSSLSocket(sself);
-		   if (mSSLSF.getSession() == null)
-		   {
+		   SSLSocket aSock = null;
+		try {
+			aSock = mSSLSF.createSSLSocket(sself);
+			if (mSSLSF.getSession() == null)
+			{
 			   mSSLSF = mSSLSF.getNewSSLSFW(sself);
 			   aSock = mSSLSF.getSSLSocket();
-		   }
+			}
+		} catch (UnrecoverableKeyException e1) 
+		{
+			exceptionalMessage = "We ran into an unrecoverable key" +
+					" exception. Please notify the IT Officer. Sorry.";
+			cancel(true);
+		} catch (KeyStoreException e1) 
+		{
+			exceptionalMessage = "We couldn't find or open the KeyStore." +
+					"This is manditory to use this app so please notify " +
+					"the IT Officer. Sorry.";
+			cancel(true);
+		} catch (NoSuchAlgorithmException e1) 
+		{
+			exceptionalMessage = "This tablet doesn't support an " +
+					"algorithm we need to use. Please notify the " +
+					"IT Officer so it can be updated. Sorry.";
+			cancel(true);
+		} catch (GTBSSLSocketException e1) 
+		{
+			exceptionalMessage = e1.getMessage();
+			cancel(true);
+		}
+		if(isCancelled())
+			return 0;
+
 		   publishProgress(INCREMENT_PROGRESS);
 		   try {
 			   OutputStream aOS = aSock.getOutputStream();
@@ -591,6 +714,27 @@ public class GuardtheBridge extends FragmentActivity {
 						+ tmp);
 					e.printStackTrace();
 				}
+		} catch (UnrecoverableKeyException e1) 
+		{
+			exceptionalMessage = "We ran into an unrecoverable key" +
+					" exception. Please notify the IT Officer. Sorry.";
+			cancel(true);
+		} catch (KeyStoreException e1) 
+		{
+			exceptionalMessage = "We couldn't find or open the KeyStore." +
+					"This is manditory to use this app so please notify " +
+					"the IT Officer. Sorry.";
+			cancel(true);
+		} catch (NoSuchAlgorithmException e1) 
+		{
+			exceptionalMessage = "This tablet doesn't support an " +
+					"algorithm we need to use. Please notify the " +
+					"IT Officer so it can be updated. Sorry.";
+			cancel(true);
+		} catch (GTBSSLSocketException e1) 
+		{
+			exceptionalMessage = e1.getMessage();
+			cancel(true);
 		   }catch (IOException e)
 		   {
 			   e.printStackTrace();
@@ -637,12 +781,39 @@ public class GuardtheBridge extends FragmentActivity {
 		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
 				   aPBReq.getSerializedSize());
                    /* Make sure the connection is established and valid */
-		   SSLSocket aSock = mSSLSF.createSSLSocket(sself);
-		   if (mSSLSF.getSession() == null)
-		   {
+		   SSLSocket aSock = null;
+		try {
+			aSock = mSSLSF.createSSLSocket(sself);
+
+			if (mSSLSF.getSession() == null)
+			{
 			   mSSLSF = mSSLSF.getNewSSLSFW(sself);
 			   aSock = mSSLSF.getSSLSocket();
-		   }
+			}
+		} catch (UnrecoverableKeyException e1) 
+		{
+			exceptionalMessage = "We ran into an unrecoverable key" +
+					" exception. Please notify the IT Officer. Sorry.";
+			cancel(true);
+		} catch (KeyStoreException e1) 
+		{
+			exceptionalMessage = "We couldn't find or open the KeyStore." +
+					"This is manditory to use this app so please notify " +
+					"the IT Officer. Sorry.";
+			cancel(true);
+		} catch (NoSuchAlgorithmException e1) 
+		{
+			exceptionalMessage = "This tablet doesn't support an " +
+					"algorithm we need to use. Please notify the " +
+					"IT Officer so it can be updated. Sorry.";
+			cancel(true);
+		} catch (GTBSSLSocketException e1) 
+		{
+			exceptionalMessage = e1.getMessage();
+			cancel(true);
+		}
+		if(isCancelled())
+			return 0;
 		   try {
 			   OutputStream aOS = aSock.getOutputStream();
 			   try
@@ -710,11 +881,64 @@ public class GuardtheBridge extends FragmentActivity {
 						+ tmp);
 					e.printStackTrace();
 				}
+		} catch (UnrecoverableKeyException e1) 
+		{
+			exceptionalMessage = "We ran into an unrecoverable key" +
+					" exception. Please notify the IT Officer. Sorry.";
+			cancel(true);
+		} catch (KeyStoreException e1) 
+		{
+			exceptionalMessage = "We couldn't find or open the KeyStore." +
+					"This is manditory to use this app so please notify " +
+					"the IT Officer. Sorry.";
+			cancel(true);
+		} catch (NoSuchAlgorithmException e1) 
+		{
+			exceptionalMessage = "This tablet doesn't support an " +
+					"algorithm we need to use. Please notify the " +
+					"IT Officer so it can be updated. Sorry.";
+			cancel(true);
+		} catch (GTBSSLSocketException e1) 
+		{
+			exceptionalMessage = e1.getMessage();
+			cancel(true);
 		   }catch (IOException e)
 		   {
 			   e.printStackTrace();
 		   }
 		   return 0;
 	   }
+		protected void onCancelled()
+		{
+			mProgBar.dismiss();
+			AlertDialog.Builder msgBox = new AlertDialog.Builder(sself);
+			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
+					" like to continue without a connection to the" +
+					" server? This will be must more annoying " +
+					"because you will be asked this question every time" +
+					" we need to connect to the server.");
+			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					return;
+				}
+			}	);
+			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					new AlertDialog.Builder(sself).
+						setMessage("Sorry for the inconvenience. " +
+								"GUARD the Bridge is now exiting.");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						finish();
+					}
+					finish();
+				}
+			}	);
+		}
    }
 }

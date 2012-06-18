@@ -75,7 +75,10 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws NoSuchAlgorithmException If a required algorithm is 
 	 *   not available
 	 */
-	public GtBSSLSocketFactoryWrapper(Context i_aCtx) throws GTBSSLSocketException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException{
+	public GtBSSLSocketFactoryWrapper(Context i_aCtx) throws 
+			GTBSSLSocketException, UnrecoverableKeyException, KeyStoreException, 
+			NoSuchAlgorithmException
+	{
 		
 		if(m_sslSocket != null)
 			return;

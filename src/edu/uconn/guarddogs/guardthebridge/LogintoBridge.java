@@ -22,6 +22,9 @@ package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
@@ -46,12 +49,14 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 public class LogintoBridge extends ListActivity {
 	private static final String TAG = "LIB-GTBLOG";
 	private EditText mNetIdText;
-    private EditText mAuthText;
-    private String mCarNum;
-    private CarsGtBDbAdapter mDbHelper;
-    private static final int CarNum_SELECT=0;
-    private LogintoBridge self;
-    private ProgressDialog mProgBar = null;
+	private EditText mAuthText;
+	private String mCarNum;
+	private CarsGtBDbAdapter mDbHelper;
+	private static final int CarNum_SELECT=0;
+	private LogintoBridge self;
+	private ProgressDialog mProgBar = null;
+	private String exceptionalMessage = "";
+	
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +83,7 @@ public class LogintoBridge extends ListActivity {
         });
 	}
 	
-	 protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
+	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 	        super.onActivityResult(requestCode, resultCode, intent);
 	        Log.v(TAG, "On Return");
 	        
@@ -139,19 +144,70 @@ public class LogintoBridge extends ListActivity {
  
 		 public int sendAuthCheck(EditText netid, EditText authcode, String carnum)
 		 {
-			 Request aPBReq;
-			 Response aPBRes;
-			 GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper();
-			 
-			 publishProgress(INCREMENT_PROGRESS);
-			 SSLSocket aSock = aSSLSF.getSSLSocket();
-			 if(aSock.isClosed())
+			Request aPBReq;
+			Response aPBRes;
+			GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper();
+			
+			publishProgress(INCREMENT_PROGRESS);
+			SSLSocket aSock = aSSLSF.getSSLSocket();
+			if(aSock.isClosed())
 			 {
-				 aSock = aSSLSF.createSSLSocket(self);
+				try {
+					aSock = aSSLSF.createSSLSocket(self);
+				} catch (UnrecoverableKeyException e1) 
+				{
+					exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1) 
+				{
+					exceptionalMessage = "We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so please notify " +
+							"the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1) 
+				{
+					exceptionalMessage = "This tablet doesn't support an " +
+							"algorithm we need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1) 
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}
+				if(isCancelled())
+					return 0;
 			 }
 			 if (aSock.getSession() == null)
 			 {
-				 aSSLSF = aSSLSF.getNewSSLSFW(self);
+				 try {
+					aSSLSF = aSSLSF.getNewSSLSFW(self);
+				} catch (UnrecoverableKeyException e1) 
+				{
+					exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1) 
+				{
+					exceptionalMessage = "We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so please notify " +
+							"the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1) 
+				{
+					exceptionalMessage = "This tablet doesn't support an " +
+							"algorithm we need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1) 
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}
+				if(isCancelled())
+					return 0;
+
 				 aSock = aSSLSF.getSSLSocket();
 			 }
 			 
@@ -179,7 +235,33 @@ public class LogintoBridge extends ListActivity {
 				 } catch (SSLProtocolException e)
 				 {
 					 Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					 aSSLSF.forceReHandshake(self);
+					try {
+						aSSLSF.forceReHandshake(self);
+					} catch (UnrecoverableKeyException e1) 
+					{
+						exceptionalMessage = "We ran into an unrecoverable key" +
+							" exception. Please notify the IT Officer. Sorry.";
+						cancel(true);
+					} catch (KeyStoreException e1) 
+					{
+						exceptionalMessage = "We couldn't find or open the KeyStore." +
+								"This is manditory to use this app so please notify " +
+								"the IT Officer. Sorry.";
+						cancel(true);
+					} catch (NoSuchAlgorithmException e1) 
+					{
+						exceptionalMessage = "This tablet doesn't support an " +
+								"algorithm we need to use. Please notify the " +
+								"IT Officer so it can be updated. Sorry.";
+						cancel(true);
+					} catch (GTBSSLSocketException e1) 
+					{
+						exceptionalMessage = e1.getMessage();
+						cancel(true);
+					}
+					if(isCancelled())
+						return 0;
+	
 					 aSock = aSSLSF.getSSLSocket();
 					 aOS = aSock.getOutputStream();
 					 try
@@ -187,10 +269,35 @@ public class LogintoBridge extends ListActivity {
 						 aOS.write(aPBReq.getSerializedSize());
 					 } catch (SSLProtocolException ex)
 					 {
-						 aSSLSF = aSSLSF.getNewSSLSFW(self);
-						 aSock = aSSLSF.getSSLSocket();
-						 aOS = aSock.getOutputStream();
-						 aOS.write(aPBReq.getSerializedSize());
+						try {
+							aSSLSF = aSSLSF.getNewSSLSFW(self);
+						} catch (UnrecoverableKeyException e1) 
+						{
+							exceptionalMessage = "We ran into an unrecoverable key" +
+								" exception. Please notify the IT Officer. Sorry.";
+							cancel(true);
+						}  catch (KeyStoreException e1) 
+						{
+							exceptionalMessage = "We couldn't find or open the KeyStore." +
+									"This is manditory to use this app so please notify " +
+									"the IT Officer. Sorry.";
+							cancel(true);
+						} catch (NoSuchAlgorithmException e1) 
+						{
+							exceptionalMessage = "This tablet doesn't support an " +
+									"algorithm we need to use. Please notify the " +
+									"IT Officer so it can be updated. Sorry.";
+							cancel(true);
+						} catch (GTBSSLSocketException e1) 
+						{
+							exceptionalMessage = e1.getMessage();
+							cancel(true);
+						}
+						if(isCancelled())
+							return 0;
+						aSock = aSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+						aOS.write(aPBReq.getSerializedSize());
 					 }
 				 }
 				 publishProgress(INCREMENT_PROGRESS);
@@ -250,6 +357,41 @@ public class LogintoBridge extends ListActivity {
 			 }		
 			 mProgBar.setProgress(nTotalProgress);
 		 }
+
+		protected void onCancelled()
+		{
+			mProgBar.dismiss();
+			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
+			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
+					" like to continue without a connection to the" +
+					" server? This will be must more annoying " +
+					"because you will be asked this question every time" +
+					" we need to connect to the server.");
+			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					mProgBar.dismiss();
+					Intent i = new Intent (self, GuardtheBridge.class);
+					startActivity(i);
+				}
+			}	);
+			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					new AlertDialog.Builder(self).
+						setMessage("Sorry for the inconvenience. " +
+								"GUARD the Bridge is now exiting.");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						finish();
+					}
+					finish();
+				}
+			}	);
+		}
 		 
 		 public void dealwitherrors(int retval)
 		 {
