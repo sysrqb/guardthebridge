@@ -41,6 +41,7 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
+import android.telephony.*;
 import android.util.Log;
 
 public class GtBSSLSocketFactoryWrapper {
@@ -52,6 +53,9 @@ public class GtBSSLSocketFactoryWrapper {
 	private static KeyStore m_kstrust, m_kskey;
 	private static SSLContext m_aSSLContext = null;
 	private Context m_ctx = null;
+	private boolean successfullyEstablishedConn = false;
+	private boolean isCurrentSignalStrengthHigh = false;
+	
 	
 	
 	/** 
@@ -77,16 +81,27 @@ public class GtBSSLSocketFactoryWrapper {
 	 */
 	public GtBSSLSocketFactoryWrapper(Context i_aCtx) throws 
 			GTBSSLSocketException, UnrecoverableKeyException, KeyStoreException, 
-			NoSuchAlgorithmException
+			NoSuchAlgorithmException, SignalException
 	{
+		if(!isCurrentSignalStrengthHigh)
+			setSignalStrengthListener();
 		
-		if(m_sslSocket != null)
-			return;
+		if(m_sslSocket != null && successfullyEstablishedConn)
+		{
+			if(m_sslSocket.getEnableSessionCreation())
+			{
+				return;
+			}
+			else
+				createConnection();
+		}
+		else
+		{
+			m_ctx = i_aCtx;
 		
-		m_ctx = i_aCtx;
-		
-		loadStores();
-		createConnection();
+			loadStores();
+			createConnection();
+		}
 	}
 	
 	
@@ -280,10 +295,13 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
 	 */
-	public void createConnection() throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException
+	public void createConnection() throws UnrecoverableKeyException, 
+	KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException, SignalException
 	{
 		if (m_aSSLContext == null)
 			loadStores();
+		if(!isCurrentSignalStrengthHigh)
+			throw new SignalException("Insufficient Signal Strength");
 		SSLContext aSC = m_aSSLContext;
 		SSLSocket aSS = null;
 		
@@ -295,20 +313,28 @@ public class GtBSSLSocketFactoryWrapper {
 		} catch (IOException e) {
 			Log.w(TAG, "IOException Thrown");
 		}
-		Log.v(TAG, "Connected to: " + aSS.getInetAddress().getCanonicalHostName() + " on Port: " + aSS.getPort());
+		Log.v(TAG, "Connected to: " + 
+				aSS.getInetAddress().getCanonicalHostName() 
+				+ " on Port: " + aSS.getPort());
 		Log.v(TAG, "Local Binding is on: " + aSS.getLocalAddress().getCanonicalHostName() + " on Port: " + aSS.getLocalPort());
 		Log.v(TAG, "Connection Established. Handshaking...");
 		aSS.setUseClientMode(true);
 		try {
 			aSS.startHandshake();
+			successfullyEstablishedConn = true;
+			aSS.setEnableSessionCreation(false);
 		} catch (IOException e)
 		{
 			Log.w(TAG, "Handshake Failed");
+			successfullyEstablishedConn = false;
 			try {
 				aSS.startHandshake();
+				successfullyEstablishedConn = true;
+				aSS.setEnableSessionCreation(false);
 			} catch (IOException ex)
 			{
 				Log.w(TAG, "Failed to establish connection!");
+				successfullyEstablishedConn = false;
 				//TODO
 				// We need to back off and retry after some period of time!
 				/*
@@ -324,12 +350,20 @@ public class GtBSSLSocketFactoryWrapper {
 							Thread.sleep(25000);
 						} catch (InterruptedException e1) {
 							aSS.startHandshake();
+							successfullyEstablishedConn = true;
+							aSS.setEnableSessionCreation(false);
 						}
-						aSS.startHandshake();
+						if(!aSS.getEnableSessionCreation())
+						{
+							aSS.startHandshake();
+							successfullyEstablishedConn = true;
+						}
 					} catch (IOException ex2)
 					{
+						successfullyEstablishedConn = false;
 						continue;
 					}
+					successfullyEstablishedConn = true;
 					break;
 				}
 			}
@@ -477,5 +511,33 @@ public class GtBSSLSocketFactoryWrapper {
 	public void setContext(Context i_aCtx)
 	{
 		m_ctx = i_aCtx;
+	}
+	
+	/** Checks that we, at least, have a connection  
+	 */
+	public boolean setSignalStrengthListener()
+	{
+		TelephonyManager telManager;
+	    PhoneStateListener signalListener;
+
+	    signalListener=new PhoneStateListener() {
+	           
+	       public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+	    	   if(signalStrength.isGsm())
+	    	   {
+	    		   isCurrentSignalStrengthHigh = signalStrength.getGsmSignalStrength() > 5 ? true : false;
+	    	   }
+	    	   else
+	    	   {
+	    		   int strength = signalStrength.getCdmaDbm();
+	    		   if(strength == 0)
+	    			   strength = signalStrength.getEvdoDbm();
+	    		   isCurrentSignalStrengthHigh = strength > -70 ? true : false;
+	    	   }
+	       }
+	    }; 
+	    telManager = (TelephonyManager) m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
+	    telManager.listen(signalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+		return isCurrentSignalStrengthHigh;
 	}
 }
