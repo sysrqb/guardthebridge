@@ -513,12 +513,22 @@ public class GtBSSLSocketFactoryWrapper {
 		m_ctx = i_aCtx;
 	}
 	
+	/** Acceessor
+	 * 
+	 * We have established a connection.
+	 */
+	public boolean haveEstablishedConnection()
+	{
+		return successfullyEstablishedConn;
+	}
+	
 	/** Checks that we, at least, have a connection  
 	 */
-	public boolean setSignalStrengthListener()
+	public void setSignalStrengthListener()
 	{
 		TelephonyManager telManager;
 	    PhoneStateListener signalListener;
+	    Log.v(TAG, "Launching Signal Listener");
 
 	    signalListener=new PhoneStateListener() {
 	           
@@ -538,6 +548,33 @@ public class GtBSSLSocketFactoryWrapper {
 	    }; 
 	    telManager = (TelephonyManager) m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
 	    telManager.listen(signalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-		return isCurrentSignalStrengthHigh;
+	}
+	
+	/** Block until we have strong signal
+	 * 
+	 * Check every second if our signal is strong enough to
+	 * establish a useful connection.
+	 * 
+	 * @return true when we do
+	 */
+	public boolean blockOnLowSignal()
+	{
+		while(!isCurrentSignalStrengthHigh)
+		{
+			Log.v(TAG, "Signal is Low");
+			try
+			{
+				Thread.sleep(1000);
+			} catch(InterruptedException e)
+			{
+				/* It doesn't matter if we're interrupted. 
+				 * Continue checking.
+				 */
+			}
+			if(isCurrentSignalStrengthHigh)
+				break;
+		}
+		Log.v(TAG, "Signal is no longer too low to establish connection");
+		return true;
 	}
 }
