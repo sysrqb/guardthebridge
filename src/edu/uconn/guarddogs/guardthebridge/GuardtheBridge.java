@@ -82,6 +82,8 @@ public class GuardtheBridge extends FragmentActivity {
     private GTBAdapter m_GFPA = null;
 	private String exceptionalMessage = "";
 	private boolean failedConnection = false;
+	private boolean updatingNow = false;
+	private boolean sendingUpdatesNow = false;
     
     
     @Override
@@ -90,9 +92,7 @@ public class GuardtheBridge extends FragmentActivity {
         super.onCreate(savedInstanceState);
         sself = this;
         setContentView(R.layout.rideslist);
-        
-        
-        
+ 
         updateList();
         (new Thread (new Runnable() 
 		  {	
@@ -103,52 +103,91 @@ public class GuardtheBridge extends FragmentActivity {
 	            {
 		          public void run()
 		          {
+		        	  SignalException signexcept = null;
 		        	  do
 		        	  {
-					failedConnection = false;
-				          try {
-								mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
-						} catch (UnrecoverableKeyException e1) 
-						{
-							exceptionalMessage = "We ran into an unrecoverable key" +
-									" exception. Please notify the IT Officer. Sorry.";
-							failedConnection = true;
-						} catch (KeyStoreException e1) 
-						{
-							exceptionalMessage = "We couldn't find or open the KeyStore." +
-									"This is manditory to use this app so please notify " +
-									"the IT Officer. Sorry.";
-							failedConnection = true;
-						} catch (NoSuchAlgorithmException e1) 
-						{
-							exceptionalMessage = "This tablet doesn't support an " +
-										"algorithm we need to use. Please notify the " +
-									"IT Officer so it can be updated. Sorry.";
-							failedConnection = true;
-						} catch (GTBSSLSocketException e1) 
-						{
-							exceptionalMessage = e1.getMessage();
-							failedConnection = true;
+		        		  while(updatingNow)
+		        		  {
+		        			  try
+		        			  {
+		        				  Thread.sleep(10000);
+		        			  } catch(InterruptedException e)
+		        			  {
+		        				  /* If we're interrupted early we can keep 
+		        				   * going
+		        				   */
+		        			  }
+		        		  }
+	        			  updatingNow = true;
+		        			  
+		        		  failedConnection = false;
+				          try 
+				          {
+				        	  mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
+			        	  } catch (UnrecoverableKeyException e1)
+			        	  {
+								exceptionalMessage = "We ran into an unrecoverable key" +
+										" exception. Please notify the IT Officer. Sorry.";
+								failedConnection = true;
+			        	  } catch (KeyStoreException e1) 
+			        	  {
+								exceptionalMessage = "We couldn't find or open the KeyStore." +
+										"This is manditory to use this app so please notify " +
+										"the IT Officer. Sorry.";
+								failedConnection = true;
+			        	  } catch (NoSuchAlgorithmException e1) 
+			        	  {
+								exceptionalMessage = "This tablet doesn't support an " +
+											"algorithm we need to use. Please notify the " +
+											"IT Officer so it can be updated. Sorry.";
+								failedConnection = true;
+			        	  } catch (SignalException e1) 
+			        	  {
+			        		  	signexcept = e1;
+								exceptionalMessage = e1.getMessage();
+								failedConnection = true;
+			        	  } catch (GTBSSLSocketException e1) 
+			        	  {
+								exceptionalMessage = e1.getMessage();
+								failedConnection = true;
+			        	  }
+				          
+				          if(!failedConnection)
+				          {
+				        	  for(;;)
+				        	  {
+								
+				        		  new CurrUpdtTask().execute();
+				        		  try 
+				        		  {
+				        			  Thread.sleep(30000);
+				        		  } catch (InterruptedException ex) 
+				        		  {
+				        			  /* If we update slightly more often than 
+				        			   * 30 seconds it's ok.
+				        			   */
+				        		  }
+				        	  }
 						}
-						if(!failedConnection)
+						else
 						{
-				
-				              mGDbHelper = new GtBDbAdapter(sself);
-				              mCDbHelper = new CarsGtBDbAdapter(sself);
-			                for(;;)
-				            {
-				              new CurrUpdtTask().execute();
-				              try {
-								Thread.sleep(30000);
-							} catch (InterruptedException e) {
-								// TODO Auto-generated catch block
-								break;
+							if(signexcept != null)
+							{
+								/* The connection failed because we have
+								 * insufficient signal strength.
+								 * Block until we have can establish a
+								 * connection.
+								 */
+								mSSLSF.blockOnLowSignal();
+								continue;
 							}
-				            }
 						}
-						try {
+				        updatingNow = false;
+						try 
+						{
+							/* Sleep on the failure, then try again */
 							Thread.sleep(30000);
-						} catch (InterruptedException e) {
+						} catch (InterruptedException ex) {
 						}
 		        	  } while(failedConnection);
 		          }
@@ -156,6 +195,109 @@ public class GuardtheBridge extends FragmentActivity {
 	          Looper.loop();
 	        }
 	  })).start();
+        
+        (new Thread (new Runnable() 
+		  {	
+		    public void run()
+	        {
+		    	Looper.prepare();
+	          new Handler().post( new Runnable()
+	            {
+		          public void run()
+		          {
+		        	  SignalException signexcept = null;
+		        	  do
+		        	  {
+		        		  while(sendingUpdatesNow)
+		        		  {
+		        			  try
+		        			  {
+		        				  Thread.sleep(10000);
+		        			  } catch(InterruptedException e)
+		        			  {
+		        				  /* If we're interrupted early we can keep 
+		        				   * going
+		        				   */
+		        			  }
+		        		  }
+	        			  sendingUpdatesNow = true;
+		        			  
+		        		  failedConnection = false;
+				          try 
+				          {
+				        	  mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
+			        	  } catch (UnrecoverableKeyException e1)
+			        	  {
+								exceptionalMessage = "We ran into an unrecoverable key" +
+										" exception. Please notify the IT Officer. Sorry.";
+								failedConnection = true;
+			        	  } catch (KeyStoreException e1) 
+			        	  {
+								exceptionalMessage = "We couldn't find or open the KeyStore." +
+										"This is manditory to use this app so please notify " +
+										"the IT Officer. Sorry.";
+								failedConnection = true;
+			        	  } catch (NoSuchAlgorithmException e1) 
+			        	  {
+								exceptionalMessage = "This tablet doesn't support an " +
+											"algorithm we need to use. Please notify the " +
+											"IT Officer so it can be updated. Sorry.";
+								failedConnection = true;
+			        	  } catch (SignalException e1) 
+			        	  {
+			        		  	signexcept = e1;
+								exceptionalMessage = e1.getMessage();
+								failedConnection = true;
+			        	  } catch (GTBSSLSocketException e1) 
+			        	  {
+								exceptionalMessage = e1.getMessage();
+								failedConnection = true;
+			        	  }
+				          
+				          if(!failedConnection)
+				          {
+				        	  for(;;)
+				        	  {
+								
+				        		  new SendUpdatesTask().execute();
+				        		  try 
+				        		  {
+				        			  Thread.sleep(30000);
+				        		  } catch (InterruptedException ex) 
+				        		  {
+				        			  /* If we update slightly more often than 
+				        			   * 30 seconds it's ok.
+				        			   */
+				        		  }
+				        	  }
+						}
+						else
+						{
+							if(signexcept != null)
+							{
+								/* The connection failed because we have
+								 * insufficient signal strength.
+								 * Block until we have can establish a
+								 * connection.
+								 */
+								mSSLSF.blockOnLowSignal();
+								continue;
+							}
+						}
+				        sendingUpdatesNow = false;
+						try 
+						{
+							/* Sleep on the failure, then try again */
+							Thread.sleep(30000);
+						} catch (InterruptedException ex) {
+						}
+		        	  } while(failedConnection);
+		          }
+	            }); // Execute background update every 30 seconds
+	          Looper.loop();
+	        }
+	  })).start();
+
         
         Button aRfrshBtn = (Button)findViewById(R.id.refresh);
         aRfrshBtn.setOnClickListener(new OnClickListener() {
@@ -175,31 +317,6 @@ public class GuardtheBridge extends FragmentActivity {
 		     */
 			}
 		});
-        
-		(new Thread (new Runnable() 
-		  {	
-		    public void run()
-	        {
-		    	Looper.prepare();
-	          new Handler().post( new Runnable()
-	            {
-		          public void run()
-		          {
-	                for(;;)
-		            {
-		              new CurrUpdtTask().execute();
-		              try {
-						Thread.sleep(30000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						break;
-					}
-		            }
-		          }
-	            }); // Execute background update every 30 seconds
-	          Looper.loop();
-	        }
-	  })).start();
 		
 		Intent i = new Intent(this, GTBLocationManager.class);
 		this.startService(i);
@@ -270,6 +387,108 @@ public class GuardtheBridge extends FragmentActivity {
 	          Looper.loop();
 	        }
 	  })).start();
+    	
+        (new Thread (new Runnable() 
+ 		  {	
+ 		    public void run()
+ 	        {
+ 		    	Looper.prepare();
+ 	          new Handler().post( new Runnable()
+ 	            {
+ 		          public void run()
+ 		          {
+ 		        	  SignalException signexcept = null;
+ 		        	  do
+ 		        	  {
+ 		        		  while(sendingUpdatesNow)
+ 		        		  {
+ 		        			  try
+ 		        			  {
+ 		        				  Thread.sleep(10000);
+ 		        			  } catch(InterruptedException e)
+ 		        			  {
+ 		        				  /* If we're interrupted early we can keep 
+ 		        				   * going
+ 		        				   */
+ 		        			  }
+ 		        		  }
+ 	        			  sendingUpdatesNow = true;
+ 		        			  
+ 		        		  failedConnection = false;
+ 				          try 
+ 				          {
+ 				        	  mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
+ 			        	  } catch (UnrecoverableKeyException e1)
+ 			        	  {
+ 								exceptionalMessage = "We ran into an unrecoverable key" +
+ 										" exception. Please notify the IT Officer. Sorry.";
+ 								failedConnection = true;
+ 			        	  } catch (KeyStoreException e1) 
+ 			        	  {
+ 								exceptionalMessage = "We couldn't find or open the KeyStore." +
+ 										"This is manditory to use this app so please notify " +
+ 										"the IT Officer. Sorry.";
+ 								failedConnection = true;
+ 			        	  } catch (NoSuchAlgorithmException e1) 
+ 			        	  {
+ 								exceptionalMessage = "This tablet doesn't support an " +
+ 											"algorithm we need to use. Please notify the " +
+ 											"IT Officer so it can be updated. Sorry.";
+ 								failedConnection = true;
+ 			        	  } catch (SignalException e1) 
+ 			        	  {
+ 			        		  	signexcept = e1;
+ 								exceptionalMessage = e1.getMessage();
+ 								failedConnection = true;
+ 			        	  } catch (GTBSSLSocketException e1) 
+ 			        	  {
+ 								exceptionalMessage = e1.getMessage();
+ 								failedConnection = true;
+ 			        	  }
+ 				          
+ 				          if(!failedConnection)
+ 				          {
+ 				        	  for(;;)
+ 				        	  {
+ 								
+ 				        		  new SendUpdatesTask().execute();
+ 				        		  try 
+ 				        		  {
+ 				        			  Thread.sleep(30000);
+ 				        		  } catch (InterruptedException ex) 
+ 				        		  {
+ 				        			  /* If we update slightly more often than 
+ 				        			   * 30 seconds it's ok.
+ 				        			   */
+ 				        		  }
+ 				        	  }
+ 						}
+ 						else
+ 						{
+ 							if(signexcept != null)
+ 							{
+ 								/* The connection failed because we have
+ 								 * insufficient signal strength.
+ 								 * Block until we have can establish a
+ 								 * connection.
+ 								 */
+ 								mSSLSF.blockOnLowSignal();
+ 								continue;
+ 							}
+ 						}
+ 				        sendingUpdatesNow = false;
+ 						try 
+ 						{
+ 							/* Sleep on the failure, then try again */
+ 							Thread.sleep(30000);
+ 						} catch (InterruptedException ex) {
+ 						}
+ 		        	  } while(failedConnection);
+ 		          }
+ 	            }); // Execute background update every 30 seconds
+ 	          Looper.loop();
+ 	        }
+ 	  })).start();
     	
     	Intent i = new Intent(this, GTBLocationManager.class);
 		this.startService(i);
@@ -612,7 +831,8 @@ public class GuardtheBridge extends FragmentActivity {
 				   aPBReq.getSerializedSize());
                    /* Make sure the connection is established and valid */
 		   SSLSocket aSock = null;
-		try {
+		try 
+		{
 			aSock = mSSLSF.createSSLSocket(sself);
 			if (mSSLSF.getSession() == null)
 			{
@@ -635,6 +855,11 @@ public class GuardtheBridge extends FragmentActivity {
 			exceptionalMessage = "This tablet doesn't support an " +
 					"algorithm we need to use. Please notify the " +
 					"IT Officer so it can be updated. Sorry.";
+			cancel(true);
+		} catch (SignalException e1) 
+		{
+			exceptionalMessage = "We appear to have low signal strength." +
+					"We can't update right now, sorry.";
 			cancel(true);
 		} catch (GTBSSLSocketException e1) 
 		{
@@ -731,16 +956,21 @@ public class GuardtheBridge extends FragmentActivity {
 					"algorithm we need to use. Please notify the " +
 					"IT Officer so it can be updated. Sorry.";
 			cancel(true);
+		} catch (SignalException e1) 
+		{
+			exceptionalMessage = "We appear to have low signal strength." +
+					"We can't update right now, sorry.";
+			cancel(true);
 		} catch (GTBSSLSocketException e1) 
 		{
 			exceptionalMessage = e1.getMessage();
 			cancel(true);
-		   }catch (IOException e)
-		   {
-			   e.printStackTrace();
-		   }
-		   return 0;
-	   }
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		return 0;
+	 }
    }
    /*
     * Retrieves new rides assigned to this van
@@ -786,45 +1016,51 @@ public class GuardtheBridge extends FragmentActivity {
 		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
 		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
 				   aPBReq.getSerializedSize());
-                   /* Make sure the connection is established and valid */
+           /* Make sure the connection is established and valid */
 		   SSLSocket aSock = null;
 		   if(sself == null)
 		   	Log.e(TAG, "sself is null!");
 		   if(mSSLSF == null)
-		   	Log.e(TAG, "mSSLSF is null!");
-		try {
-			aSock = mSSLSF.createSSLSocket(sself);
-
-			if (mSSLSF.getSession() == null)
+			   Log.e(TAG, "mSSLSF is null!");
+		   try 
+		   {
+			   aSock = mSSLSF.createSSLSocket(sself);
+			   if (mSSLSF.getSession() == null)
+			   {
+				   mSSLSF = mSSLSF.getNewSSLSFW(sself);
+				   aSock = mSSLSF.getSSLSocket();
+			   }
+		   } catch (UnrecoverableKeyException e1)
+		   {
+			   exceptionalMessage = "We ran into an unrecoverable key" + 
+					   " exception. Please notify the IT Officer. Sorry.";
+			   cancel(true);
+			} catch (KeyStoreException e1) 
 			{
-			   mSSLSF = mSSLSF.getNewSSLSFW(sself);
-			   aSock = mSSLSF.getSSLSocket();
+				exceptionalMessage = "We couldn't find or open the KeyStore." +
+						"This is manditory to use this app so please notify " +
+						"the IT Officer. Sorry.";
+				cancel(true);
+			} catch (NoSuchAlgorithmException e1) 
+			{
+				exceptionalMessage = "This tablet doesn't support an " +
+						"algorithm we need to use. Please notify the " +
+						"IT Officer so it can be updated. Sorry.";
+				cancel(true);
+			} catch (SignalException e1) 
+			{
+				exceptionalMessage = "We appear to have low signal strength." +
+						"We can't update right now, sorry.";
+				cancel(true);
+			} catch (GTBSSLSocketException e1) 
+			{
+				exceptionalMessage = e1.getMessage();
+				cancel(true);
 			}
-		} catch (UnrecoverableKeyException e1) 
-		{
-			exceptionalMessage = "We ran into an unrecoverable key" +
-					" exception. Please notify the IT Officer. Sorry.";
-			cancel(true);
-		} catch (KeyStoreException e1) 
-		{
-			exceptionalMessage = "We couldn't find or open the KeyStore." +
-					"This is manditory to use this app so please notify " +
-					"the IT Officer. Sorry.";
-			cancel(true);
-		} catch (NoSuchAlgorithmException e1) 
-		{
-			exceptionalMessage = "This tablet doesn't support an " +
-					"algorithm we need to use. Please notify the " +
-					"IT Officer so it can be updated. Sorry.";
-			cancel(true);
-		} catch (GTBSSLSocketException e1) 
-		{
-			exceptionalMessage = e1.getMessage();
-			cancel(true);
-		}
-		if(isCancelled())
-			return 0;
-		   try {
+			if(isCancelled())
+				return 0;
+			try 
+			{
 			   OutputStream aOS = aSock.getOutputStream();
 			   try
 			   {
@@ -891,33 +1127,274 @@ public class GuardtheBridge extends FragmentActivity {
 						+ tmp);
 					e.printStackTrace();
 				}
-		} catch (UnrecoverableKeyException e1) 
+			} catch (UnrecoverableKeyException e1) 
+			{
+				exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+				cancel(true);
+			} catch (KeyStoreException e1) 
+			{
+				exceptionalMessage = "We couldn't find or open the KeyStore." +
+						"This is manditory to use this app so please notify " +
+						"the IT Officer. Sorry.";
+				cancel(true);
+			} catch (NoSuchAlgorithmException e1) 
+			{
+				exceptionalMessage = "This tablet doesn't support an " +
+						"algorithm we need to use. Please notify the " +
+						"IT Officer so it can be updated. Sorry.";
+				cancel(true);
+			} catch (SignalException e1) 
+			{
+				exceptionalMessage = "We appear to have low signal strength." +
+						"We can't update right now, sorry.";
+				cancel(true);
+			} catch (GTBSSLSocketException e1) 
+			{
+				exceptionalMessage = e1.getMessage();
+				cancel(true);
+			}catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+			return 0;
+		}
+		protected void onCancelled()
 		{
-			exceptionalMessage = "We ran into an unrecoverable key" +
-					" exception. Please notify the IT Officer. Sorry.";
-			cancel(true);
-		} catch (KeyStoreException e1) 
-		{
-			exceptionalMessage = "We couldn't find or open the KeyStore." +
-					"This is manditory to use this app so please notify " +
-					"the IT Officer. Sorry.";
-			cancel(true);
-		} catch (NoSuchAlgorithmException e1) 
-		{
-			exceptionalMessage = "This tablet doesn't support an " +
-					"algorithm we need to use. Please notify the " +
-					"IT Officer so it can be updated. Sorry.";
-			cancel(true);
-		} catch (GTBSSLSocketException e1) 
-		{
-			exceptionalMessage = e1.getMessage();
-			cancel(true);
-		   }catch (IOException e)
-		   {
-			   e.printStackTrace();
-		   }
-		   return 0;
+			mProgBar.dismiss();
+			AlertDialog.Builder msgBox = new AlertDialog.Builder(sself);
+			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
+					" like to continue without a connection to the" +
+					" server? This will be must more annoying " +
+					"because you will be asked this question every time" +
+					" we need to connect to the server.");
+			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					return;
+				}
+			}	);
+			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
+			{
+				public void onClick(DialogInterface dialog, int id)
+				{
+					new AlertDialog.Builder(sself).
+						setMessage("Sorry for the inconvenience. " +
+								"GUARD the Bridge is now exiting.");
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+						finish();
+					}
+					finish();
+				}
+			}	);
+		}
+   }
+   
+   private class SendUpdatesTask extends AsyncTask<Void, Integer, Integer>
+   {
+	   private boolean receivedErrors = false;
+	   @Override
+	   protected Integer doInBackground(Void... params)
+	   {
+		   return sendBackgroundRides();
+	   }	 
+	   
+	   protected void onPostExecute(Integer res)
+	   {
+		   
+		   /* this, right here, updates the frag */
+			  mVp = (ViewPager)findViewById(R.id.ridelist_pageview);
+		      m_GFPA = new GTBAdapter(getSupportFragmentManager());
+		      mVp.setAdapter(m_GFPA);
+		      
+		      if(receivedErrors)
+		      {
+			      AlertDialog.Builder msgBox = new AlertDialog.Builder(sself);
+					msgBox.setMessage("We updated the patron information, " +
+							"but something is wrong. Please look at the" +
+							"error messages to see if you can fix them.");
+					msgBox.setPositiveButton("Ok", new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int id)
+						{
+							return;
+						}
+					}	);
+		      }
 	   }
+	   
+	   public int sendBackgroundRides()
+	   {
+
+		   if(mGDbHelper == null)
+			   mGDbHelper = new GtBDbAdapter(sself);
+		   mGDbHelper.open();
+		   
+		   Request[] vReqs = mGDbHelper.fetchAllRequests();  // We only want the server to send us new rides, so we send the set of pids we already have
+		   mGDbHelper.close();
+		   
+           /* Make sure the connection is established and valid */
+		   SSLSocket aSock = null;
+		   if(sself == null)
+		   	Log.e(TAG, "sself is null!");
+		   if(mSSLSF == null)
+			   Log.e(TAG, "mSSLSF is null!");
+		   try 
+		   {
+			   aSock = mSSLSF.createSSLSocket(sself);
+			   if (mSSLSF.getSession() == null)
+			   {
+				   mSSLSF = mSSLSF.getNewSSLSFW(sself);
+				   aSock = mSSLSF.getSSLSocket();
+			   }
+		   } catch (UnrecoverableKeyException e1)
+		   {
+			   exceptionalMessage = "We ran into an unrecoverable key" + 
+					   " exception. Please notify the IT Officer. Sorry.";
+			   cancel(true);
+			} catch (KeyStoreException e1) 
+			{
+				exceptionalMessage = "We couldn't find or open the KeyStore." +
+						"This is manditory to use this app so please notify " +
+						"the IT Officer. Sorry.";
+				cancel(true);
+			} catch (NoSuchAlgorithmException e1) 
+			{
+				exceptionalMessage = "This tablet doesn't support an " +
+						"algorithm we need to use. Please notify the " +
+						"IT Officer so it can be updated. Sorry.";
+				cancel(true);
+			} catch (SignalException e1) 
+			{
+				exceptionalMessage = "We appear to have low signal strength." +
+						"We can't update right now, sorry.";
+				cancel(true);
+			} catch (GTBSSLSocketException e1) 
+			{
+				exceptionalMessage = e1.getMessage();
+				cancel(true);
+			}
+			if(isCancelled())
+				return 0;
+			for(int idx = 0; idx < vReqs.length; ++idx)
+			{
+				Request aPBReq = vReqs[idx];
+				try 
+				{
+				   OutputStream aOS = aSock.getOutputStream();
+	
+				   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
+				   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
+				   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
+				   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
+						   aPBReq.getSerializedSize());
+				   try
+				   {
+					   aOS.write(aPBReq.getSerializedSize());
+				   } catch (SSLProtocolException ex)
+				   {
+					   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
+						mSSLSF.forceReHandshake(sself);
+						aSock = mSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+						try
+						{
+							aOS.write(aPBReq.getSerializedSize());
+						} catch (SSLProtocolException exc)
+						{
+							mSSLSF = mSSLSF.getNewSSLSFW(sself);
+							aSock = mSSLSF.getSSLSocket();
+							aOS = aSock.getOutputStream();
+							aOS.write(aPBReq.getSerializedSize());
+						}
+				   }
+				   byte[] vbuf = aPBReq.toByteArray();
+				   aOS.write(vbuf);  // Send
+				   InputStream aIS = aSock.getInputStream();
+				   vbuf = new byte[9];
+				   aIS.read(vbuf);  // Receive
+				   /* Handle messages smaller than 9 bytes; Bufs aren't 
+				    * terminated, so removes trailing 0s
+				    */
+				   int nsize = (vbuf.length - 1);
+				   for (; nsize>0; nsize--)
+				   {
+					   if(vbuf[nsize] == 0)
+					   {
+						   continue;
+					   }
+					   break;
+				   }
+				   /* Copy the received buf into an array of the correct size 
+				    * so parsing is successful
+				    */
+				   byte[] vbuf2 = new byte[nsize + 1];
+				   for(int i = 0; i != nsize + 1; i++)
+					   vbuf2[i] = vbuf[i];
+				   vbuf = vbuf2;
+				   Response apbRes = null;
+				   try 
+				   {
+					   Response apbTmpSize = null;
+					   apbTmpSize = Response.parseFrom(vbuf);
+					   vbuf = new byte[apbTmpSize.getNRespId()];
+					   aIS.read(vbuf);
+					   apbRes = Response.parseFrom(vbuf);
+	
+					   Log.v(TAG, "Response Buffer:");
+					   Log.v(TAG, TextFormat.shortDebugString(apbRes));
+					   
+					   mGDbHelper.open();
+					   mGDbHelper.addUpdateError(apbRes.getNResAdd(0), apbRes.getSResAdd(0));
+					   mGDbHelper.close();
+					   receivedErrors = true;
+					   Log.v(TAG, "Added errors to DB");
+					   
+					} catch (InvalidProtocolBufferException e) {
+						e.printStackTrace();
+						String tmp = "";
+						for(int i = 0; i<vbuf.length; i++)
+							tmp = tmp + vbuf[i] + " ";
+						Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
+							+ tmp);
+						e.printStackTrace();
+					}
+				} catch (UnrecoverableKeyException e1) 
+				{
+					exceptionalMessage = "We ran into an unrecoverable key" +
+							" exception. Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1) 
+				{
+					exceptionalMessage = "We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so please notify " +
+							"the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1) 
+				{
+					exceptionalMessage = "This tablet doesn't support an " +
+							"algorithm we need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (SignalException e1) 
+				{
+					exceptionalMessage = "We appear to have low signal strength." +
+							"We can't update right now, sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1) 
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}catch (IOException e)
+				{
+					e.printStackTrace();
+				}
+			}
+			return 0;
+		}
 		protected void onCancelled()
 		{
 			mProgBar.dismiss();
