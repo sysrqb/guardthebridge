@@ -65,6 +65,7 @@ public class GtBDbAdapter {
     private static final String TAG = "GtBDbAdapter";
     private DatabaseHelper mDbHelper;
     private SQLiteDatabase mDb;
+    private int nThreadSafe = 0;
 
     /**
      * Database creation sql statement
@@ -127,13 +128,19 @@ public class GtBDbAdapter {
      * @throws SQLException if the database could be neither opened or created
      */
     public GtBDbAdapter open() throws SQLException {
-    		mDbHelper = new DatabaseHelper(mCtx);
+    		nThreadSafe++;
+    		if (mDbHelper == null)
+    			mDbHelper = new DatabaseHelper(mCtx);
     		mDb = mDbHelper.getWritableDatabase();
         return this;
     }
 
     public void close() {
-        mDbHelper.close();
+    	nThreadSafe--;
+    	if (nThreadSafe == 0)
+    		mDbHelper.close();
+    	else
+    		Log.v(TAG, "Another thread is still using this, delaying close until all threads done!");
     }
 
 
@@ -466,6 +473,8 @@ public class GtBDbAdapter {
                 
             if (isClosed(pid))
             {
+            	long insrtRow = mDb.insert(DATABASE_TABLE, null, initialValues);
+		    	deleteClosedPatron(pid);
             	if (status.compareToIgnoreCase("waiting") == 0)
 		        {
 		        	setWaiting(rowId, message, pid);
@@ -474,7 +483,7 @@ public class GtBDbAdapter {
 		        {
 		        	setRiding(rowId, message, pid);
 		        }
-            	return 0;
+		    	return insrtRow;
             }
             else
             {
