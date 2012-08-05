@@ -764,7 +764,13 @@ public class GuardtheBridge extends FragmentActivity {
 	   
 	   public int retrieveBackgroundRides()
 	   {
+
+		   if(mGDbHelper == null)
+			   mGDbHelper = new GtBDbAdapter(sself);
 		   mGDbHelper.open();
+		   
+		   if(mCDbHelper == null)
+			   mCDbHelper = new CarsGtBDbAdapter(sself);
 		   mCDbHelper.open();
 		   ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();  // We only want the server to send us new rides, so we send the set of pids we already have
 		   mGDbHelper.close();
@@ -782,6 +788,10 @@ public class GuardtheBridge extends FragmentActivity {
 				   aPBReq.getSerializedSize());
                    /* Make sure the connection is established and valid */
 		   SSLSocket aSock = null;
+		   if(sself == null)
+		   	Log.e(TAG, "sself is null!");
+		   if(mSSLSF == null)
+		   	Log.e(TAG, "mSSLSF is null!");
 		try {
 			aSock = mSSLSF.createSSLSocket(sself);
 
