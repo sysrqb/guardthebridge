@@ -31,6 +31,7 @@ import android.util.Log;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 
+import edu.uconn.guarddogs.guardthebridge.Communication.Request;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 
 /**
@@ -61,6 +62,8 @@ public class GtBDbAdapter {
     public static final String KEY_ROWID = "id";
     public static final String KEY_PID = "pid";
     public static final String KEY_STATUS = "status";
+    public static final String KEY_UPDATESTATUS = "updtstatus";
+    public static final String KEY_UPDATEERR = "updterror";
 
     private static final String TAG = "GtBDbAdapter";
     private DatabaseHelper mDbHelper;
@@ -72,6 +75,8 @@ public class GtBDbAdapter {
      */
     private static final String DATABASE_TABLE = "openrides";
     private static final String DATABASE_TABLE_CLOSED = "closedrides";
+    private static final String DATABASE_TABLE_PENDING = "pendingrides";
+    private static final String DATABASE_TABLE_UPDATEERR = "updateerrors";
     
     private static final String SAFE_DATABASE_CREATE =
         "create table " + DATABASE_TABLE + "( " + KEY_ROWID + " integer primary key autoincrement, "
@@ -80,6 +85,16 @@ public class GtBDbAdapter {
     private static final String SAFE_DATABASE_CLOSED_CREATE =
             "create table " + DATABASE_TABLE_CLOSED + "( " + KEY_ROWID + " integer primary key autoincrement, "
             + KEY_PID + " integer, " + KEY_PATRON + " blob, " + KEY_STATUS + " text);";
+    
+    private static final String SAFE_DATABASE_PENDING_CREATE =
+            "create table " + DATABASE_TABLE_PENDING + "( " + KEY_ROWID + 
+            " integer primary key autoincrement, " + KEY_PATRON + " blob, " 
+            + KEY_UPDATESTATUS + " text);";
+    
+    private static final String SAFE_DATABASE_UPDATEERR_CREATE =
+            "create table " + DATABASE_TABLE_PENDING + "( " + KEY_ROWID + 
+            " integer primary key autoincrement, " + KEY_PID + " integer, " 
+            + KEY_UPDATEERR + " text);";
 
     private static final String DATABASE_NAME = "saferides";
     private static final int DATABASE_VERSION = 2;
@@ -97,6 +112,8 @@ public class GtBDbAdapter {
 
             db.execSQL(SAFE_DATABASE_CREATE);
             db.execSQL(SAFE_DATABASE_CLOSED_CREATE);
+            db.execSQL(SAFE_DATABASE_PENDING_CREATE);
+            db.execSQL(SAFE_DATABASE_UPDATEERR_CREATE);
         }
 
         @Override
@@ -500,4 +517,185 @@ public class GtBDbAdapter {
         }
         return -1;
     }
+    
+    /**
+     * Get the ROWID that correlates to PID
+     */
+    public int getROWID(long pid) throws SQLException 
+    {
+		Log.v(TAG, "Requesing row of patron " + pid);
+        Cursor mCursor =
+            mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID},
+            		KEY_PID + "=" + pid, null,
+                    null, null, null, null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+            
+            if (mCursor.getCount() == 0)
+            {
+            	Log.v(TAG, "Requesing row of patron " + pid);
+                mCursor =
+                    mDb.query(true, DATABASE_TABLE_CLOSED, new String[] {KEY_ROWID},
+                    		KEY_PID + "=" + pid, null,
+                            null, null, null, null);
+                if (mCursor != null)
+                    mCursor.moveToFirst();
+                else
+                	throw new SQLException();
+            }
+	        int rowid = mCursor.getInt(0);
+	        return rowid;
+        }
+        throw new SQLException();
+    }
+    
+    /**
+     * Get the ROWID that correlates to PID
+     */
+    public int getPID(long rowid) throws SQLException 
+    {
+		Log.v(TAG, "Requesing row of patron at " + rowid);
+        Cursor mCursor =
+            mDb.query(true, DATABASE_TABLE, new String[] {KEY_PID},
+            		KEY_ROWID + "=" + rowid, null,
+                    null, null, null, null);
+        if (mCursor != null) {
+            mCursor.moveToFirst();
+            
+            if (mCursor.getCount() == 0)
+            {
+            	Log.v(TAG, "Requesing row of patron at " + rowid);
+                mCursor =
+                    mDb.query(true, DATABASE_TABLE_CLOSED, new String[] {KEY_PID},
+                    		KEY_ROWID + "=" + rowid, null,
+                            null, null, null, null);
+                if (mCursor != null)
+                    mCursor.moveToFirst();
+                else
+                	throw new SQLException();
+            }
+	        int pid = mCursor.getInt(0);
+	        return pid;
+        }
+        throw new SQLException();
+    }
+    
+    /**
+     * Add pending update so that we can try to send it again later.
+     * If the request is successfully added return the new rowId, 
+     * otherwise return a -1 to indicate failure.
+     * 
+     * @param request The pending request
+     * @param body the body of the note
+     * @return rowId or -1 if failed
+     */
+    public long addPendingUpdate(byte[] request) {
+    	ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_PATRON, request);
+        initialValues.put(KEY_UPDATESTATUS, "pending");
+
+        return mDb.insert(DATABASE_TABLE_PENDING, null, initialValues);
+    }
+    
+    /**
+     * Return a Cursor over the list of all pending requests in the table
+     * @return Cursor over all patrons
+     */
+	public Request[] fetchAllRequests()  
+	{
+		Log.v(TAG, "fetchAllRequests Now");
+		Cursor mCursor = null;
+		mCursor = mDb.query(DATABASE_TABLE_PENDING, new String[] {KEY_PATRON},
+				null, null, null, null, null);
+        Log.v(TAG, "mCursor = " + mCursor.getCount());
+        if (mCursor.getCount() > 0)
+        {
+	        Request[] vReq = new Request[mCursor.getCount()];
+	        mCursor.moveToFirst();
+	        for(int i = 0; i<mCursor.getCount(); i++)
+	        {
+	        	try 
+	        	{
+	        		Log.v(TAG, "Index: " + i);
+	        		vReq[i] = Request.parseFrom(mCursor.getBlob(0));
+	        		mCursor.moveToNext();
+	        	} catch (InvalidProtocolBufferException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+					continue;
+				}
+	        }
+	        return vReq;
+        }
+        return new Request[0];
+    }
+	
+	/**
+     * Add update error so that we can try to correct it.
+     * If the insertion is successfully added return the new rowId, 
+     * otherwise return a -1 to indicate failure.
+     * 
+     * @param pid The PID that generated the error
+     * @param err The error
+     * @return rowId or -1 if failed
+     */
+    public long addUpdateError(int pid, String err) {
+    	ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_PID, pid);
+        initialValues.put(KEY_UPDATESTATUS, err);
+
+        return mDb.insert(DATABASE_TABLE_UPDATEERR, null, initialValues);
+    }
+    
+    /**
+     * Remove the update error
+     * 
+     * @param pid The PID that generated the error
+     * @return rowId or -1 if failed
+     */
+    public boolean removeUpdateError(int pid) {
+    	ContentValues initialValues = new ContentValues();
+        initialValues.put(KEY_PID, pid);
+
+        return mDb.delete(DATABASE_TABLE_UPDATEERR, KEY_PID + "=" + pid, null) > 0;
+    }
+    
+    /**
+     * Return a Cursor over the list of all pending requests in the table
+     * @return Cursor over all patrons
+     */
+	public String[] fetchAllErrors()  
+	{
+		Log.v(TAG, "fetchAllRequests Now");
+		Cursor mCursor = null;
+		mCursor = mDb.query(DATABASE_TABLE_UPDATEERR, new String[] {KEY_PID, KEY_UPDATEERR},
+				null, null, null, null, null);
+        Log.v(TAG, "mCursor = " + mCursor.getCount());
+        if (mCursor.getCount() > 0)
+        {
+	        String[] vErr = new String[mCursor.getCount()];
+	        mCursor.moveToFirst();
+	        for(int i = 0; i<mCursor.getCount(); i++)
+	        {
+        		Log.v(TAG, "Index: " + i);
+        		/* Message to be displayed to the user as "ROWID: <ERROR MESSAGE>"
+        		 * ROWID will be the same number displayed next to the patron info 
+        		 */
+        		try
+        		{
+        			vErr[i] = Integer.toString(getROWID(mCursor.getInt(0))) 
+        					+ ": " + mCursor.getString(1);
+        		} catch (SQLException ex)
+        		{
+        			/* ROWID could not be found, skip this error message */
+        			removeUpdateError(mCursor.getInt(0));
+        		}
+        		mCursor.moveToNext();
+	        	
+	        }
+	        return vErr;
+        }
+        return new String[0];
+    }
+	
 }
