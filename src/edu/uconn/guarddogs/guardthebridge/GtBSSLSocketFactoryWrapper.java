@@ -41,12 +41,13 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
+import android.os.Looper;
 import android.telephony.*;
 import android.util.Log;
 
 public class GtBSSLSocketFactoryWrapper {
 	private static final String TAG = "SSF-GTBLOG";
-	private String HOST = "guarddogs.dyndns.org";
+	private String HOST = "192.168.5.29";
 	private int PORT = 4680;
 	private static SSLSocket m_sslSocket = null;
 	private static SSLSocketFactory m_aSSF;
@@ -83,6 +84,8 @@ public class GtBSSLSocketFactoryWrapper {
 			GTBSSLSocketException, UnrecoverableKeyException, KeyStoreException, 
 			NoSuchAlgorithmException, SignalException
 	{
+
+		m_ctx = i_aCtx;
 		if(!isCurrentSignalStrengthHigh)
 			setSignalStrengthListener();
 		
@@ -97,8 +100,6 @@ public class GtBSSLSocketFactoryWrapper {
 		}
 		else
 		{
-			m_ctx = i_aCtx;
-		
 			loadStores();
 			createConnection();
 		}
@@ -301,7 +302,10 @@ public class GtBSSLSocketFactoryWrapper {
 		if (m_aSSLContext == null)
 			loadStores();
 		if(!isCurrentSignalStrengthHigh)
+		{
+			Log.w(TAG, "Insufficient Signal Strength");
 			throw new SignalException("Insufficient Signal Strength");
+		}
 		SSLContext aSC = m_aSSLContext;
 		SSLSocket aSS = null;
 		
@@ -309,9 +313,12 @@ public class GtBSSLSocketFactoryWrapper {
 		try {
 			aSS = (SSLSocket)aSC.getSocketFactory().createSocket(HOST, PORT);
 		} catch (UnknownHostException e) {
-			Log.e(TAG, "Failed to connect to host: " + HOST + ":" + PORT + "!");
+			Log.e(TAG, "Failed to connect to host: " + HOST + ":" +
+					PORT + "! " + e.getMessage());
+			throw new GTBSSLSocketException("We couldn't make a connection.");
 		} catch (IOException e) {
-			Log.w(TAG, "IOException Thrown");
+			Log.w(TAG, "IOException Thrown: " + e.getMessage());
+			throw new GTBSSLSocketException("We couldn't make a connection.");
 		}
 		Log.v(TAG, "Connected to: " + 
 				aSS.getInetAddress().getCanonicalHostName() 
@@ -530,24 +537,49 @@ public class GtBSSLSocketFactoryWrapper {
 	    PhoneStateListener signalListener;
 	    Log.v(TAG, "Launching Signal Listener");
 
+	    Looper.prepare();
 	    signalListener=new PhoneStateListener() {
 	           
-	       public void onSignalStrengthsChanged(SignalStrength signalStrength) {
+	       public void onSignalStrengthsChanged(SignalStrength signalStrength) 
+	       {
+	    	   TelephonyManager mgr = (TelephonyManager) m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
 	    	   if(signalStrength.isGsm())
 	    	   {
-	    		   isCurrentSignalStrengthHigh = signalStrength.getGsmSignalStrength() > 5 ? true : false;
+	    		   Log.v(TAG, "Phone is using GSM");
+	    		   Log.v(TAG, "Signal Strength: " + 
+	    				   signalStrength.getGsmSignalStrength());
+	    		  
+	    		   isCurrentSignalStrengthHigh = 
+	    				   signalStrength.getGsmSignalStrength() > 5 ? 
+	    						   true : false;
 	    	   }
 	    	   else
 	    	   {
+
+	    		   Log.v(TAG, "Phone is using NOT GSM");
+	    		   Log.v(TAG, "CDMA RSSI: " + 
+	    				   signalStrength.getCdmaDbm());
+	    		   Log.v(TAG, "EvDo RSSI: " + 
+	    				   signalStrength.getEvdoDbm());
+	    		  
 	    		   int strength = signalStrength.getCdmaDbm();
 	    		   if(strength == 0)
 	    			   strength = signalStrength.getEvdoDbm();
-	    		   isCurrentSignalStrengthHigh = strength > -70 ? true : false;
+	    		   isCurrentSignalStrengthHigh = strength > -100 ? true : false;
 	    	   }
+	    	   if(!isCurrentSignalStrengthHigh)
+	    		   Log.w(TAG, "We don't currently have a strong signal");
+
+	   	    if(mgr.getDataState() == TelephonyManager.DATA_CONNECTED)
+	   	    	isCurrentSignalStrengthHigh = true;
 	       }
 	    }; 
 	    telManager = (TelephonyManager) m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
 	    telManager.listen(signalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+	    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
+	    	isCurrentSignalStrengthHigh = true;
+	    	
+	    	
 	}
 	
 	/** Block until we have strong signal
