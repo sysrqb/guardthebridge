@@ -858,7 +858,7 @@ public class GuardtheBridge extends FragmentActivity {
 			cancel(true);
 		} catch (SignalException e1) 
 		{
-			exceptionalMessage = "We appear to have low signal strength." +
+			exceptionalMessage = "We appear to have low signal strength. " +
 					"We can't update right now, sorry.";
 			cancel(true);
 		} catch (GTBSSLSocketException e1) 
@@ -958,7 +958,7 @@ public class GuardtheBridge extends FragmentActivity {
 			cancel(true);
 		} catch (SignalException e1) 
 		{
-			exceptionalMessage = "We appear to have low signal strength." +
+			exceptionalMessage = "We appear to have low signal strength. " +
 					"We can't update right now, sorry.";
 			cancel(true);
 		} catch (GTBSSLSocketException e1) 
@@ -1049,7 +1049,7 @@ public class GuardtheBridge extends FragmentActivity {
 				cancel(true);
 			} catch (SignalException e1) 
 			{
-				exceptionalMessage = "We appear to have low signal strength." +
+				exceptionalMessage = "We appear to have low signal strength. " +
 						"We can't update right now, sorry.";
 				cancel(true);
 			} catch (GTBSSLSocketException e1) 
@@ -1146,7 +1146,7 @@ public class GuardtheBridge extends FragmentActivity {
 				cancel(true);
 			} catch (SignalException e1) 
 			{
-				exceptionalMessage = "We appear to have low signal strength." +
+				exceptionalMessage = "We appear to have low signal strength. " +
 						"We can't update right now, sorry.";
 				cancel(true);
 			} catch (GTBSSLSocketException e1) 
@@ -1165,7 +1165,7 @@ public class GuardtheBridge extends FragmentActivity {
 			AlertDialog.Builder msgBox = new AlertDialog.Builder(sself);
 			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
 					" like to continue without a connection to the" +
-					" server? This will be must more annoying " +
+					" server? This will be much more annoying " +
 					"because you will be asked this question every time" +
 					" we need to connect to the server.");
 			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
@@ -1190,6 +1190,7 @@ public class GuardtheBridge extends FragmentActivity {
 					finish();
 				}
 			}	);
+			msgBox.show();
 		}
    }
    
@@ -1223,6 +1224,7 @@ public class GuardtheBridge extends FragmentActivity {
 							return;
 						}
 					}	);
+					msgBox.show();
 		      }
 	   }
 	   
@@ -1381,7 +1383,7 @@ public class GuardtheBridge extends FragmentActivity {
 					cancel(true);
 				} catch (SignalException e1) 
 				{
-					exceptionalMessage = "We appear to have low signal strength." +
+					exceptionalMessage = "We appear to have low signal strength. " +
 							"We can't update right now, sorry.";
 					cancel(true);
 				} catch (GTBSSLSocketException e1) 
@@ -1401,7 +1403,7 @@ public class GuardtheBridge extends FragmentActivity {
 			AlertDialog.Builder msgBox = new AlertDialog.Builder(sself);
 			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
 					" like to continue without a connection to the" +
-					" server? This will be must more annoying " +
+					" server? This will be much more annoying " +
 					"because you will be asked this question every time" +
 					" we need to connect to the server.");
 			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
@@ -1426,6 +1428,7 @@ public class GuardtheBridge extends FragmentActivity {
 					finish();
 				}
 			}	);
+			msgBox.show();
 		}
    }
 }
