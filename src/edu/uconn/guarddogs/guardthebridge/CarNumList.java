@@ -85,6 +85,8 @@ public class CarNumList extends ListActivity {
 		@Override
 		protected Integer doInBackground(Void... params) {
 			int numOfCars = numberOfCars();
+			if(isCancelled())
+				Log.v(TAG, "doInBackground found request was cancelled");
 			return numOfCars;
 		}
 		
@@ -112,13 +114,18 @@ public class CarNumList extends ListActivity {
 						"algorithm we need to use. Please notify the " +
 						"IT Officer so it can be updated. Sorry.";
 				cancel(true);
+			} catch (SignalException e1) 
+			{
+				exceptionalMessage = "We appear to have low signal strength. " +
+						"We can't connect right now, sorry.";
+				cancel(true);
 			} catch (GTBSSLSocketException e1) 
 			{
 				exceptionalMessage = e1.getMessage();
 				cancel(true);
 			}
-			if(isCancelled())
-				return 0;
+			/* Wait until we cancel */
+			while(isCancelled());
 			
 			final int INCREMENT_PROGRESS = 20;
 			Log.v(TAG, "Getting Car");
@@ -153,13 +160,19 @@ public class CarNumList extends ListActivity {
 								"algorithm we need to use. Please notify the " +
 								"IT Officer so it can be updated. Sorry.";
 						cancel(true);
+					} catch (SignalException e1) 
+					{
+						exceptionalMessage = "We appear to have low signal strength. " +
+								"We can't connect right now, sorry.";
+						cancel(true);
 					} catch (GTBSSLSocketException e1) 
 					{
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
 					}
-					if(isCancelled())
-						return 0;
+
+					/* Wait until we cancel */
+					while(isCancelled());
 				}
 			}
 			else
@@ -194,13 +207,19 @@ public class CarNumList extends ListActivity {
 							"algorithm we need to use. Please notify the " +
 							"IT Officer so it can be updated. Sorry.";
 					cancel(true);
+				} catch (SignalException e1) 
+				{
+					exceptionalMessage = "We appear to have low signal strength. " +
+							"We can't connect right now, sorry.";
+					cancel(true);
 				} catch (GTBSSLSocketException e1) 
 				{
 					exceptionalMessage = e1.getMessage();
 					cancel(true);
 				}
-				if(isCancelled())
-					return 0;
+
+				/* Wait until we cancel */
+				while(isCancelled());
 				aSock = aSSLSF.getSSLSocket();
 			}
 
@@ -232,13 +251,19 @@ public class CarNumList extends ListActivity {
 								"algorithm we need to use. Please notify the " +
 								"IT Officer so it can be updated. Sorry.";
 						cancel(true);
+					} catch (SignalException e1) 
+					{
+						exceptionalMessage = "We appear to have low signal strength. " +
+								"We can't connect right now, sorry.";
+						cancel(true);
 					} catch (GTBSSLSocketException e1) 
 					{
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
 					}
-					if(isCancelled())
-						return 0;
+
+					/* Wait until we cancel */
+					while(isCancelled());
 					aSock = aSSLSF.getSSLSocket();
 					aOS = aSock.getOutputStream();
 				}
@@ -275,13 +300,19 @@ public class CarNumList extends ListActivity {
 								"algorithm we need to use. Please notify the " +
 								"IT Officer so it can be updated. Sorry.";
 						cancel(true);
+					} catch (SignalException e1) 
+					{
+						exceptionalMessage = "We appear to have low signal strength. " +
+								"We can't connect right now, sorry.";
+						cancel(true);
 					} catch (GTBSSLSocketException e1) 
 					{
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
 					}
-					if(isCancelled())
-						return 0;
+
+					/* Wait until we cancel */
+					while(isCancelled());
 
 					aSock = aSSLSF.getSSLSocket();
 					aOS = aSock.getOutputStream();
@@ -309,13 +340,19 @@ public class CarNumList extends ListActivity {
 									"algorithm we need to use. Please notify the " +
 									"IT Officer so it can be updated. Sorry.";
 							cancel(true);
+						} catch (SignalException e1) 
+						{
+							exceptionalMessage = "We appear to have low signal strength. " +
+									"We can't connect right now, sorry.";
+							cancel(true);
 						} catch (GTBSSLSocketException e1) 
 						{
 							exceptionalMessage = e1.getMessage();
 							cancel(true);
 						}
-						if(isCancelled())
-							return 0;
+
+						/* Wait until we cancel */
+						while(isCancelled());
 
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
@@ -418,13 +455,19 @@ public class CarNumList extends ListActivity {
 										"algorithm we need to use. Please notify the " +
 										"IT Officer so it can be updated. Sorry.";
 								cancel(true);
+							} catch (SignalException e1) 
+							{
+								exceptionalMessage = "We appear to have low signal strength. " +
+										"We can't connect right now, sorry.";
+								cancel(true);
 							} catch (GTBSSLSocketException e1) 
 							{
 								exceptionalMessage = e1.getMessage();
 								cancel(true);
 							}
-							if(isCancelled())
-								return 0;
+
+							/* Wait until we cancel */
+							while(isCancelled());
 
 							return numberOfCars();
 						}
@@ -456,13 +499,19 @@ public class CarNumList extends ListActivity {
 							"algorithm we need to use. Please notify the " +
 							"IT Officer so it can be updated. Sorry.";
 					cancel(true);
+				} catch (SignalException e1) 
+				{
+					exceptionalMessage = "We appear to have low signal strength. " +
+							"We can't connect right now, sorry.";
+					cancel(true);
 				} catch (GTBSSLSocketException e1) 
 				{
 					exceptionalMessage = e1.getMessage();
 					cancel(true);
 				}
-				if(isCancelled())
-					return 0;
+
+				/* Wait until we cancel */
+				while(isCancelled());
 
 				aSock = aSSLSF.getSSLSocket();
 				return -2;
@@ -471,6 +520,11 @@ public class CarNumList extends ListActivity {
 		
 		protected void onPostExecute(Integer res)
 		{
+			if(isCancelled() && res == null)
+			{
+				onCancelled();
+				return;
+			}
 			int num = res;
 			String cars[] = null;
 			
@@ -525,7 +579,7 @@ public class CarNumList extends ListActivity {
 			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
 			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
 					" like to continue without a connection to the" +
-					" server? This will be must more annoying " +
+					" server? This will be much more annoying " +
 					"because you will be asked this question every time" +
 					" we need to connect to the server.");
 			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
@@ -560,6 +614,7 @@ public class CarNumList extends ListActivity {
 					finish();
 				}
 			}	);
+			msgBox.show();
 		}
 	}
 }
