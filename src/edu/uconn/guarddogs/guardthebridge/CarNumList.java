@@ -92,7 +92,7 @@ public class CarNumList extends ListActivity {
 		
 		public int numberOfCars()
 		{
-			Request aPBReq;
+			Request aPBReq = null;
 			Response aPBRes = null;
 			GtBSSLSocketFactoryWrapper aSSLSF = null;
 			try {
@@ -131,7 +131,17 @@ public class CarNumList extends ListActivity {
 			Log.v(TAG, "Getting Car");
 			
 			publishProgress(INCREMENT_PROGRESS);
-			SSLSocket aSock = aSSLSF.getSSLSocket();
+			SSLSocket aSock = null;
+			try
+			{
+				aSock = aSSLSF.getSSLSocket();
+			} catch (GTBSSLSocketException e) {
+				exceptionalMessage = "We could not connect to the server! :(" +
+						" Do we currently have 3G service?";
+				cancel(true);
+			}
+			while(isCancelled());
+			
 			if(aSock.isBound())
 			{
 				if(!aSock.isClosed())
@@ -170,18 +180,32 @@ public class CarNumList extends ListActivity {
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
 					}
-
-					/* Wait until we cancel */
-					while(isCancelled());
 				}
 			}
 			else
-				Log.w(TAG, "Socket is NOT bound!");
+			{
+				Log.w(TAG, "Socket is NOT bound?");
+				exceptionalMessage = "Something is wrong and we can't" +
+						" establish a connection. Sorry.";
+				cancel(true);
+			}
+			/* Wait until we cancel */
+			while(isCancelled());
 			
 			if (aSock.isOutputShutdown())
 			{
-				Log.w(TAG, "Output Stream is Shutdown!");
-				aSock = aSSLSF.getSSLSocket();
+				Log.w(TAG, "We just opened the socket but Output Stream" +
+						" is Shutdown!");
+				
+				try {
+					aSock = aSSLSF.getSSLSocket();
+				} catch (GTBSSLSocketException e) {
+					exceptionalMessage = "We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}
+				/* Wait until we cancel */
+				while(isCancelled());
 			}
 			if (aSSLSF.getSession() != null)
 				Log.v(TAG, "Session is still valid");
@@ -218,9 +242,16 @@ public class CarNumList extends ListActivity {
 					cancel(true);
 				}
 
+				try {
+					aSock = aSSLSF.getSSLSocket();
+				} catch (GTBSSLSocketException e) {
+					exceptionalMessage = "We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}
 				/* Wait until we cancel */
 				while(isCancelled());
-				aSock = aSSLSF.getSSLSocket();
+				
 			}
 
 			publishProgress(INCREMENT_PROGRESS);
@@ -233,7 +264,10 @@ public class CarNumList extends ListActivity {
 				} catch (IOException e)
 				{
 					try {
+						aSock.close();
 						aSSLSF.forceReHandshake(self);
+						aSock = aSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
 					} catch (UnrecoverableKeyException e1) 
 					{
 						exceptionalMessage = "We ran into an unrecoverable key" +
@@ -264,8 +298,6 @@ public class CarNumList extends ListActivity {
 
 					/* Wait until we cancel */
 					while(isCancelled());
-					aSock = aSSLSF.getSSLSocket();
-					aOS = aSock.getOutputStream();
 				}
 				
 				aPBReq = Request.newBuilder().
@@ -275,54 +307,16 @@ public class CarNumList extends ListActivity {
 				Log.v(TAG, "Request type: " + aPBReq.getSReqType());
 				Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
 				Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + aPBReq.getSerializedSize());
-				try 
+				if(aSock.isConnected())
 				{
-					aOS.write(aPBReq.getSerializedSize());
-				}catch (SSLProtocolException e)
-				{
-					Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					try {
-						aSSLSF.forceReHandshake(self);
-					} catch (UnrecoverableKeyException e1) 
-					{
-						exceptionalMessage = "We ran into an unrecoverable key" +
-							" exception. Please notify the IT Officer. Sorry.";
-						cancel(true);
-					} catch (KeyStoreException e1) 
-					{
-						exceptionalMessage = "We couldn't find or open the KeyStore." +
-								"This is manditory to use this app so please notify " +
-								"the IT Officer. Sorry.";
-						cancel(true);
-					} catch (NoSuchAlgorithmException e1) 
-					{
-						exceptionalMessage = "This tablet doesn't support an " +
-								"algorithm we need to use. Please notify the " +
-								"IT Officer so it can be updated. Sorry.";
-						cancel(true);
-					} catch (SignalException e1) 
-					{
-						exceptionalMessage = "We appear to have low signal strength. " +
-								"We can't connect right now, sorry.";
-						cancel(true);
-					} catch (GTBSSLSocketException e1) 
-					{
-						exceptionalMessage = e1.getMessage();
-						cancel(true);
-					}
-
-					/* Wait until we cancel */
-					while(isCancelled());
-
-					aSock = aSSLSF.getSSLSocket();
-					aOS = aSock.getOutputStream();
-					try
+					try 
 					{
 						aOS.write(aPBReq.getSerializedSize());
-					} catch (SSLProtocolException ex)
+					}catch (SSLProtocolException e)
 					{
+						Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
 						try {
-							aSSLSF = aSSLSF.getNewSSLSFW(self);
+							aSSLSF.forceReHandshake(self);
 						} catch (UnrecoverableKeyException e1) 
 						{
 							exceptionalMessage = "We ran into an unrecoverable key" +
@@ -350,94 +344,30 @@ public class CarNumList extends ListActivity {
 							exceptionalMessage = e1.getMessage();
 							cancel(true);
 						}
-
+	
 						/* Wait until we cancel */
 						while(isCancelled());
-
-						aSock = aSSLSF.getSSLSocket();
-						aOS = aSock.getOutputStream();
-						aOS.write(aPBReq.getSerializedSize());
-					}
-				}
-
-				publishProgress(INCREMENT_PROGRESS);
-				aPBReq.writeTo(aOS);
-				aOS.close();
-				InputStream aIS = aSock.getInputStream();
-				byte[] vbuf = new byte[11];
-				aIS.read(vbuf);
-				aSock.close(); //Server Side is already closed
-				try
-				{
-					aPBRes = Response.parseFrom(vbuf);
-				} catch (InvalidProtocolBufferException e)
-				{
-					e.printStackTrace();
-					aSock = aSSLSF.getSSLSocket();
-					aOS = aSock.getOutputStream();
-					aOS.write(aPBReq.getSerializedSize());
-					aPBReq.writeTo(aOS);
-					aOS.close();
-					aIS = aSock.getInputStream();
-					vbuf = new byte[11];
-					aIS.read(vbuf);
-					String tmp = "";
-					for (int i = 0; i<vbuf.length; i++)
-						tmp = tmp + vbuf[i] + " ";
-					Log.v(TAG, tmp);
-				}
-
-				publishProgress(INCREMENT_PROGRESS);
-				if (!aPBRes.hasNRespId())
-				{
-					aIS = aSock.getInputStream();
-					aPBRes = Response.parseFrom(aIS);
-					if (!aPBRes.hasNRespId())
-					{
-						publishProgress(-mProgBar.getProgress());
-						return -1;
-					}
-					if (aPBRes.getNRespId() != 0)
-					{
-						publishProgress(-mProgBar.getProgress());
-						Log.e(TAG, "Error: " + aPBRes.getSResValue());
-						return -1;
-					}
-					int numofcars;
-					if (aPBRes.getNResAddCount()==1)
-					{
-						numofcars = aPBRes.getNResAdd(1);
-					    Log.v(TAG, "Number of Cars: " + numofcars);
-					    return numofcars;
-					}
-					else{
-						publishProgress(-mProgBar.getProgress());
-						return numberOfCars();
-					}
-				}
-				else
-				{
-					if (aPBRes.getNRespId() != 0)
-					{
-						publishProgress(-mProgBar.getProgress());
-						Log.w(TAG, "Reponse ID: " + aPBRes.getNRespId());
-						Log.w(TAG, "Reponse Type: " + aPBRes.getSResValue());
-						return -1;
-					}
-					else {	
-						int numofcars;
-						if (aPBRes.getNResAddCount()==1)
-						{
-
-							publishProgress(INCREMENT_PROGRESS);
-							numofcars = aPBRes.getNResAdd(0);
-						    Log.v(TAG, "Number of Cars: " + numofcars);
-						    return numofcars;
+	
+						try {
+							aSock = aSSLSF.getSSLSocket();
+						} catch (GTBSSLSocketException ex) {
+							exceptionalMessage = "We could not connect to the server! :(" +
+									" Do we currently have 3G service?";
+							cancel(true);							
 						}
-						else{
-							publishProgress(-mProgBar.getProgress());
+						aOS = aSock.getOutputStream();
+						try
+						{
+							aOS.write(aPBReq.getSerializedSize());
+						} catch (SSLProtocolException ex)
+						{
 							try {
-								aSSLSF.forceReHandshake(self);
+								aSSLSF.loadStores();
+								aSSLSF.createConnection();
+
+								aSock = aSSLSF.getSSLSocket();
+								aOS = aSock.getOutputStream();
+								aOS.write(aPBReq.getSerializedSize());
 							} catch (UnrecoverableKeyException e1) 
 							{
 								exceptionalMessage = "We ran into an unrecoverable key" +
@@ -465,11 +395,112 @@ public class CarNumList extends ListActivity {
 								exceptionalMessage = e1.getMessage();
 								cancel(true);
 							}
-
+	
 							/* Wait until we cancel */
 							while(isCancelled());
+						}
+					}
+				}
+				else
+				{
+					exceptionalMessage = "We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}			
+				while(isCancelled());
+					
+				publishProgress(INCREMENT_PROGRESS);
+				if(aSock.isConnected())
+					aPBReq.writeTo(aOS);
+				else
+				{
+					Log.v(TAG, "Server-side closed early. Watchdog effect?");
+					exceptionalMessage = "Our connection to the server was" +
+							"broken! :(" +	" Do we still have 3G service?";
+					cancel(true);
+					while(isCancelled());
+				}
+				aOS.close();
+				InputStream aIS = aSock.getInputStream();
+				byte[] vbuf = new byte[11];
+				aIS.read(vbuf);
+				aSock.close(); //Server Side is already closed
+				try
+				{
+					aPBRes = Response.parseFrom(vbuf);
+				} catch (InvalidProtocolBufferException e)
+				{
+					Log.w(TAG, "We received an invalid buf! Failing.");
+					exceptionalMessage = "We asked for the number of cars but"
+							+ " we got garbage as a reply. Try again soon.";
+					cancel(true);
+					while(isCancelled());
+				}
 
-							return numberOfCars();
+				publishProgress(INCREMENT_PROGRESS);
+				if (!aPBRes.hasNRespId())
+				{
+					aIS = aSock.getInputStream();
+					aPBRes = Response.parseFrom(aIS);
+					if (!aPBRes.hasNRespId())
+					{
+						publishProgress(-mProgBar.getProgress());
+						return -1;
+					}
+					if (aPBRes.getNRespId() != 0)
+					{
+						publishProgress(-mProgBar.getProgress());
+						Log.e(TAG, "Error: " + aPBRes.getSResValue());
+						return -1;
+					}
+					int numofcars;
+					if (aPBRes.getNResAddCount()==1)
+					{
+						numofcars = aPBRes.getNResAdd(1);
+					    Log.v(TAG, "Number of Cars: " + numofcars);
+					    return numofcars;
+					}
+					else{
+						publishProgress(-mProgBar.getProgress());
+						Log.w(TAG, "We received a buf that doesn't tell us " +
+								"the number of cars. Failing.");
+						exceptionalMessage = "We asked for the number of " +
+								"cars but we got garbage as a reply." +
+								" Try again soon.";
+						cancel(true);
+						while(isCancelled());
+					}
+				}
+				else
+				{
+					if (aPBRes.getNRespId() != 0)
+					{
+						publishProgress(-mProgBar.getProgress());
+						Log.w(TAG, "Reponse ID: " + aPBRes.getNRespId());
+						Log.w(TAG, "Reponse Type: " + aPBRes.getSResValue());
+						return -1;
+					}
+					else {	
+						int numofcars;
+						if (aPBRes.getNResAddCount()==1)
+						{
+
+							publishProgress(INCREMENT_PROGRESS);
+							numofcars = aPBRes.getNResAdd(0);
+						    Log.v(TAG, "Number of Cars: " + numofcars);
+						    return numofcars;
+						}
+						else{
+							publishProgress(-mProgBar.getProgress());
+
+							Log.w(TAG, "We received a buf with the " +
+									"correct ID but it doesn't tell us the " +
+									"number of cars. Failing.");
+							exceptionalMessage = "We asked for the number " +
+									"of cars but we got garbage as a reply." +
+									" Try again soon.";
+							cancel(true);
+							while(isCancelled());
 						}
 					}
 				}
@@ -479,8 +510,8 @@ public class CarNumList extends ListActivity {
 				return -2;
 			} catch (IOException e)
 			{
-				e.printStackTrace();
-				try {
+				try
+				{
 					aSSLSF.forceReHandshake(self);
 				} catch (UnrecoverableKeyException e1) 
 				{
@@ -509,13 +540,21 @@ public class CarNumList extends ListActivity {
 					exceptionalMessage = e1.getMessage();
 					cancel(true);
 				}
-
 				/* Wait until we cancel */
 				while(isCancelled());
 
-				aSock = aSSLSF.getSSLSocket();
-				return -2;
+				/* Now that we successfully completed a handshake with the
+				 * server, we can call numberOfCars again and we should be
+				 * successful. What are the chances of creating a loop?
+				 */
+				Log.w(TAG, "Are we looping?");
+				return numberOfCars();
 			}
+			/* This should be unreachable, but the compiler doesn't realize
+			 * the cancel(true) blocks don't need a return or throw associated
+			 * with them.
+			 */
+			return -1;
 		}
 		
 		protected void onPostExecute(Integer res)
@@ -531,7 +570,7 @@ public class CarNumList extends ListActivity {
 			mProgBar.dismiss();
 			if(num < 1)
 			{
-				Log.w(TAG, "Failed to retrieve number of cars!");
+				Log.w(TAG, "Failed to retrieve number of cars! Sorry!");
 				cars = new String[1];
 				cars[0] = "Unknown number of cars";
 				setListAdapter(new ArrayAdapter<String>(self, R.layout.carnums, cars));
