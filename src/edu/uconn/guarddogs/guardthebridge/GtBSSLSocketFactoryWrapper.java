@@ -81,8 +81,8 @@ public class GtBSSLSocketFactoryWrapper {
 	 *   not available
 	 */
 	public GtBSSLSocketFactoryWrapper(Context i_aCtx) throws 
-			GTBSSLSocketException, UnrecoverableKeyException, KeyStoreException, 
-			NoSuchAlgorithmException, SignalException
+			GTBSSLSocketException, UnrecoverableKeyException,
+			KeyStoreException, NoSuchAlgorithmException, SignalException
 	{
 
 		m_ctx = i_aCtx;
@@ -130,39 +130,52 @@ public class GtBSSLSocketFactoryWrapper {
 		} catch (KeyStoreException e) 
 		{
 			Log.e(TAG, "KeyStore could not be created as BKS!");
-			throw new GTBSSLSocketException("KeyStore could not be created as BKS!");
+			throw new GTBSSLSocketException(
+					"KeyStore could not be created as BKS!");
 		}
 		try 
 		{
-			a_ksis = new DataInputStream(ctx.getResources().openRawResource(R.raw.kspass));
+			a_ksis = new DataInputStream(ctx.getResources().
+					openRawResource(R.raw.kspass));
 			kspass = a_ksis.readLine();
 		} catch (NotFoundException e) 
 		{
-			Log.e(TAG, "Can not find KeyStore password file! Make sure it was packaged with this app!");
-			throw new GTBSSLSocketException("Can not find KeyStore password file! Make sure it was packaged with this app!");
+			Log.e(TAG, "Can not find KeyStore password file!" +
+					" Make sure it was packaged with this app!");
+			throw new GTBSSLSocketException(
+					"Can not find KeyStore password file!" +
+					" Make sure it was packaged with this app!");
 		} catch (IOException e) 
 		{
-			Log.e(TAG, "Can not read from input stream! Unknown KeyStore password!");
-			throw new GTBSSLSocketException("Can not read from input stream! Unknown KeyStore password!");
+			Log.e(TAG, "Can not read from input stream!" +
+					" Unknown KeyStore password!");
+			throw new GTBSSLSocketException("Can not read from input stream!" +
+					" Unknown KeyStore password!");
 		}
 		try
 		{
 			try 
 			{
-				InputStream aIS = ctx.getResources().openRawResource(R.raw.gtbbks);
+				InputStream aIS = ctx.getResources().
+						openRawResource(R.raw.gtbbks);
 				kskey.load(aIS, kspass.toCharArray());
 			} catch (CertificateException e) 
 			{
 				Log.e(TAG, "Failed to read Certificates!");
-				throw new GTBSSLSocketException("Failed to read Certificates!");
+				throw new GTBSSLSocketException(
+						"Failed to read Certificates!");
 			} catch (NotFoundException e) 
 			{
-				Log.e(TAG, "Could not find KeyStore! Make sure it was packaged with this app!");
-				throw new GTBSSLSocketException("Could not find KeyStore! Make sure it was packaged with this app!");
+				Log.e(TAG, "Could not find KeyStore!" +
+						" Make sure it was packaged with this app!");
+				throw new GTBSSLSocketException(
+						"Could not find KeyStore!" +
+						" Make sure it was packaged with this app!");
 			} catch (NoSuchAlgorithmException e) 
 			{
 				Log.e(TAG, "Can not use Certificate's algorithms!");
-				throw new GTBSSLSocketException("Can not use Certificate's algorithms!");
+				throw new GTBSSLSocketException(
+						"Can not use Certificate's algorithms!");
 			} 
 			//java.security.cert.Certificate aCertGDT1 = kskey.getCertificate("gdt1");
 			//Log.i(TAG, "GDT1 PubKey Format: " + aCertGDT1.getPublicKey().getFormat());
@@ -175,7 +188,8 @@ public class GtBSSLSocketFactoryWrapper {
 		}*/catch (IOException e) 
 		{
 			Log.e(TAG, "Can not read from input stream!");
-			throw new GTBSSLSocketException("Can not read from input stream!");
+			throw new GTBSSLSocketException(
+					"Can not read from input stream!");
 		}
 		return kspass;
 	}
@@ -187,9 +201,12 @@ public class GtBSSLSocketFactoryWrapper {
 	 *   all trusted certificate chains.
 	 * @throws GTBSSLSocketException
 	 */
-	public TrustManagerFactory loadTrustKeyStore(Context ctx) throws GTBSSLSocketException
+	public TrustManagerFactory loadTrustKeyStore(Context ctx) throws 
+		GTBSSLSocketException
 	{
-		DataInputStream a_tksis = new DataInputStream(ctx.getResources().openRawResource(R.raw.tkspass));
+		DataInputStream a_tksis = 
+				new DataInputStream(ctx.getResources().
+						openRawResource(R.raw.tkspass));
 		KeyStore kstrust;
 		TrustManagerFactory tmf;
 		
@@ -199,30 +216,37 @@ public class GtBSSLSocketFactoryWrapper {
 			String tkspass = a_tksis.readLine();
 			try
 			{
-				kstrust.load(ctx.getResources().openRawResource(R.raw.trust), tkspass.toCharArray());
+				kstrust.load(ctx.getResources().openRawResource(R.raw.trust),
+						tkspass.toCharArray());
 			} catch (CertificateException e) {
 				Log.e(TAG, "Failed to read trust Certificates!");
-				throw new GTBSSLSocketException("Failed to read trust Certificates!");
+				throw new GTBSSLSocketException(
+						"Failed to read trust Certificates!");
 			} catch (NotFoundException e) {
 				Log.e(TAG, "Could not find Trust KeyStore!");
-				throw new GTBSSLSocketException("Could not find Trust KeyStore!");
+				throw new GTBSSLSocketException(
+						"Could not find Trust KeyStore!");
 			} catch (NoSuchAlgorithmException e) {
 				Log.e(TAG, "Can not use Trust Certificates' algorithms!");
-				throw new GTBSSLSocketException("Can not use Trust Certificates' algorithms!");
+				throw new GTBSSLSocketException(
+						"Can not use Trust Certificates' algorithms!");
 			}
 				
-			Log.i(TAG, "Avaiable KMF algorithms: " + TrustManagerFactory.getDefaultAlgorithm());
+			Log.i(TAG, "Avaiable KMF algorithms: " + 
+					TrustManagerFactory.getDefaultAlgorithm());
 			try {
 				tmf = TrustManagerFactory.getInstance("X509");
 			}  catch (NoSuchAlgorithmException e) {
 				Log.e(TAG, "Can not use X509 algorithms in Trust KeyManager!");
-				throw new GTBSSLSocketException("Can not use X509 algorithms in Trust KeyManager!");
+				throw new GTBSSLSocketException(
+						"Can not use X509 algorithms in Trust KeyManager!");
 			}
 			tmf.init(kstrust);
 			Log.i(TAG, "Algorithm being used for TMF: " + tmf.getAlgorithm());
 		} catch (KeyStoreException e) {
 			Log.e(TAG, "Can not use Bouncycastle KeyStore!");
-			throw new GTBSSLSocketException("Can not use Bouncycastle KeyStore!");
+			throw new GTBSSLSocketException(
+					"Can not use Bouncycastle KeyStore!");
 		}catch (IOException e) {
 			Log.e(TAG, "Can not read from input stream!");
 			throw new GTBSSLSocketException("Can not read from input stream!");
@@ -243,7 +267,9 @@ public class GtBSSLSocketFactoryWrapper {
 		return tmf;
 	}
 	
-	public void loadStores() throws GTBSSLSocketException, UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException
+	public void loadStores() throws GTBSSLSocketException, 
+		UnrecoverableKeyException, KeyStoreException, 
+		NoSuchAlgorithmException
 	{
 		Context ctx = m_ctx;
 		TrustManagerFactory tmf = null;
@@ -260,12 +286,14 @@ public class GtBSSLSocketFactoryWrapper {
 			kmf = KeyManagerFactory.getInstance("X509");
 		} catch (NoSuchAlgorithmException e) {
 			Log.e(TAG, "Can not use X509 algorithms in KeyManager!");
-			throw new GTBSSLSocketException("Can not use X509 algorithms in KeyManager!");
+			throw new GTBSSLSocketException(
+					"Can not use X509 algorithms in KeyManager!");
 		}
 		
 		
 		/**
-		 * Throws UnrecoverableKeyException, KeyStoreException and NoSuchAlgorithmException
+		 * Throws UnrecoverableKeyException, KeyStoreException and 
+		 * NoSuchAlgorithmException
 		 */
 		kmf.init(kskey, kspass.toCharArray());
 		
@@ -276,8 +304,11 @@ public class GtBSSLSocketFactoryWrapper {
 			try {
 				aSC.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
 			} catch (KeyManagementException e) {
-				Log.e(TAG, "Unknown failure from KeyManager! Sorry I can't tell you what is actually wrong.");
-				throw new GTBSSLSocketException("Unknown failure from KeyManager! Sorry I can't tell you what is actually wrong.");
+				Log.e(TAG, "Unknown failure from KeyManager!" +
+						" Sorry I can't tell you what is actually wrong.");
+				throw new GTBSSLSocketException(
+						"Unknown failure from KeyManager!" +
+						" Sorry I can't tell you what is actually wrong.");
 			}
 			SSLContext.setDefault(aSC);
 			m_aSSLContext = aSC;
@@ -297,7 +328,8 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws GTBSSLSocketException
 	 */
 	public void createConnection() throws UnrecoverableKeyException, 
-	KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException, SignalException
+		KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException,
+		SignalException
 	{
 		if (m_aSSLContext == null)
 			loadStores();
@@ -323,7 +355,9 @@ public class GtBSSLSocketFactoryWrapper {
 		Log.v(TAG, "Connected to: " + 
 				aSS.getInetAddress().getCanonicalHostName() 
 				+ " on Port: " + aSS.getPort());
-		Log.v(TAG, "Local Binding is on: " + aSS.getLocalAddress().getCanonicalHostName() + " on Port: " + aSS.getLocalPort());
+		Log.v(TAG, "Local Binding is on: " + 
+				aSS.getLocalAddress().getCanonicalHostName() + " on Port: " 
+				+ aSS.getLocalPort());
 		Log.v(TAG, "Connection Established. Handshaking...");
 		aSS.setUseClientMode(true);
 		try {
@@ -388,7 +422,9 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
 	 */
-	public void forceReHandshake(Context i_aCtx) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException
+	public void forceReHandshake(Context i_aCtx) throws 
+		UnrecoverableKeyException, KeyStoreException,
+		NoSuchAlgorithmException, GTBSSLSocketException
 	{
 		try {
 			Log.v(TAG, "Initiating rehandshake");
@@ -415,7 +451,9 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
 	 */
-	public GtBSSLSocketFactoryWrapper getNewSSLSFW(Context i_aCtx) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException
+	public GtBSSLSocketFactoryWrapper getNewSSLSFW(Context i_aCtx) throws 
+		UnrecoverableKeyException, KeyStoreException, 
+		NoSuchAlgorithmException, GTBSSLSocketException
 	{
 		Log.i(TAG, "Re-Establishing Connection; from scratch.");
 		try {
@@ -574,8 +612,11 @@ public class GtBSSLSocketFactoryWrapper {
 	   	    	isCurrentSignalStrengthHigh = true;
 	       }
 	    }; 
-	    telManager = (TelephonyManager) m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
-	    telManager.listen(signalListener, PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+	    telManager = (TelephonyManager) 
+	    		m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
+	    telManager.listen(signalListener, 
+	    		PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
+	
 	    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
 	    	isCurrentSignalStrengthHigh = true;
 	    	
