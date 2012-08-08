@@ -332,7 +332,9 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws UnrecoverableKeyException
 	 * @throws KeyStoreException
 	 * @throws NoSuchAlgorithmException
-	 * @throws GTBSSLSocketException
+	 * @throws GTBSSLSocketException Lumps together exceptions that can not
+	 * be handled by to user so we can fail nicely.
+	 * @throws SignalException If we don't have a data connection
 	 */
 	public void createConnection() throws UnrecoverableKeyException, 
 		KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException,
@@ -406,29 +408,34 @@ public class GtBSSLSocketFactoryWrapper {
 						{
 							aSS.startHandshake();
 							successfullyEstablishedConn = true;
+							aSS.setEnableSessionCreation(false);
 						}
 					} catch (IOException ex2)
 					{
 						successfullyEstablishedConn = false;
 						continue;
 					}
-					successfullyEstablishedConn = true;
 					break;
 				}
 			}
 		}
-		m_sslSocket = aSS;
+		if(successfullyEstablishedConn)
+			m_sslSocket = aSS;
 	}
 	
 	
 	/**
 	 * IF socket is already establish but the handshake failed call
 	 *   this method to start another handshake session.
+	 *   
+	 * This recreates the process of calling createConnection 
 	 * @param i_aCtx
 	 * @throws UnrecoverableKeyException
 	 * @throws KeyStoreException
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
+	 * 
+	 * @see CreateConnection
 	 */
 	public void forceReHandshake(Context i_aCtx) throws 
 		UnrecoverableKeyException, KeyStoreException,
@@ -474,6 +481,7 @@ public class GtBSSLSocketFactoryWrapper {
 	
 	/**
 	 * Establish another connection with server and handshake.
+	 * If this is called, call forceReHandshake afterwards.
 	 * @param i_aCtx
 	 * @return
 	 * @throws UnrecoverableKeyException
@@ -481,14 +489,19 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
 	 */
-	public SSLSocket createSSLSocket (Context i_aCtx) throws UnrecoverableKeyException, KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException{
+	public SSLSocket createSSLSocket (Context i_aCtx) throws 
+			UnrecoverableKeyException, KeyStoreException, 
+			NoSuchAlgorithmException, GTBSSLSocketException
+	{
 		m_sslSocket = (SSLSocket) createSocket(null, 0, true);
-		forceReHandshake(i_aCtx);
+		m_sslSocket.setUseClientMode(true);
 		return m_sslSocket;
 	}
 	
 	/**
-	 * Create a new connection to the specified host. 
+	 * Create a new connection to the specified host.
+	 * 
+	 * Call haveDataConnection before use.
 	 * @param host If null, falls back to HOST value
 	 * @param port If 0, falls back to PORT
 	 * @param autoClose Unused
