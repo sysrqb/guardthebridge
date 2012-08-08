@@ -441,18 +441,25 @@ public class GtBSSLSocketFactoryWrapper {
 		UnrecoverableKeyException, KeyStoreException,
 		NoSuchAlgorithmException, GTBSSLSocketException
 	{
-		try {
+		try
+		{
 			Log.v(TAG, "Initiating rehandshake");
-			m_sslSocket.startHandshake();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			// Need to backoff and try again soon
-			System.out.println("Rehandshake Failure");
-			e.printStackTrace();
-			System.out.println("Re-Establishing Connection..");
-			/*m_sslSocket = null;
-			new GtBSSLSocketFactoryWrapper(i_aCtx);
-			*/
+			if(m_sslSocket == null)
+				try
+			{
+				m_sslSocket = createSSLSocket(i_aCtx);
+			} catch(GTBSSLSocketException e)
+			{
+				throw e;
+			}
+				m_sslSocket.startHandshake();
+				successfullyEstablishedConn = true;
+				/* Resume sessions from now on */
+				m_sslSocket.setEnableSessionCreation(false);
+		} catch (IOException e)
+		{
+			successfullyEstablishedConn = false;
+			Log.w(TAG, "Rehandshake Failure");
 		}
 	}
 	
@@ -508,6 +515,7 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @return A new Socket or null on error.
 	 */
 	public Socket createSocket(String host, int port, boolean autoClose)
+		throws GTBSSLSocketException
 	{
 		if(host==null)
 			host = HOST;
@@ -517,14 +525,13 @@ public class GtBSSLSocketFactoryWrapper {
 		try {
 			return m_aSSLContext.getSocketFactory().createSocket(host, port);
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			Log.e(TAG, "Failed to connect to host: " + HOST + ":" +
+					PORT + "! " + e.getMessage());
+			throw new GTBSSLSocketException("We couldn't make a connection.");
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			// Need to backoff and try again soon
-			e.printStackTrace();
+			Log.w(TAG, "IOException Thrown: " + e.getMessage());
+			throw new GTBSSLSocketException("We couldn't make a connection.");
 		}
-		return null;
 	}
 	
 	/**
@@ -538,11 +545,21 @@ public class GtBSSLSocketFactoryWrapper {
 	
 	/**
 	 * Accessor
+	 * 
+	 * Return the current SSLSocket if we have successfully established
+	 * a connection with the server. Else, throw an exception
+	 * that indicates we must successfully handshake before we can
+	 * use the connection.
 	 * @return The current SSL Socket
+	 * @throws GTBSSLSocketException If we failed to handshake
+	 * @see haveEstablishedConnection
 	 */
-	public SSLSocket getSSLSocket()
+	public SSLSocket getSSLSocket() throws GTBSSLSocketException
 	{
-		return m_sslSocket;
+		if(successfullyEstablishedConn)
+			return m_sslSocket;
+		else
+			throw new GTBSSLSocketException("No Connection");
 	}
 	
 	/**
