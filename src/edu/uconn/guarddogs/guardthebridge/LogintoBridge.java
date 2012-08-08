@@ -29,6 +29,7 @@ import java.security.UnrecoverableKeyException;
 import javax.net.ssl.SSLProtocolException;
 import javax.net.ssl.SSLSocket;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.TextFormat;
 
 import android.app.AlertDialog;
@@ -48,8 +49,10 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
 public class LogintoBridge extends ListActivity {
 	private static final String TAG = "LIB-GTBLOG";
-	private EditText mNetIdText;
+	private EditText mNetIdDText;
+	private EditText mNetIdRText;
 	private EditText mAuthText;
+	private EditText mCarSeats;
 	private String mCarNum;
 	private CarsGtBDbAdapter mDbHelper;
 	private static final int CarNum_SELECT=0;
@@ -60,19 +63,18 @@ public class LogintoBridge extends ListActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		// TODO Auto-generated method stub
 		super.onCreate(savedInstanceState);
 		this.self = this;
 		
 		//Re-establish connections to databases
 		mDbHelper = new CarsGtBDbAdapter(this);
-        
+
         setContentView(R.layout.cars);
         setTitle(R.string.app_name);
 
         TextView carnumtext = (TextView) findViewById(R.id.carnum);
         carnumtext.setClickable(true);//Sets the text to be clickable
-        
+
         carnumtext.setOnClickListener(new View.OnClickListener() {
 
             public void onClick(View view) {
@@ -82,38 +84,48 @@ public class LogintoBridge extends ListActivity {
 
         });
 	}
-	
+
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 	        super.onActivityResult(requestCode, resultCode, intent);
 	        Log.v(TAG, "On Return");
-	        
+
+	        mDbHelper.open();
+	        mCarNum = Integer.toString(mDbHelper.getCar());
+	        mDbHelper.close();
+	        /* TODO
+	         * We want mCarNum to be either negative or to store another
+	         * value in the Db if we failed to retrieve the number of
+	         * cars. We want to this Activity to return to its initial
+	         * state if we fail and to proceed to the login layout if
+	         * we're successful.
+	         */
+	        Log.v(TAG, "Ret Car Number: " + mCarNum);
 	        setContentView(R.layout.main);
 	        setTitle(R.string.app_name);
-	        
+
 	        TextView carnumtext = (TextView) findViewById(R.id.carnum);
 	        carnumtext.setClickable(true);//Sets the text to be clickable
-	        
+
 	        mAuthText = (EditText) findViewById(R.id.authkey);
-	        mNetIdText = (EditText) findViewById(R.id.netid);
-	        
+	        mNetIdDText = (EditText) findViewById(R.id.netidD);
+	        mNetIdRText = (EditText) findViewById(R.id.netidR);
+	        mCarSeats = (EditText) findViewById(R.id.carseats);
+
 	        Button loginButton = (Button) findViewById(R.id.login);
-	        
-	        
-	        loginButton.setOnClickListener(new View.OnClickListener() {
+
+	        loginButton.setOnClickListener(new View.OnClickListener()
+	        {
 
 	            public void onClick(View view) {
 	            	new AuthTask().execute();
 	            }
 
 	        });
-	        mDbHelper.open();
-	        mCarNum = Integer.toString(mDbHelper.getCar());
-	        mDbHelper.close();
-	        Log.v(TAG, "Ret Car Number: " + mCarNum);
 	        TextView showcarnum = (TextView)findViewById(R.id.showcarnum);
 	        showcarnum.setText("You Selected Car Number: " + mCarNum);
-	        
-	        carnumtext.setOnClickListener(new View.OnClickListener() {
+
+	        carnumtext.setOnClickListener(new View.OnClickListener()
+	        {
 
 	            public void onClick(View view) {
 	            	Intent i = new Intent(self, CarNumList.class);
@@ -122,241 +134,503 @@ public class LogintoBridge extends ListActivity {
 
 	        });
 	    }
-	 
-	 private class AuthTask extends AsyncTask<Void, Integer, Integer>
-	 {
-		 static final int INCREMENT_PROGRESS = 20;
-		 protected void onPreExecute()
-		 {
-			 mProgBar = new ProgressDialog(self);
-			 mProgBar.setCancelable(true);
-			 mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-			 mProgBar.setMessage("Establishing Connection with server...");
-			 mProgBar.show();
-		 }
-		 
-		 @Override
-		 protected Integer doInBackground(Void... params)
-		 {
-			 int nRetVal = sendAuthCheck(mNetIdText, mAuthText, mCarNum);
-			 return nRetVal;
-		 }
- 
-		 public int sendAuthCheck(EditText netid, EditText authcode, String carnum)
-		 {
-			Request aPBReq;
-			Response aPBRes;
-			GtBSSLSocketFactoryWrapper aSSLSF = new GtBSSLSocketFactoryWrapper();
+
+	private class AuthTask extends AsyncTask<Void, Integer, Integer>
+	{
+		static final int INCREMENT_PROGRESS = 20;
+		protected void onPreExecute()
+		{
+			mProgBar = new ProgressDialog(self);
+			mProgBar.setCancelable(true);
+			mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+			mProgBar.setMessage("Establishing Connection with server...");
+			mProgBar.show();
+		}
+
+		@Override
+		protected Integer doInBackground(Void... params)
+		{
+			int nRetVal = sendAuthCheck(mNetIdDText, mNetIdRText, mAuthText,
+					mCarSeats, mCarNum);
+			return nRetVal;
+		}
+
+		public int sendAuthCheck(EditText netid1,
+				 				 EditText netid2,
+				 				 EditText authcode,
+				 				 EditText carseats,
+				 				 String carnum)
+		{
+			Request aPBReq = null;
+			Response aPBRes = null;
+			GtBSSLSocketFactoryWrapper aSSLSF = null;
+			try {
+				aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+			} catch (UnrecoverableKeyException e1)
+			{
+				exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+				cancel(true);
+			} catch (KeyStoreException e1)
+			{
+				exceptionalMessage = "We couldn't find or open the KeyStore." +
+						"This is manditory to use this app so please notify " +
+						"the IT Officer. Sorry.";
+				cancel(true);
+			} catch (NoSuchAlgorithmException e1)
+			{
+				exceptionalMessage = "This tablet doesn't support an " +
+						"algorithm we need to use. Please notify the " +
+						"IT Officer so it can be updated. Sorry.";
+				cancel(true);
+			} catch (SignalException e1)
+			{
+				exceptionalMessage = "We appear to have low signal strength." +
+						" We can't connect right now, sorry.";
+				cancel(true);
+			} catch (GTBSSLSocketException e1)
+			{
+				exceptionalMessage = e1.getMessage();
+				cancel(true);
+			}
+			/* Wait until we cancel */
+			while(isCancelled());
 			
 			publishProgress(INCREMENT_PROGRESS);
-			SSLSocket aSock = aSSLSF.getSSLSocket();
+			SSLSocket aSock = null;
+			try
+			{
+				aSock = aSSLSF.getSSLSocket();
+			} catch (GTBSSLSocketException e)
+			{
+				exceptionalMessage = "We could not connect to the server! :(" +
+						" Do we currently have 3G service?";
+				cancel(true);
+				/* Wait until we cancel */
+				while(isCancelled());
+			}
 			if(aSock.isClosed())
-			 {
-				try {
+			{
+				Log.w(TAG, "Socket IS closed!");
+				try
+				{
 					aSock = aSSLSF.createSSLSocket(self);
-				} catch (UnrecoverableKeyException e1) 
+				} catch (UnrecoverableKeyException e1)
 				{
 					exceptionalMessage = "We ran into an unrecoverable key" +
 						" exception. Please notify the IT Officer. Sorry.";
 					cancel(true);
-				} catch (KeyStoreException e1) 
+				} catch (KeyStoreException e1)
 				{
 					exceptionalMessage = "We couldn't find or open the KeyStore." +
 							"This is manditory to use this app so please notify " +
 							"the IT Officer. Sorry.";
 					cancel(true);
-				} catch (NoSuchAlgorithmException e1) 
+				} catch (NoSuchAlgorithmException e1)
 				{
 					exceptionalMessage = "This tablet doesn't support an " +
 							"algorithm we need to use. Please notify the " +
 							"IT Officer so it can be updated. Sorry.";
 					cancel(true);
-				} catch (GTBSSLSocketException e1) 
+				} catch (SignalException e1)
+				{
+					exceptionalMessage =
+							"We appear to have low signal strength. " +
+							"We can't connect right now, sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1)
 				{
 					exceptionalMessage = e1.getMessage();
 					cancel(true);
 				}
-				if(isCancelled())
-					return 0;
-			 }
-			 if (aSock.getSession() == null)
-			 {
-				 try {
-					aSSLSF = aSSLSF.getNewSSLSFW(self);
-				} catch (UnrecoverableKeyException e1) 
+			}
+			
+			/* Wait until we cancel */
+			while(isCancelled());
+			
+			if (aSock.isOutputShutdown())
+			{
+				Log.w(TAG, "We just opened the socket but Output Stream" +
+						" is Shutdown!");
+				
+				try
 				{
-					exceptionalMessage = "We ran into an unrecoverable key" +
-						" exception. Please notify the IT Officer. Sorry.";
+					aSock.close();
+					aSock = aSSLSF.createSSLSocket(self);
+				} catch (UnrecoverableKeyException e1)
+				{
+					exceptionalMessage =
+							"We ran into an unrecoverable key exception." +
+							" Please notify the IT Officer. Sorry.";
 					cancel(true);
-				} catch (KeyStoreException e1) 
+				} catch (KeyStoreException e1)
 				{
-					exceptionalMessage = "We couldn't find or open the KeyStore." +
-							"This is manditory to use this app so please notify " +
-							"the IT Officer. Sorry.";
+					exceptionalMessage =
+							"We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so" +
+							" please notify the IT Officer. Sorry.";
 					cancel(true);
-				} catch (NoSuchAlgorithmException e1) 
+				} catch (NoSuchAlgorithmException e1)
 				{
-					exceptionalMessage = "This tablet doesn't support an " +
-							"algorithm we need to use. Please notify the " +
+					exceptionalMessage =
+							"This tablet doesn't support an algorithm we" +
+							" need to use. Please notify the " +
 							"IT Officer so it can be updated. Sorry.";
 					cancel(true);
-				} catch (GTBSSLSocketException e1) 
+				} catch (SignalException e1)
 				{
-					exceptionalMessage = e1.getMessage();
+					exceptionalMessage =
+							"We appear to have low signal strength. " +
+							"We can't connect right now, sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				} catch (IOException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
 					cancel(true);
 				}
-				if(isCancelled())
-					return 0;
+				/* Wait until we cancel */
+				while(isCancelled());
+			}
 
-				 aSock = aSSLSF.getSSLSocket();
+			if (aSSLSF.getSession() != null)
+				Log.v(TAG, "Session is still valid");
+			else
+			{
+				Log.w(TAG, "Session is NO LONGER VALID");
+				try
+				{
+					aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+				} catch (UnrecoverableKeyException e1)
+				{
+					exceptionalMessage =
+							"We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1)
+				{
+					exceptionalMessage =
+							"We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so" +
+							" please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1)
+				{
+					exceptionalMessage = "This tablet doesn't support an " +
+							"algorithm we need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (SignalException e1)
+				{
+					exceptionalMessage = "We appear to have low signal" +
+							" strength. We can't connect right now, sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1)
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}
+
+				/* Wait until we cancel */
+				while(isCancelled());
+
+				try
+				{
+					aSock = aSSLSF.getSSLSocket();
+				} catch (GTBSSLSocketException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}
+				/* Wait until we cancel */
+				while(isCancelled());
 			 }
-			 
-			 publishProgress(INCREMENT_PROGRESS);
-			 try {
-				 OutputStream aOS = null;
-				 aOS = aSock.getOutputStream();
-				 aPBReq = Request.newBuilder().
-						 setNReqId(2).
-						 setSReqType("AUTH").
-						 addSParams(netid.getText().toString()).
-						 addSParams(authcode.getText().toString()).
-						 addSParams(carnum).
-						 build();
-				 Log.v(TAG, "Number of Params: " + aPBReq.getSParamsCount());
-				 Log.v(TAG, "Nightly Key: " + authcode.getText().toString());
-				 Log.v(TAG, "NetID: " + netid.getText().toString());
-				 Log.v(TAG, "Car Number: " + carnum);
-				 Log.v(TAG, "Serialized Size: " + aPBReq.getSerializedSize());
-				 Log.v(TAG, "Sending Buf:");
-				 Log.v(TAG, TextFormat.shortDebugString(aPBReq));
-				 try
-				 {
-					 aOS.write(aPBReq.getSerializedSize());
-				 } catch (SSLProtocolException e)
-				 {
-					 Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					try {
-						aSSLSF.forceReHandshake(self);
-					} catch (UnrecoverableKeyException e1) 
+			
+			publishProgress(INCREMENT_PROGRESS);
+			try
+			{
+				OutputStream aOS = null;
+				try
+				{
+					aOS = aSock.getOutputStream();
+				} catch (IOException e)
+				{
+					try
 					{
-						exceptionalMessage = "We ran into an unrecoverable key" +
+						aSock.close();
+						aSSLSF.forceReHandshake(self);
+						aSock = aSSLSF.getSSLSocket();
+						aOS = aSock.getOutputStream();
+					} catch (UnrecoverableKeyException e1)
+					{
+						exceptionalMessage =
+								"We ran into an unrecoverable key" +
 							" exception. Please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (KeyStoreException e1) 
+					} catch (KeyStoreException e1)
 					{
-						exceptionalMessage = "We couldn't find or open the KeyStore." +
-								"This is manditory to use this app so please notify " +
-								"the IT Officer. Sorry.";
+						exceptionalMessage =
+								"We couldn't find or open the KeyStore." +
+								"This is manditory to use this " +
+								"app so please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (NoSuchAlgorithmException e1) 
+					} catch (NoSuchAlgorithmException e1)
 					{
-						exceptionalMessage = "This tablet doesn't support an " +
-								"algorithm we need to use. Please notify the " +
+						exceptionalMessage =
+								"This tablet doesn't support an algorithm " +
+								"we need to use. Please notify the " +
 								"IT Officer so it can be updated. Sorry.";
 						cancel(true);
-					} catch (GTBSSLSocketException e1) 
+					} catch (SignalException e1)
+					{
+						exceptionalMessage =
+								"We appear to have low signal strength. " +
+								"We can't connect right now, sorry.";
+						cancel(true);
+					} catch (GTBSSLSocketException e1)
 					{
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
 					}
-					if(isCancelled())
-						return 0;
-	
-					 aSock = aSSLSF.getSSLSocket();
-					 aOS = aSock.getOutputStream();
-					 try
-					 {
-						 aOS.write(aPBReq.getSerializedSize());
-					 } catch (SSLProtocolException ex)
-					 {
-						try {
-							aSSLSF = aSSLSF.getNewSSLSFW(self);
-						} catch (UnrecoverableKeyException e1) 
+
+					/* Wait until we cancel */
+					while(isCancelled());
+				}
+				
+				aPBReq = Request.newBuilder().
+						 setNReqId(2).
+						 setSReqType("AUTH").
+						 addSParams(netid1.getText().toString()).
+						 addSParams(netid2.getText().toString()).
+						 addSParams(authcode.getText().toString()).
+						 addSParams(carnum).
+						 addNParams(Integer.parseInt(
+								 carseats.getText().toString())).
+						build();
+				Log.v(TAG, "Number of Params: " + aPBReq.getSParamsCount());
+				Log.v(TAG, "Nightly Key: " + authcode.getText().toString());
+				Log.v(TAG, "Driver NetID: " + netid1.getText().toString());
+				Log.v(TAG, "Ride-Along NetID: " +
+						netid2.getText().toString());
+				Log.v(TAG, "Seats in car: " + carseats.getText().toString());
+				Log.v(TAG, "Car Number: " + carnum);
+				Log.v(TAG, "Serialized Size: " + aPBReq.getSerializedSize());
+				Log.v(TAG, "Sending Buf:");
+				Log.v(TAG, TextFormat.shortDebugString(aPBReq));
+				if(aSock.isConnected())
+				{
+					try
+					{
+						aOS.write(aPBReq.getSerializedSize());
+					}catch (SSLProtocolException e)
+					{
+						Log.e(TAG, "SSLProtoclException Caught. On-write to" +
+								" Output Stream");
+						try
 						{
-							exceptionalMessage = "We ran into an unrecoverable key" +
-								" exception. Please notify the IT Officer. Sorry.";
-							cancel(true);
-						}  catch (KeyStoreException e1) 
+							aSSLSF.forceReHandshake(self);
+						} catch (UnrecoverableKeyException e1)
 						{
-							exceptionalMessage = "We couldn't find or open the KeyStore." +
-									"This is manditory to use this app so please notify " +
-									"the IT Officer. Sorry.";
+							exceptionalMessage =
+									"We ran into an unrecoverable key " +
+									"exception. " +
+									"Please notify the IT Officer. Sorry.";
 							cancel(true);
-						} catch (NoSuchAlgorithmException e1) 
+						} catch (KeyStoreException e1)
 						{
-							exceptionalMessage = "This tablet doesn't support an " +
-									"algorithm we need to use. Please notify the " +
-									"IT Officer so it can be updated. Sorry.";
+							exceptionalMessage =
+									"We couldn't find or open the KeyStore." +
+									"This is manditory to use this app so" +
+									" please notify the IT Officer. Sorry.";
 							cancel(true);
-						} catch (GTBSSLSocketException e1) 
+						} catch (NoSuchAlgorithmException e1)
+						{
+							exceptionalMessage =
+									"This tablet doesn't support an " +
+									"algorithm we need to use. Please " +
+									"notify the IT Officer so it can " +
+									"be updated. Sorry.";
+							cancel(true);
+						} catch (SignalException e1)
+						{
+							exceptionalMessage =
+									"We appear to have low signal strength. " +
+									"We can't connect right now, sorry.";
+							cancel(true);
+						} catch (GTBSSLSocketException e1)
 						{
 							exceptionalMessage = e1.getMessage();
 							cancel(true);
 						}
-						if(isCancelled())
-							return 0;
-						aSock = aSSLSF.getSSLSocket();
-						aOS = aSock.getOutputStream();
-						aOS.write(aPBReq.getSerializedSize());
-					 }
-				 }
-				 publishProgress(INCREMENT_PROGRESS);
-				 aPBReq.writeTo(aOS);
-				 aOS.close();
-				 InputStream aIS = aSock.getInputStream();
-				 byte[] vbuf = new byte[14];
-				 aIS.read(vbuf);
 	
-				 aSock.close();
-			 	aPBRes = Response.parseFrom(vbuf);
+						/* Wait until we cancel */
+						while(isCancelled());
+	
+						try
+						{
+							aSock = aSSLSF.getSSLSocket();
+						} catch (GTBSSLSocketException ex)
+						{
+							exceptionalMessage =
+									"We could not connect to the server! :(" +
+									" Do we currently have 3G service?";
+							cancel(true);							
+						}
+						aOS = aSock.getOutputStream();
+						try
+						{
+							aOS.write(aPBReq.getSerializedSize());
+						} catch (SSLProtocolException ex)
+						{
+							try
+							{
+								aSSLSF.loadStores();
+								aSSLSF.createConnection();
+
+								aSock = aSSLSF.getSSLSocket();
+								aOS = aSock.getOutputStream();
+								aOS.write(aPBReq.getSerializedSize());
+							} catch (UnrecoverableKeyException e1)
+							{
+								exceptionalMessage =
+										"We ran into an unrecoverable key" +
+									" exception. " +
+									"Please notify the IT Officer. Sorry.";
+								cancel(true);
+							} catch (KeyStoreException e1)
+							{
+								exceptionalMessage =
+										"We couldn't find or open the" +
+										" KeyStore. This is manditory to" +
+										" use this app so please notify" +
+										" the IT Officer. Sorry.";
+								cancel(true);
+							} catch (NoSuchAlgorithmException e1)
+							{
+								exceptionalMessage =
+										"This tablet doesn't support an " +
+										"algorithm we need to use. " +
+										"Please notify the IT Officer" +
+										" so it can be updated. Sorry.";
+								cancel(true);
+							} catch (SignalException e1)
+							{
+								exceptionalMessage =
+										"We appear to have low signal" +
+										" strength. We can't connect" +
+										" right now, sorry.";
+								cancel(true);
+							} catch (GTBSSLSocketException e1)
+							{
+								exceptionalMessage = e1.getMessage();
+								cancel(true);
+							}
+	
+							/* Wait until we cancel */
+							while(isCancelled());
+						}
+					}
+				}
+				else
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}			
+				while(isCancelled());
+
+				publishProgress(INCREMENT_PROGRESS);
+				if(aSock.isConnected())
+					aPBReq.writeTo(aOS);
+				else
+				{
+					Log.v(TAG, "Server-side closed early. Watchdog effect?");
+					exceptionalMessage = "Our connection to the server was" +
+							"broken! :(" +	" Do we still have 3G service?";
+					cancel(true);
+					while(isCancelled());
+				}
+				aOS.close();
+				InputStream aIS = aSock.getInputStream();
+				byte[] vbuf = new byte[14];
+				aIS.read(vbuf);
+				//Server Side is already closed
+				aSock.close();
+
+				try
+				{
+					aPBRes = Response.parseFrom(vbuf);
+				} catch (InvalidProtocolBufferException e)
+				{
+					Log.w(TAG, "We received an invalid buf! Failing.");
+					exceptionalMessage = "We asked for the number of cars but"
+							+ " we got garbage as a reply. Try again soon.";
+					cancel(true);
+					while(isCancelled());
+				}
 			 	publishProgress(INCREMENT_PROGRESS);
 			 	aIS.close();
-			 	return aPBRes.getNRespId();
-			 } catch (IOException e){
-				 Log.e(TAG, "Connection to server could not be established.");
-				 return -2;
-			 }
-		 }
-	 
-		 protected void onPostExecute(Integer res)
-		 {
-			 publishProgress(INCREMENT_PROGRESS);
-			 if(res != 0)
-			 {
-				 dealwitherrors(res);
-			 }
-			 else{
-				 
-				 mProgBar.dismiss();
-				 Intent i = new Intent (self, GuardtheBridge.class);
-				 startActivity(i);
-			 }
-		 }
+			 	/* TODO
+			 	 * Per the comment made on dealwitherrors, we should return
+			 	 * the Response here.
+			 	 */
+				return aPBRes.getNRespId();
+			} catch (IOException e)
+			{
+				Log.e(TAG, "Connection to server could not be established.");
+				return -2;
+			}
+		}
+
+		protected void onPostExecute(Integer res)
+		{
+			publishProgress(INCREMENT_PROGRESS);
+			if(res != 0)
+			{
+				dealwitherrors(res);
+			}
+			else
+			{
+				mProgBar.dismiss();
+				Intent i = new Intent (self, GuardtheBridge.class);
+				startActivity(i);
+			}
+		}
 	 	
-		 protected void onProgressUpdate(Integer... progress)
-		 {
-			 int nTotalProgress = mProgBar.getProgress() + progress[0];
-			 switch (nTotalProgress)
-			 {
-			 case 0:
-			 case 20:
-				 mProgBar.setMessage("Establishing Connection with server...");
-				 break;
-			 case 40:
-				 mProgBar.setMessage("Connection Established, Sending credentials...");
-				 break;
-			 case 60:
-				 mProgBar.setMessage("Receiving response...");
-				 break;
-			 case 80:
-				 mProgBar.setMessage("Reading response...");
-				 break;
-			 case 100:
-				 mProgBar.setMessage("Done!");
-				 break;
-			 }		
-			 mProgBar.setProgress(nTotalProgress);
-		 }
+		protected void onProgressUpdate(Integer... progress)
+		{
+			int nTotalProgress = mProgBar.getProgress() + progress[0];
+			switch (nTotalProgress)
+			{
+			case 0:
+			case 20:
+				mProgBar.setMessage("Establishing Connection with server...");
+				break;
+			case 40:
+				mProgBar.setMessage("Connection Established, Sending credentials...");
+				break;
+			case 60:
+				mProgBar.setMessage("Receiving response...");
+				break;
+			case 80:
+				mProgBar.setMessage("Reading response...");
+				break;
+			case 100:
+				mProgBar.setMessage("Done!");
+				break;
+			}		
+			mProgBar.setProgress(nTotalProgress);
+		}
 
 		protected void onCancelled()
 		{
@@ -383,49 +657,54 @@ public class LogintoBridge extends ListActivity {
 					new AlertDialog.Builder(self).
 						setMessage("Sorry for the inconvenience. " +
 								"GUARD the Bridge is now exiting.");
-					try {
+					try
+					{
 						Thread.sleep(5000);
-					} catch (InterruptedException e) {
+					} catch (InterruptedException e)
+					{
 						finish();
 					}
 					finish();
 				}
 			}	);
 		}
-		 
-		 public void dealwitherrors(int retval)
-		 {
-			 mProgBar.dismiss();
-			 switch (retval)
-			 {
-			 case -1:
-				 getDialog("I'm sorry, but please retype the authentication code." 
-						 + "The one you entered could not be verified");
-				 break;
-			 case -2:
-				 getDialog("I'm sorry, but please retype your NetID." 
-						 + "The one you entered could not be verified");
-				 break;
-			 case -3:
-				 
-			 case -4:
-				 
-			 default:
-				 getDialog("I'm sorry, but an unknown error occurred. " +
-						 "Please call dispatch/the supervisor if this persists.");
-				 break;
-			 }
-		 }
 
-		 private void getDialog(String msg){
-			 AlertDialog.Builder builder = new AlertDialog.Builder(self);
-			 builder.setMessage(msg);
-			 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-				 public void onClick(DialogInterface dialog, int id) {
-					 return;
-				 }
-			 });
-			 builder.show();
-		 }
-	 }
+		/* TODO
+		 * It may be better if we generate these error messages
+		 * server-side. This would result in a lot more flexibility
+		 * and not being restricted to error codes.
+		 */
+		public void dealwitherrors(int retval)
+		{
+			mProgBar.dismiss();
+			switch (retval)
+			{
+			case -1:
+				getDialog("I'm sorry, but please retype the authentication code."
+						 + "The one you entered could not be verified");
+				break;
+			case -2:
+				getDialog("I'm sorry, but please retype your NetID."
+						+ "The one you entered could not be verified");
+				break;
+			case -3:
+			case -4:
+			default:
+				getDialog("I'm sorry, but an unknown error occurred. " +
+						 "Please call dispatch/the supervisor if this persists.");
+				break;
+			}
+		}
+
+		private void getDialog(String msg){
+			AlertDialog.Builder builder = new AlertDialog.Builder(self);
+			builder.setMessage(msg);
+			builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+				public void onClick(DialogInterface dialog, int id) {
+					return;
+				}
+			});
+			builder.show();
+		}
+	}
 }
