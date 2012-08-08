@@ -89,6 +89,7 @@ public class GtBSSLSocketFactoryWrapper {
 		if(!isCurrentSignalStrengthHigh)
 			setSignalStrengthListener();
 		
+		/* We currently have an open socket connection, use it */
 		if(m_sslSocket != null && successfullyEstablishedConn)
 		{
 			if(m_sslSocket.getEnableSessionCreation())
@@ -98,6 +99,12 @@ public class GtBSSLSocketFactoryWrapper {
 			else
 				createConnection();
 		}
+		/* We attempted to make a connection in the past but were
+		 * unsuccessful. Attempt to establish the connection now 
+		 * and handshake.
+		 */
+		else if(m_aSSLContext != null)
+			createConnection();
 		else
 		{
 			loadStores();
@@ -363,6 +370,7 @@ public class GtBSSLSocketFactoryWrapper {
 		try {
 			aSS.startHandshake();
 			successfullyEstablishedConn = true;
+			/* Resume sessions from now on */
 			aSS.setEnableSessionCreation(false);
 		} catch (IOException e)
 		{
