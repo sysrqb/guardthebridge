@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package edu.uconn.guarddogs.guardthebridge;
 
 import java.io.DataInputStream;
@@ -59,7 +58,7 @@ public class GtBSSLSocketFactoryWrapper {
 	
 	
 	
-	/** 
+	/**
 	 * Constructor - Empty
 	 * If calling this, also call loadStores and createConnection
 	 * to replicate affect of the main constructor.
@@ -68,19 +67,19 @@ public class GtBSSLSocketFactoryWrapper {
 
 	/**
 	 * Constructor - Sets up SSL connection with server.
-	 * @param i_aCtx The current context that provides access 
+	 * @param i_aCtx The current context that provides access
 	 *   to the builtin keystores.
-	 * @throws GTBSSLSocketException If the exception can't be 
-	 *   handled by propagation. This replaces another exception 
+	 * @throws GTBSSLSocketException If the exception can't be
+	 *   handled by propagation. This replaces another exception
 	 *   and contains a message that described the error that can
 	 *   be displayed to the user so they can handle it.
 	 * @throws UnrecoverableKeyException If the key can not be recovered
 	 *   (Whatever that means)
 	 * @throws KeyStoreException If initiating the KeyManager fails
-	 * @throws NoSuchAlgorithmException If a required algorithm is 
+	 * @throws NoSuchAlgorithmException If a required algorithm is
 	 *   not available
 	 */
-	public GtBSSLSocketFactoryWrapper(Context i_aCtx) throws 
+	public GtBSSLSocketFactoryWrapper(Context i_aCtx) throws
 			GTBSSLSocketException, UnrecoverableKeyException,
 			KeyStoreException, NoSuchAlgorithmException, SignalException
 	{
@@ -100,7 +99,7 @@ public class GtBSSLSocketFactoryWrapper {
 				createConnection();
 		}
 		/* We attempted to make a connection in the past but were
-		 * unsuccessful. Attempt to establish the connection now 
+		 * unsuccessful. Attempt to establish the connection now
 		 * and handshake.
 		 */
 		else if(m_aSSLContext != null)
@@ -116,9 +115,9 @@ public class GtBSSLSocketFactoryWrapper {
 	/**
 	 * Load KeyStores and passphrase from res/raw/ directory.
 	 * KeyStore is called gtbbks.
-	 * Passphrase is contained in kspass. 
+	 * Passphrase is contained in kspass.
 	 * @param ctx The current or a context that has access to the integrated
-	 *   file structure. 
+	 *   file structure.
 	 * @return The passphrase to decipher the KeyStore
 	 * @throws GTBSSLSocketException If the actual exception that is thrown can
 	 *   only be handled by human intervention. The message that is contained
@@ -131,28 +130,28 @@ public class GtBSSLSocketFactoryWrapper {
 		KeyStore kskey = null;
 		String kspass = "";
 		
-		try 
+		try
 		{
 			kskey = KeyStore.getInstance("BKS");
-		} catch (KeyStoreException e) 
+		} catch (KeyStoreException e)
 		{
 			Log.e(TAG, "KeyStore could not be created as BKS!");
 			throw new GTBSSLSocketException(
 					"KeyStore could not be created as BKS!");
 		}
-		try 
+		try
 		{
 			a_ksis = new DataInputStream(ctx.getResources().
 					openRawResource(R.raw.kspass));
 			kspass = a_ksis.readLine();
-		} catch (NotFoundException e) 
+		} catch (NotFoundException e)
 		{
 			Log.e(TAG, "Can not find KeyStore password file!" +
 					" Make sure it was packaged with this app!");
 			throw new GTBSSLSocketException(
 					"Can not find KeyStore password file!" +
 					" Make sure it was packaged with this app!");
-		} catch (IOException e) 
+		} catch (IOException e)
 		{
 			Log.e(TAG, "Can not read from input stream!" +
 					" Unknown KeyStore password!");
@@ -161,29 +160,29 @@ public class GtBSSLSocketFactoryWrapper {
 		}
 		try
 		{
-			try 
+			try
 			{
 				InputStream aIS = ctx.getResources().
 						openRawResource(R.raw.gtbbks);
 				kskey.load(aIS, kspass.toCharArray());
-			} catch (CertificateException e) 
+			} catch (CertificateException e)
 			{
 				Log.e(TAG, "Failed to read Certificates!");
 				throw new GTBSSLSocketException(
 						"Failed to read Certificates!");
-			} catch (NotFoundException e) 
+			} catch (NotFoundException e)
 			{
 				Log.e(TAG, "Could not find KeyStore!" +
 						" Make sure it was packaged with this app!");
 				throw new GTBSSLSocketException(
 						"Could not find KeyStore!" +
 						" Make sure it was packaged with this app!");
-			} catch (NoSuchAlgorithmException e) 
+			} catch (NoSuchAlgorithmException e)
 			{
 				Log.e(TAG, "Can not use Certificate's algorithms!");
 				throw new GTBSSLSocketException(
 						"Can not use Certificate's algorithms!");
-			} 
+			}
 			//java.security.cert.Certificate aCertGDT1 = kskey.getCertificate("gdt1");
 			//Log.i(TAG, "GDT1 PubKey Format: " + aCertGDT1.getPublicKey().getFormat());
 			a_ksis.close();
@@ -192,7 +191,7 @@ public class GtBSSLSocketFactoryWrapper {
 		{
 			Log.e(TAG, "gdt1 KeyStore is not initialized!");
 			throw new GTBSSLSocketException("gdt1 KeyStore is not initialized!");
-		}*/catch (IOException e) 
+		}*/catch (IOException e)
 		{
 			Log.e(TAG, "Can not read from input stream!");
 			throw new GTBSSLSocketException(
@@ -208,10 +207,10 @@ public class GtBSSLSocketFactoryWrapper {
 	 *   all trusted certificate chains.
 	 * @throws GTBSSLSocketException
 	 */
-	public TrustManagerFactory loadTrustKeyStore(Context ctx) throws 
+	public TrustManagerFactory loadTrustKeyStore(Context ctx) throws
 		GTBSSLSocketException
 	{
-		DataInputStream a_tksis = 
+		DataInputStream a_tksis =
 				new DataInputStream(ctx.getResources().
 						openRawResource(R.raw.tkspass));
 		KeyStore kstrust;
@@ -239,7 +238,7 @@ public class GtBSSLSocketFactoryWrapper {
 						"Can not use Trust Certificates' algorithms!");
 			}
 				
-			Log.i(TAG, "Avaiable KMF algorithms: " + 
+			Log.i(TAG, "Avaiable KMF algorithms: " +
 					TrustManagerFactory.getDefaultAlgorithm());
 			try {
 				tmf = TrustManagerFactory.getInstance("X509");
@@ -274,8 +273,8 @@ public class GtBSSLSocketFactoryWrapper {
 		return tmf;
 	}
 	
-	public void loadStores() throws GTBSSLSocketException, 
-		UnrecoverableKeyException, KeyStoreException, 
+	public void loadStores() throws GTBSSLSocketException,
+		UnrecoverableKeyException, KeyStoreException,
 		NoSuchAlgorithmException
 	{
 		Context ctx = m_ctx;
@@ -299,7 +298,7 @@ public class GtBSSLSocketFactoryWrapper {
 		
 		
 		/**
-		 * Throws UnrecoverableKeyException, KeyStoreException and 
+		 * Throws UnrecoverableKeyException, KeyStoreException and
 		 * NoSuchAlgorithmException
 		 */
 		kmf.init(kskey, kspass.toCharArray());
@@ -323,7 +322,7 @@ public class GtBSSLSocketFactoryWrapper {
 	}
 	
 	/**
-	 * Establish TCP connection over TLS with gtbserver. 
+	 * Establish TCP connection over TLS with gtbserver.
 	 *   Loads KeyStores if necessary,creates socket, and performs
 	 *   TLS handshake. If the handshake is successful then the connection
 	 *   was successfully establish. If not, the method blocks and sleeps
@@ -336,7 +335,7 @@ public class GtBSSLSocketFactoryWrapper {
 	 * be handled by to user so we can fail nicely.
 	 * @throws SignalException If we don't have a data connection
 	 */
-	public void createConnection() throws UnrecoverableKeyException, 
+	public void createConnection() throws UnrecoverableKeyException,
 		KeyStoreException, NoSuchAlgorithmException, GTBSSLSocketException,
 		SignalException
 	{
@@ -361,11 +360,11 @@ public class GtBSSLSocketFactoryWrapper {
 			Log.w(TAG, "IOException Thrown: " + e.getMessage());
 			throw new GTBSSLSocketException("We couldn't make a connection.");
 		}
-		Log.v(TAG, "Connected to: " + 
-				aSS.getInetAddress().getCanonicalHostName() 
+		Log.v(TAG, "Connected to: " +
+				aSS.getInetAddress().getCanonicalHostName()
 				+ " on Port: " + aSS.getPort());
-		Log.v(TAG, "Local Binding is on: " + 
-				aSS.getLocalAddress().getCanonicalHostName() + " on Port: " 
+		Log.v(TAG, "Local Binding is on: " +
+				aSS.getLocalAddress().getCanonicalHostName() + " on Port: "
 				+ aSS.getLocalPort());
 		Log.v(TAG, "Connection Established. Handshaking...");
 		aSS.setUseClientMode(true);
@@ -396,10 +395,11 @@ public class GtBSSLSocketFactoryWrapper {
 				{
 					try
 					{
-						try 
+						try
 						{
 							Thread.sleep(25000);
-						} catch (InterruptedException e1) {
+						} catch (InterruptedException e1)
+						{
 							aSS.startHandshake();
 							successfullyEstablishedConn = true;
 							aSS.setEnableSessionCreation(false);
@@ -423,21 +423,20 @@ public class GtBSSLSocketFactoryWrapper {
 			m_sslSocket = aSS;
 	}
 	
-	
 	/**
 	 * IF socket is already establish but the handshake failed call
 	 *   this method to start another handshake session.
-	 *   
-	 * This recreates the process of calling createConnection 
+	 *
+	 * This recreates the process of calling createConnection
 	 * @param i_aCtx
 	 * @throws UnrecoverableKeyException
 	 * @throws KeyStoreException
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
-	 * 
+	 *
 	 * @see CreateConnection
 	 */
-	public void forceReHandshake(Context i_aCtx) throws 
+	public void forceReHandshake(Context i_aCtx) throws
 		UnrecoverableKeyException, KeyStoreException,
 		NoSuchAlgorithmException, GTBSSLSocketException
 	{
@@ -473,8 +472,8 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
 	 */
-	public GtBSSLSocketFactoryWrapper getNewSSLSFW(Context i_aCtx) throws 
-		UnrecoverableKeyException, KeyStoreException, 
+	public GtBSSLSocketFactoryWrapper getNewSSLSFW(Context i_aCtx) throws
+		UnrecoverableKeyException, KeyStoreException,
 		NoSuchAlgorithmException, GTBSSLSocketException
 	{
 		Log.i(TAG, "Re-Establishing Connection; from scratch.");
@@ -496,8 +495,8 @@ public class GtBSSLSocketFactoryWrapper {
 	 * @throws NoSuchAlgorithmException
 	 * @throws GTBSSLSocketException
 	 */
-	public SSLSocket createSSLSocket (Context i_aCtx) throws 
-			UnrecoverableKeyException, KeyStoreException, 
+	public SSLSocket createSSLSocket (Context i_aCtx) throws
+			UnrecoverableKeyException, KeyStoreException,
 			NoSuchAlgorithmException, GTBSSLSocketException
 	{
 		m_sslSocket = (SSLSocket) createSocket(null, 0, true);
@@ -507,7 +506,7 @@ public class GtBSSLSocketFactoryWrapper {
 	
 	/**
 	 * Create a new connection to the specified host.
-	 * 
+	 *
 	 * Call haveDataConnection before use.
 	 * @param host If null, falls back to HOST value
 	 * @param port If 0, falls back to PORT
@@ -545,7 +544,7 @@ public class GtBSSLSocketFactoryWrapper {
 	
 	/**
 	 * Accessor
-	 * 
+	 *
 	 * Return the current SSLSocket if we have successfully established
 	 * a connection with the server. Else, throw an exception
 	 * that indicates we must successfully handshake before we can
@@ -597,7 +596,7 @@ public class GtBSSLSocketFactoryWrapper {
 	}
 	
 	/** Acceessor
-	 * 
+	 *
 	 * We have established a connection.
 	 */
 	public boolean haveEstablishedConnection()
@@ -605,7 +604,7 @@ public class GtBSSLSocketFactoryWrapper {
 		return successfullyEstablishedConn;
 	}
 	
-	/** Checks that we, at least, have a connection  
+	/** Checks that we, at least, have a connection
 	 * @deprecated Prefer nonblocking
 	 * @see haveDataConnection
 	 */
@@ -615,37 +614,36 @@ public class GtBSSLSocketFactoryWrapper {
 	    PhoneStateListener signalListener;
 	    Log.v(TAG, "Launching Signal Listener");
 
-
         if(Looper.myLooper() == null)
       	  Looper.prepare();
 	    signalListener=new PhoneStateListener() {
-	           
+
 	       public void onSignalStrengthsChanged(SignalStrength signalStrength)
 	       {
-	    	   TelephonyManager mgr = (TelephonyManager) 
+	    	   TelephonyManager mgr = (TelephonyManager)
 	    			   m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
-	    	   /* I don't think this is necessary now. Only checking 
+	    	   /* I don't think this is necessary now. Only checking
 	    	    * for a connected Data state then should suffice.
 	    	    */
 	    	   /*if(signalStrength.isGsm())
 	    	   {
 	    		   Log.v(TAG, "Phone is using GSM");
-	    		   Log.v(TAG, "Signal Strength: " + 
+	    		   Log.v(TAG, "Signal Strength: " +
 	    				   signalStrength.getGsmSignalStrength());
-	    		  
-	    		   isCurrentSignalStrengthHigh = 
-	    				   signalStrength.getGsmSignalStrength() > 5 ? 
+
+	    		   isCurrentSignalStrengthHigh =
+	    				   signalStrength.getGsmSignalStrength() > 5 ?
 	    						   true : false;
 	    	   }
 	    	   else
 	    	   {
 
 	    		   Log.v(TAG, "Phone is using NOT GSM");
-	    		   Log.v(TAG, "CDMA RSSI: " + 
+	    		   Log.v(TAG, "CDMA RSSI: " +
 	    				   signalStrength.getCdmaDbm());
-	    		   Log.v(TAG, "EvDo RSSI: " + 
+	    		   Log.v(TAG, "EvDo RSSI: " +
 	    				   signalStrength.getEvdoDbm());
-	    		  
+
 	    		   int strength = signalStrength.getCdmaDbm();
 	    		   if(strength == 0)
 	    			   strength = signalStrength.getEvdoDbm();
@@ -657,26 +655,26 @@ public class GtBSSLSocketFactoryWrapper {
 	   	    if(mgr.getDataState() == TelephonyManager.DATA_CONNECTED)
 	   	    	isCurrentSignalStrengthHigh = true;
 	       }
-	    }; 
-	    telManager = (TelephonyManager) 
+	    };
+	    telManager = (TelephonyManager)
 	    		m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
-	    telManager.listen(signalListener, 
+	    telManager.listen(signalListener,
 	    		PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
 	    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
 	    	isCurrentSignalStrengthHigh = true;
 	}
 	
-	/** @returns true if we currently have a data connection, false otherwise 
-	 * 
+	/** @returns true if we currently have a data connection, false otherwise
+	 *
 	 * This is preferred to setSignalStrengthListener and blockOnLowSignal.
-	 * 
+	 *
 	 * @see setSignalStrengthListener
 	 * @see blockOnLowSignal
-	 * */ 
+	 */
 	public boolean haveDataConnection()
 	{
 		TelephonyManager telManager;
-		telManager = (TelephonyManager) 
+		telManager = (TelephonyManager)
 	    		m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
 	    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
 	    	isCurrentSignalStrengthHigh = true;
@@ -686,10 +684,10 @@ public class GtBSSLSocketFactoryWrapper {
 	}
 	
 	/** Block until we have strong signal
-	 * 
+	 *
 	 * Check every second if our signal is strong enough to
 	 * establish a useful connection.
-	 * 
+	 *
 	 * @return true when we do
 	 * @deprecated Prefer nonblocking
 	 * @see haveDataConnection
@@ -704,7 +702,7 @@ public class GtBSSLSocketFactoryWrapper {
 				Thread.sleep(1000);
 			} catch(InterruptedException e)
 			{
-				/* It doesn't matter if we're interrupted. 
+				/* It doesn't matter if we're interrupted.
 				 * Continue checking.
 				 */
 			}

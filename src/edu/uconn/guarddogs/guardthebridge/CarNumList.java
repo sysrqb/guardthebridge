@@ -44,16 +44,17 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import edu.uconn.guarddogs.guardthebridge.Communication.Request;
 import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 
-
-public class CarNumList extends ListActivity {
+public class CarNumList extends ListActivity
+{
 	private static final String TAG = "CNL-GTBLOG";
 	private CarsGtBDbAdapter m_aCDbHelper;
 	private CarNumList self = this;
 	private ProgressDialog mProgBar = null;
 	private String exceptionalMessage = "";
-    
+
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		m_aCDbHelper = new CarsGtBDbAdapter(this);
         m_aCDbHelper.open();
@@ -61,9 +62,11 @@ public class CarNumList extends ListActivity {
 	}
 	
 	@Override
-	protected void onListItemClick(ListView l, View v, int position, long id) {
+	protected void onListItemClick(ListView l, View v, int position, long id)
+	{
 		super.onListItemClick(l, v, position, id);
-		Log.v(TAG, "Index: " + m_aCDbHelper.setCar(position+1));//Position starts at 0, so add 1
+		//Position starts at 0, so add 1
+		Log.v(TAG, "Index: " + m_aCDbHelper.setCar(position+1));
 		Log.v(TAG, "Car Number: " + position);
 		m_aCDbHelper.close();
 		setResult(RESULT_OK);
@@ -97,29 +100,29 @@ public class CarNumList extends ListActivity {
 			GtBSSLSocketFactoryWrapper aSSLSF = null;
 			try {
 				aSSLSF = new GtBSSLSocketFactoryWrapper(self);
-			} catch (UnrecoverableKeyException e1) 
+			} catch (UnrecoverableKeyException e1)
 			{
 				exceptionalMessage = "We ran into an unrecoverable key" +
 						" exception. Please notify the IT Officer. Sorry.";
 				cancel(true);
-			} catch (KeyStoreException e1) 
+			} catch (KeyStoreException e1)
 			{
 				exceptionalMessage = "We couldn't find or open the KeyStore." +
 						"This is manditory to use this app so please notify " +
 						"the IT Officer. Sorry.";
 				cancel(true);
-			} catch (NoSuchAlgorithmException e1) 
+			} catch (NoSuchAlgorithmException e1)
 			{
 				exceptionalMessage = "This tablet doesn't support an " +
 						"algorithm we need to use. Please notify the " +
 						"IT Officer so it can be updated. Sorry.";
 				cancel(true);
-			} catch (SignalException e1) 
+			} catch (SignalException e1)
 			{
-				exceptionalMessage = "We appear to have low signal strength. " +
-						"We can't connect right now, sorry.";
+				exceptionalMessage = "We appear to have low signal strength." +
+						" We can't connect right now, sorry.";
 				cancel(true);
-			} catch (GTBSSLSocketException e1) 
+			} catch (GTBSSLSocketException e1)
 			{
 				exceptionalMessage = e1.getMessage();
 				cancel(true);
@@ -129,7 +132,7 @@ public class CarNumList extends ListActivity {
 			
 			final int INCREMENT_PROGRESS = 20;
 			Log.v(TAG, "Getting Car");
-			
+
 			publishProgress(INCREMENT_PROGRESS);
 			SSLSocket aSock = null;
 			try
@@ -153,29 +156,33 @@ public class CarNumList extends ListActivity {
 					Log.w(TAG, "Socket IS closed!");
 					try {
 						aSock = aSSLSF.createSSLSocket(self);
-					} catch (UnrecoverableKeyException e1) 
+					} catch (UnrecoverableKeyException e1)
 					{
-						exceptionalMessage = "We ran into an unrecoverable key" +
-							" exception. Please notify the IT Officer. Sorry.";
+						exceptionalMessage =
+								"We ran into an unrecoverable key exception." +
+								" Please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (KeyStoreException e1) 
+					} catch (KeyStoreException e1)
 					{
-						exceptionalMessage = "We couldn't find or open the KeyStore." +
-								"This is manditory to use this app so please notify " +
-								"the IT Officer. Sorry.";
+						exceptionalMessage =
+								"We couldn't find or open the KeyStore." +
+								"This is manditory to use this app so" +
+								" please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (NoSuchAlgorithmException e1) 
+					} catch (NoSuchAlgorithmException e1)
 					{
-						exceptionalMessage = "This tablet doesn't support an " +
-								"algorithm we need to use. Please notify the " +
+						exceptionalMessage =
+								"This tablet doesn't support an algorithm we" +
+								" need to use. Please notify the " +
 								"IT Officer so it can be updated. Sorry.";
 						cancel(true);
-					} catch (SignalException e1) 
+					} catch (SignalException e1)
 					{
-						exceptionalMessage = "We appear to have low signal strength. " +
+						exceptionalMessage =
+								"We appear to have low signal strength. " +
 								"We can't connect right now, sorry.";
 						cancel(true);
-					} catch (GTBSSLSocketException e1) 
+					} catch (GTBSSLSocketException e1)
 					{
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
@@ -191,16 +198,19 @@ public class CarNumList extends ListActivity {
 			}
 			/* Wait until we cancel */
 			while(isCancelled());
-			
+
 			if (aSock.isOutputShutdown())
 			{
 				Log.w(TAG, "We just opened the socket but Output Stream" +
 						" is Shutdown!");
 				
-				try {
+				try
+				{
 					aSock = aSSLSF.getSSLSocket();
-				} catch (GTBSSLSocketException e) {
-					exceptionalMessage = "We could not connect to the server! :(" +
+				} catch (GTBSSLSocketException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
 							" Do we currently have 3G service?";
 					cancel(true);
 				}
@@ -212,40 +222,46 @@ public class CarNumList extends ListActivity {
 			else
 			{
 				Log.w(TAG, "Session is NO LONGER VALID");
-				try {
-					aSSLSF = new GtBSSLSocketFactoryWrapper(self);
-				} catch (UnrecoverableKeyException e1) 
+				try
 				{
-					exceptionalMessage = "We ran into an unrecoverable key" +
+					aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+				} catch (UnrecoverableKeyException e1)
+				{
+					exceptionalMessage =
+							"We ran into an unrecoverable key" +
 						" exception. Please notify the IT Officer. Sorry.";
 					cancel(true);
-				} catch (KeyStoreException e1) 
+				} catch (KeyStoreException e1)
 				{
-					exceptionalMessage = "We couldn't find or open the KeyStore." +
-							"This is manditory to use this app so please notify " +
-							"the IT Officer. Sorry.";
+					exceptionalMessage =
+							"We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so" +
+							" please notify the IT Officer. Sorry.";
 					cancel(true);
-				} catch (NoSuchAlgorithmException e1) 
+				} catch (NoSuchAlgorithmException e1)
 				{
 					exceptionalMessage = "This tablet doesn't support an " +
 							"algorithm we need to use. Please notify the " +
 							"IT Officer so it can be updated. Sorry.";
 					cancel(true);
-				} catch (SignalException e1) 
+				} catch (SignalException e1)
 				{
-					exceptionalMessage = "We appear to have low signal strength. " +
-							"We can't connect right now, sorry.";
+					exceptionalMessage = "We appear to have low signal" +
+							" strength. We can't connect right now, sorry.";
 					cancel(true);
-				} catch (GTBSSLSocketException e1) 
+				} catch (GTBSSLSocketException e1)
 				{
 					exceptionalMessage = e1.getMessage();
 					cancel(true);
 				}
 
-				try {
+				try
+				{
 					aSock = aSSLSF.getSSLSocket();
-				} catch (GTBSSLSocketException e) {
-					exceptionalMessage = "We could not connect to the server! :(" +
+				} catch (GTBSSLSocketException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
 							" Do we currently have 3G service?";
 					cancel(true);
 				}
@@ -263,34 +279,39 @@ public class CarNumList extends ListActivity {
 					aOS = aSock.getOutputStream();
 				} catch (IOException e)
 				{
-					try {
+					try
+					{
 						aSock.close();
 						aSSLSF.forceReHandshake(self);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
-					} catch (UnrecoverableKeyException e1) 
+					} catch (UnrecoverableKeyException e1)
 					{
-						exceptionalMessage = "We ran into an unrecoverable key" +
+						exceptionalMessage =
+								"We ran into an unrecoverable key" +
 							" exception. Please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (KeyStoreException e1) 
+					} catch (KeyStoreException e1)
 					{
-						exceptionalMessage = "We couldn't find or open the KeyStore." +
-								"This is manditory to use this app so please notify " +
-								"the IT Officer. Sorry.";
+						exceptionalMessage =
+								"We couldn't find or open the KeyStore." +
+								"This is manditory to use this " +
+								"app so please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (NoSuchAlgorithmException e1) 
+					} catch (NoSuchAlgorithmException e1)
 					{
-						exceptionalMessage = "This tablet doesn't support an " +
-								"algorithm we need to use. Please notify the " +
+						exceptionalMessage =
+								"This tablet doesn't support an algorithm " +
+								"we need to use. Please notify the " +
 								"IT Officer so it can be updated. Sorry.";
 						cancel(true);
-					} catch (SignalException e1) 
+					} catch (SignalException e1)
 					{
-						exceptionalMessage = "We appear to have low signal strength. " +
+						exceptionalMessage =
+								"We appear to have low signal strength. " +
 								"We can't connect right now, sorry.";
 						cancel(true);
-					} catch (GTBSSLSocketException e1) 
+					} catch (GTBSSLSocketException e1)
 					{
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
@@ -306,40 +327,49 @@ public class CarNumList extends ListActivity {
 						build();
 				Log.v(TAG, "Request type: " + aPBReq.getSReqType());
 				Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
-				Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + aPBReq.getSerializedSize());
+				Log.v(TAG, "SReqType = " + aPBReq.getSReqType() +
+						" " + aPBReq.getSerializedSize());
 				if(aSock.isConnected())
 				{
-					try 
+					try
 					{
 						aOS.write(aPBReq.getSerializedSize());
 					}catch (SSLProtocolException e)
 					{
-						Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-						try {
+						Log.e(TAG, "SSLProtoclException Caught. On-write to" +
+								" Output Stream");
+						try
+						{
 							aSSLSF.forceReHandshake(self);
-						} catch (UnrecoverableKeyException e1) 
+						} catch (UnrecoverableKeyException e1)
 						{
-							exceptionalMessage = "We ran into an unrecoverable key" +
-								" exception. Please notify the IT Officer. Sorry.";
+							exceptionalMessage =
+									"We ran into an unrecoverable key " +
+									"exception. " +
+									"Please notify the IT Officer. Sorry.";
 							cancel(true);
-						} catch (KeyStoreException e1) 
+						} catch (KeyStoreException e1)
 						{
-							exceptionalMessage = "We couldn't find or open the KeyStore." +
-									"This is manditory to use this app so please notify " +
-									"the IT Officer. Sorry.";
+							exceptionalMessage =
+									"We couldn't find or open the KeyStore." +
+									"This is manditory to use this app so" +
+									" please notify the IT Officer. Sorry.";
 							cancel(true);
-						} catch (NoSuchAlgorithmException e1) 
+						} catch (NoSuchAlgorithmException e1)
 						{
-							exceptionalMessage = "This tablet doesn't support an " +
-									"algorithm we need to use. Please notify the " +
-									"IT Officer so it can be updated. Sorry.";
+							exceptionalMessage =
+									"This tablet doesn't support an " +
+									"algorithm we need to use. Please " +
+									"notify the IT Officer so it can " +
+									"be updated. Sorry.";
 							cancel(true);
-						} catch (SignalException e1) 
+						} catch (SignalException e1)
 						{
-							exceptionalMessage = "We appear to have low signal strength. " +
+							exceptionalMessage =
+									"We appear to have low signal strength. " +
 									"We can't connect right now, sorry.";
 							cancel(true);
-						} catch (GTBSSLSocketException e1) 
+						} catch (GTBSSLSocketException e1)
 						{
 							exceptionalMessage = e1.getMessage();
 							cancel(true);
@@ -348,10 +378,13 @@ public class CarNumList extends ListActivity {
 						/* Wait until we cancel */
 						while(isCancelled());
 	
-						try {
+						try
+						{
 							aSock = aSSLSF.getSSLSocket();
-						} catch (GTBSSLSocketException ex) {
-							exceptionalMessage = "We could not connect to the server! :(" +
+						} catch (GTBSSLSocketException ex)
+						{
+							exceptionalMessage =
+									"We could not connect to the server! :(" +
 									" Do we currently have 3G service?";
 							cancel(true);							
 						}
@@ -361,36 +394,45 @@ public class CarNumList extends ListActivity {
 							aOS.write(aPBReq.getSerializedSize());
 						} catch (SSLProtocolException ex)
 						{
-							try {
+							try
+							{
 								aSSLSF.loadStores();
 								aSSLSF.createConnection();
 
 								aSock = aSSLSF.getSSLSocket();
 								aOS = aSock.getOutputStream();
 								aOS.write(aPBReq.getSerializedSize());
-							} catch (UnrecoverableKeyException e1) 
+							} catch (UnrecoverableKeyException e1)
 							{
-								exceptionalMessage = "We ran into an unrecoverable key" +
-									" exception. Please notify the IT Officer. Sorry.";
+								exceptionalMessage =
+										"We ran into an unrecoverable key" +
+									" exception. " +
+									"Please notify the IT Officer. Sorry.";
 								cancel(true);
-							} catch (KeyStoreException e1) 
+							} catch (KeyStoreException e1)
 							{
-								exceptionalMessage = "We couldn't find or open the KeyStore." +
-										"This is manditory to use this app so please notify " +
-										"the IT Officer. Sorry.";
+								exceptionalMessage =
+										"We couldn't find or open the" +
+										" KeyStore. This is manditory to" +
+										" use this app so please notify" +
+										" the IT Officer. Sorry.";
 								cancel(true);
-							} catch (NoSuchAlgorithmException e1) 
+							} catch (NoSuchAlgorithmException e1)
 							{
-								exceptionalMessage = "This tablet doesn't support an " +
-										"algorithm we need to use. Please notify the " +
-										"IT Officer so it can be updated. Sorry.";
+								exceptionalMessage =
+										"This tablet doesn't support an " +
+										"algorithm we need to use. " +
+										"Please notify the IT Officer" +
+										" so it can be updated. Sorry.";
 								cancel(true);
-							} catch (SignalException e1) 
+							} catch (SignalException e1)
 							{
-								exceptionalMessage = "We appear to have low signal strength. " +
-										"We can't connect right now, sorry.";
+								exceptionalMessage =
+										"We appear to have low signal" +
+										" strength. We can't connect" +
+										" right now, sorry.";
 								cancel(true);
-							} catch (GTBSSLSocketException e1) 
+							} catch (GTBSSLSocketException e1)
 							{
 								exceptionalMessage = e1.getMessage();
 								cancel(true);
@@ -403,7 +445,8 @@ public class CarNumList extends ListActivity {
 				}
 				else
 				{
-					exceptionalMessage = "We could not connect to the server! :(" +
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
 							" Do we currently have 3G service?";
 					cancel(true);
 				}			
@@ -460,10 +503,12 @@ public class CarNumList extends ListActivity {
 					    Log.v(TAG, "Number of Cars: " + numofcars);
 					    return numofcars;
 					}
-					else{
+					else
+					{
 						publishProgress(-mProgBar.getProgress());
 						Log.w(TAG, "We received a buf that doesn't tell us " +
 								"the number of cars. Failing.");
+						
 						exceptionalMessage = "We asked for the number of " +
 								"cars but we got garbage as a reply." +
 								" Try again soon.";
@@ -480,7 +525,8 @@ public class CarNumList extends ListActivity {
 						Log.w(TAG, "Reponse Type: " + aPBRes.getSResValue());
 						return -1;
 					}
-					else {	
+					else
+					{
 						int numofcars;
 						if (aPBRes.getNResAddCount()==1)
 						{
@@ -490,7 +536,8 @@ public class CarNumList extends ListActivity {
 						    Log.v(TAG, "Number of Cars: " + numofcars);
 						    return numofcars;
 						}
-						else{
+						else
+						{
 							publishProgress(-mProgBar.getProgress());
 
 							Log.w(TAG, "We received a buf with the " +
@@ -513,29 +560,29 @@ public class CarNumList extends ListActivity {
 				try
 				{
 					aSSLSF.forceReHandshake(self);
-				} catch (UnrecoverableKeyException e1) 
+				} catch (UnrecoverableKeyException e1)
 				{
 					exceptionalMessage = "We ran into an unrecoverable key" +
 						" exception. Please notify the IT Officer. Sorry.";
 					cancel(true);
-				} catch (KeyStoreException e1) 
+				} catch (KeyStoreException e1)
 				{
 					exceptionalMessage = "We couldn't find or open the KeyStore." +
 							"This is manditory to use this app so please notify " +
 							"the IT Officer. Sorry.";
 					cancel(true);
-				} catch (NoSuchAlgorithmException e1) 
+				} catch (NoSuchAlgorithmException e1)
 				{
 					exceptionalMessage = "This tablet doesn't support an " +
 							"algorithm we need to use. Please notify the " +
 							"IT Officer so it can be updated. Sorry.";
 					cancel(true);
-				} catch (SignalException e1) 
+				} catch (SignalException e1)
 				{
 					exceptionalMessage = "We appear to have low signal strength. " +
 							"We can't connect right now, sorry.";
 					cancel(true);
-				} catch (GTBSSLSocketException e1) 
+				} catch (GTBSSLSocketException e1)
 				{
 					exceptionalMessage = e1.getMessage();
 					cancel(true);
@@ -573,16 +620,19 @@ public class CarNumList extends ListActivity {
 				Log.w(TAG, "Failed to retrieve number of cars! Sorry!");
 				cars = new String[1];
 				cars[0] = "Unknown number of cars";
-				setListAdapter(new ArrayAdapter<String>(self, R.layout.carnums, cars));
+				setListAdapter(new ArrayAdapter<String>(self,
+						R.layout.carnums, cars));
 				Log.w(TAG, "No cars received. Unknown number.");
 			}
 			else
 			{
 				cars = new String[num];
-				for(int i = 0; i<num; i++){
+				for(int i = 0; i<num; i++)
+				{
 					cars[i] = "Car " + (i+1);
 				}
-				setListAdapter(new ArrayAdapter<String>(self, R.layout.carnums, cars));
+				setListAdapter(new ArrayAdapter<String>(self,
+						R.layout.carnums, cars));
 				Log.v(TAG, "Num of Cars: " + cars.length);
 			}
 		}
@@ -594,10 +644,12 @@ public class CarNumList extends ListActivity {
 			{
 				case 0:
 				case 20:
-					mProgBar.setMessage("Establishing Connection with server...");
+					mProgBar.setMessage(
+							"Establishing Connection with server...");
 					break;
 				case 40:
-					mProgBar.setMessage("Connection Established, Sending request...");
+					mProgBar.setMessage(
+							"Connection Established, Sending request...");
 					break;
 				case 60:
 					mProgBar.setMessage("Receiving response...");
@@ -621,11 +673,12 @@ public class CarNumList extends ListActivity {
 					" server? This will be much more annoying " +
 					"because you will be asked this question every time" +
 					" we need to connect to the server.");
-			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			msgBox.setPositiveButton("Yes",
+					new DialogInterface.OnClickListener()
 			{
 				public void onClick(DialogInterface dialog, int id)
 				{
-					/* We're setting this to 8 for no actual reason. 
+					/* We're setting this to 8 for no actual reason.
 					 * Thus far, GUARD Dogs has not exceeded 8 vans
 					 * so this works for us.
 					 */
@@ -634,11 +687,14 @@ public class CarNumList extends ListActivity {
 					for(int i = 0; i<num; i++){
 						cars[i] = "Car " + (i+1);
 					}
-					setListAdapter(new ArrayAdapter<String>(self, R.layout.carnums, cars));
-					Log.v(TAG, "Failed connection Num of Cars: " + cars.length);
+					setListAdapter(new ArrayAdapter<String>(self,
+							R.layout.carnums, cars));
+					Log.v(TAG, "Failed connection Num of Cars: "
+							+ cars.length);
 				}
 			}	);
-			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
+			msgBox.setNegativeButton("No",
+					new DialogInterface.OnClickListener()
 			{
 				public void onClick(DialogInterface dialog, int id)
 				{
