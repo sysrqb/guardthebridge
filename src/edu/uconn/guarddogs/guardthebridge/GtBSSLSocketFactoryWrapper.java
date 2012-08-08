@@ -342,7 +342,7 @@ public class GtBSSLSocketFactoryWrapper {
 	{
 		if (m_aSSLContext == null)
 			loadStores();
-		if(!isCurrentSignalStrengthHigh)
+		if(!haveDataConnection())
 		{
 			Log.w(TAG, "Insufficient Signal Strength");
 			throw new SignalException("Insufficient Signal Strength");
@@ -589,6 +589,8 @@ public class GtBSSLSocketFactoryWrapper {
 	}
 	
 	/** Checks that we, at least, have a connection  
+	 * @deprecated Prefer nonblocking
+	 * @see haveDataConnection
 	 */
 	public void setSignalStrengthListener()
 	{
@@ -596,13 +598,19 @@ public class GtBSSLSocketFactoryWrapper {
 	    PhoneStateListener signalListener;
 	    Log.v(TAG, "Launching Signal Listener");
 
-	    Looper.prepare();
+
+        if(Looper.myLooper() == null)
+      	  Looper.prepare();
 	    signalListener=new PhoneStateListener() {
 	           
-	       public void onSignalStrengthsChanged(SignalStrength signalStrength) 
+	       public void onSignalStrengthsChanged(SignalStrength signalStrength)
 	       {
-	    	   TelephonyManager mgr = (TelephonyManager) m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
-	    	   if(signalStrength.isGsm())
+	    	   TelephonyManager mgr = (TelephonyManager) 
+	    			   m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
+	    	   /* I don't think this is necessary now. Only checking 
+	    	    * for a connected Data state then should suffice.
+	    	    */
+	    	   /*if(signalStrength.isGsm())
 	    	   {
 	    		   Log.v(TAG, "Phone is using GSM");
 	    		   Log.v(TAG, "Signal Strength: " + 
@@ -627,7 +635,7 @@ public class GtBSSLSocketFactoryWrapper {
 	    		   isCurrentSignalStrengthHigh = strength > -100 ? true : false;
 	    	   }
 	    	   if(!isCurrentSignalStrengthHigh)
-	    		   Log.w(TAG, "We don't currently have a strong signal");
+	    		   Log.w(TAG, "We don't currently have a strong signal");*/
 
 	   	    if(mgr.getDataState() == TelephonyManager.DATA_CONNECTED)
 	   	    	isCurrentSignalStrengthHigh = true;
@@ -637,11 +645,27 @@ public class GtBSSLSocketFactoryWrapper {
 	    		m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
 	    telManager.listen(signalListener, 
 	    		PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
-	
 	    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
 	    	isCurrentSignalStrengthHigh = true;
-	    	
-	    	
+	}
+	
+	/** @returns true if we currently have a data connection, false otherwise 
+	 * 
+	 * This is preferred to setSignalStrengthListener and blockOnLowSignal.
+	 * 
+	 * @see setSignalStrengthListener
+	 * @see blockOnLowSignal
+	 * */ 
+	public boolean haveDataConnection()
+	{
+		TelephonyManager telManager;
+		telManager = (TelephonyManager) 
+	    		m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
+	    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
+	    	isCurrentSignalStrengthHigh = true;
+	    else
+	    	isCurrentSignalStrengthHigh = false;
+	    return isCurrentSignalStrengthHigh;
 	}
 	
 	/** Block until we have strong signal
@@ -650,6 +674,8 @@ public class GtBSSLSocketFactoryWrapper {
 	 * establish a useful connection.
 	 * 
 	 * @return true when we do
+	 * @deprecated Prefer nonblocking
+	 * @see haveDataConnection
 	 */
 	public boolean blockOnLowSignal()
 	{
