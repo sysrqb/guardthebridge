@@ -92,7 +92,7 @@ public class GtBDbAdapter {
             + KEY_UPDATESTATUS + " text);";
     
     private static final String SAFE_DATABASE_UPDATEERR_CREATE =
-            "create table " + DATABASE_TABLE_PENDING + "( " + KEY_ROWID + 
+            "create table " + DATABASE_TABLE_UPDATEERR + "( " + KEY_ROWID + 
             " integer primary key autoincrement, " + KEY_PID + " integer, " 
             + KEY_UPDATEERR + " text);";
 
@@ -586,16 +586,55 @@ public class GtBDbAdapter {
      * otherwise return a -1 to indicate failure.
      * 
      * @param request The pending request
-     * @param body the body of the note
      * @return rowId or -1 if failed
      */
-    public long addPendingUpdate(byte[] request) {
+    public long addPendingUpdate(byte[] request)
+    {
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PATRON, request);
         initialValues.put(KEY_UPDATESTATUS, "pending");
 
         return mDb.insert(DATABASE_TABLE_PENDING, null, initialValues);
     }
+    
+    /**
+     * Remove pending updates from DB if they were successfully updated
+     * server-side.
+     */
+    public void removePendingUpdatesOnSuccessWithNoErrors()
+    {
+    	Request[] reqs = fetchAllRequests();
+    	for(int i = 0; i < reqs.length; ++i)
+    	{
+    		Patron.PatronList aPL = reqs[i].getPlPatronList();
+    		int pats = aPL.getPatronCount();
+    		for(int idx = 0; i < pats; ++i)
+    		{
+    			int pid  = aPL.getPatron(idx).getPid();
+    			/* If pid has no errors associated with it, then remove
+    			 * it from the list.
+    			 */
+    			if(pidHasError(pid))
+    					continue;
+    			else
+    			{
+    		    	ContentValues initialValues = new ContentValues();
+    		        initialValues.put(KEY_PID, pid);
+
+    		        mDb.delete(DATABASE_TABLE_UPDATEERR, KEY_PID + "=" + pid, null);
+    			}
+    		}
+    	}
+    }
+    
+    /**
+     * Remove pending updates from DB if they were successfully updated
+     * server-side.
+     */
+    public void removePendingUpdatesOnSuccess()
+    {
+    	mDb.delete(DATABASE_TABLE_UPDATEERR, KEY_UPDATESTATUS + "= pending", null);
+	}
     
     /**
      * Return a Cursor over the list of all pending requests in the table
@@ -639,7 +678,8 @@ public class GtBDbAdapter {
      * @param err The error
      * @return rowId or -1 if failed
      */
-    public long addUpdateError(int pid, String err) {
+    public long addUpdateError(int pid, String err)
+    {
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PID, pid);
         initialValues.put(KEY_UPDATESTATUS, err);
@@ -653,7 +693,8 @@ public class GtBDbAdapter {
      * @param pid The PID that generated the error
      * @return rowId or -1 if failed
      */
-    public boolean removeUpdateError(int pid) {
+    public boolean removeUpdateError(int pid)
+    {
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PID, pid);
 
@@ -697,5 +738,19 @@ public class GtBDbAdapter {
         }
         return new String[0];
     }
+	
+	public boolean pidHasError(int pid)
+	{
+		Log.v(TAG, "Does pid " + pid + " have an update error?");
+        Cursor mCursor =
+            mDb.query(true, DATABASE_TABLE_UPDATEERR, new String[] {KEY_PID},
+            		KEY_PID + "=" + pid, null,
+                    null, null, null, null);
+
+        if (mCursor.getCount() != 0)
+        	return true;
+        else
+        	return false;
+	}
 	
 }
