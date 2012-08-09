@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package edu.uconn.guarddogs.guardthebridge;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +51,6 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
-
 public class EditPatron extends Activity {
 	private final String TAG = "EP-GTBLOG";
 	private GtBDbAdapter mGDbHelper;
@@ -65,7 +63,8 @@ public class EditPatron extends Activity {
 	private CarsGtBDbAdapter mCDbHelper = null;
 	private String exceptionalMessage = "";
 	
-	protected void onCreate(Bundle savedInstanceState){
+	protected void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		self = this;
 		mGDbHelper = new GtBDbAdapter(this);
@@ -76,7 +75,8 @@ public class EditPatron extends Activity {
 		if (mpid == null)
 		{
 			Bundle bundle = getIntent().getExtras();
-			mpid = (bundle != null) ? bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
+			mpid = (bundle != null) ?
+					bundle.getLong(GtBDbAdapter.KEY_ROWID) : null;
 		}
 		fillPatronInfo();
 		mGDbHelper.close();
@@ -84,7 +84,8 @@ public class EditPatron extends Activity {
 		Button bCancel = (Button) findViewById(R.id.editpatron_cancel);
 		bCancel.setOnClickListener(new OnClickListener()
 		{
-			public void onClick(View v){
+			public void onClick(View v)
+			{
 				setResult(RESULT_OK);
 				finish();
 			}
@@ -93,7 +94,8 @@ public class EditPatron extends Activity {
 		Button bSave = (Button) findViewById(R.id.editpatron_save);
 		bSave.setOnClickListener(new OnClickListener()
 		{
-			public void onClick(View v){
+			public void onClick(View v)
+			{
 				self.savePatronInfo();
 				setResult(RESULT_OK);
 				finish();
@@ -102,14 +104,17 @@ public class EditPatron extends Activity {
 		
 		Spinner spStatus = (Spinner) findViewById(R.id.editpatron_setstatus);
 		ArrayAdapter<CharSequence> aAdapter = ArrayAdapter.createFromResource
-				(this, R.array.statusarray, android.R.layout.simple_spinner_item);
-		aAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+				(this, R.array.statusarray,
+						android.R.layout.simple_spinner_item);
+		aAdapter.setDropDownViewResource(
+				android.R.layout.simple_spinner_dropdown_item);
 		spStatus.setAdapter(aAdapter);
 		
 		Button bDone = (Button) findViewById(R.id.editpatron_done);
 		bDone.setOnClickListener(new OnClickListener()
 		{
-			public void onClick(View v){
+			public void onClick(View v)
+			{
 				self.donePatron();
 				setResult(RESULT_OK);
 				finish();
@@ -119,7 +124,8 @@ public class EditPatron extends Activity {
 		Button bCanceled = (Button) findViewById(R.id.editpatron_canceled);
 		bCanceled.setOnClickListener(new OnClickListener()
 		{
-			public void onClick(View v){
+			public void onClick(View v)
+			{
 				self.cancelPatron();
 				setResult(RESULT_OK);
 				finish();
@@ -170,7 +176,8 @@ public class EditPatron extends Activity {
 			{
 				mStatus = "waiting";
 			}
-			Spinner aStatSpinn = (Spinner)findViewById(R.id.editpatron_setstatus);
+			Spinner aStatSpinn =
+					(Spinner)findViewById(R.id.editpatron_setstatus);
 			aStatSpinn.setSelection(getStatusPositionID(mStatus));
 			aStatSpinn.invalidate();
 		}
@@ -186,37 +193,56 @@ public class EditPatron extends Activity {
 			
 			int npass = 0;
 			try {
-				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
+				npass = Integer.parseInt(
+						((EditText)findViewById(R.id.editpatron_passVal)).
+						/* Puts space before number */
+						getText().toString().trim());
 			} catch (NumberFormatException e)
 			{
-				Log.w(TAG, "Passangers is not an int: " + ((EditText)findViewById(R.id.editpatron_passVal)).getText().toString() + " : " + npass);
+				Log.w(TAG, "Passangers is not an int: " +
+					((EditText)findViewById(R.id.editpatron_passVal)).getText().toString() +
+					" : " + npass);
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setMessage("The Number of passagers you entered is invalid");
-				builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
+				builder.setPositiveButton("OK", new DialogInterface.OnClickListener()
+				{
+		           public void onClick(DialogInterface dialog, int id)
+		           {
 		           	    return;
 		           }
 		        });
 				builder.show();
 			}
 			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
-					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
-					setPhone(((EditText)findViewById(R.id.editpatron_phoneVal)).getText().toString()).
+					setName(((EditText)
+							findViewById(R.id.editpatron_nameVal)).
+								getText().toString()).
+					setPhone(((EditText)
+							findViewById(R.id.editpatron_phoneVal)).
+								getText().toString()).
 					setPassangers(npass).
-					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
-					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
-					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
-					setStatus(((Spinner)findViewById(R.id.editpatron_setstatus)).getSelectedItem().toString()).
+					setPickup(((EditText)
+							findViewById(R.id.editpatron_puVal)).
+								getText().toString()).
+					setDropoff(((EditText)
+							findViewById(R.id.editpatron_doVal)).
+								getText().toString()).
+					setTimeassigned(((EditText)
+							findViewById(R.id.editpatron_ttVal)).
+								getText().toString()).
+					setStatus(((Spinner)
+							findViewById(R.id.editpatron_setstatus)).
+								getSelectedItem().toString()).
 					build();
-			
-			long nRetval = mGDbHelper.setStatus(0, 
-					aPI.toByteArray(), 
-					aPI.getPid(), 
+
+			long nRetval = mGDbHelper.setStatus(0,
+					aPI.toByteArray(),
+					aPI.getPid(),
 					mStatus);
 			Log.v(TAG, "setStatus returned " + nRetval);
-			Log.v(TAG, "updatePatron returned " 
-					+ mGDbHelper.updatePatron(aPI.toByteArray(), 
-							aPI.getPid(), 
+			Log.v(TAG, "updatePatron returned "
+					+ mGDbHelper.updatePatron(aPI.toByteArray(),
+							aPI.getPid(),
 							getStatusOpenness(mStatus)));
 			mGDbHelper.close();
 			new UpdtTask().execute();
@@ -232,27 +258,46 @@ public class EditPatron extends Activity {
 			if (m_aPI == null)
 				m_aPI = mGDbHelper.fetchPatron(mpid);
 			int npass = 0;
-			try {
-				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
+			try
+			{
+				//Puts space before number
+				npass = Integer.parseInt(((EditText)
+						findViewById(R.id.editpatron_passVal)).
+							getText().toString().trim());
 			} catch (NumberFormatException e)
 			{
-				Log.w(TAG, "Passangers is not an int: " + ((EditText)findViewById(R.id.editpatron_passVal)).getText().toString() + " : " + npass);
+				Log.w(TAG, "Passangers is not an int: " +
+							((EditText)findViewById(R.id.editpatron_passVal)).
+							getText().toString() + " : " + npass);
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage("The Number of passagers you entered is invalid");
-				builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
+				builder.setMessage(
+						"The Number of passagers you entered is invalid");
+				builder.setPositiveButton("OK",
+						new DialogInterface.OnClickListener() {
+		           public void onClick(DialogInterface dialog, int id)
+		           {
 		           	    return;
 		           }
 		        });
 				builder.show();
 			}
 			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
-					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
-					setPhone(((EditText)findViewById(R.id.editpatron_phoneVal)).getText().toString()).
+					setName(((EditText)
+							findViewById(R.id.editpatron_nameVal)).
+								getText().toString()).
+					setPhone(((EditText)
+							findViewById(R.id.editpatron_phoneVal)).
+								getText().toString()).
 					setPassangers(npass).
-					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
-					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
-					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
+					setPickup(((EditText)
+							findViewById(R.id.editpatron_puVal)).
+								getText().toString()).
+					setDropoff(((EditText)
+							findViewById(R.id.editpatron_doVal)).
+								getText().toString()).
+					setTimeassigned(((EditText)
+							findViewById(R.id.editpatron_ttVal)).
+								getText().toString()).
 					setStatus("done").
 					build();
 			
@@ -260,7 +305,6 @@ public class EditPatron extends Activity {
 			mGDbHelper.setDone(mpid + 1, aPI.toByteArray(), aPI.getPid());
 			mGDbHelper.close();
 		}
-			
 	}
 	
 	private void cancelPatron()
@@ -273,26 +317,45 @@ public class EditPatron extends Activity {
 				m_aPI = mGDbHelper.fetchPatron(mpid);
 			int npass = 0;
 			try {
-				npass = Integer.parseInt(((EditText)findViewById(R.id.editpatron_passVal)).getText().toString().trim()); //Puts space before number
+				npass = Integer.parseInt(((EditText)
+						findViewById(R.id.editpatron_passVal)).
+							// Puts space before number
+							getText().toString().trim());
 			} catch (NumberFormatException e)
 			{
-				Log.w(TAG, "Passangers is not an int: " + ((EditText)findViewById(R.id.editpatron_passVal)).getText().toString() + " : " + npass);
+				Log.w(TAG, "Passangers is not an int: " +
+						((EditText)findViewById(R.id.editpatron_passVal)).
+							getText().toString() + " : " + npass);
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setMessage("The Number of passagers you entered is invalid");
-				builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-		           public void onClick(DialogInterface dialog, int id) {
+				builder.setMessage(
+						"The Number of passagers you entered is invalid");
+				builder.setPositiveButton("OK",
+						new DialogInterface.OnClickListener()
+				{
+		           public void onClick(DialogInterface dialog, int id)
+		           {
 		           	    return;
-		           }
+           	    }
 		        });
 				builder.show();
 			}
 			PatronInfo aPI = PatronInfo.newBuilder(m_aPI).
-					setName(((EditText)findViewById(R.id.editpatron_nameVal)).getText().toString()).
-					setPhone(((EditText)findViewById(R.id.editpatron_phoneVal)).getText().toString()).
+					setName(((EditText)
+							findViewById(R.id.editpatron_nameVal)).
+								getText().toString()).
+					setPhone(((EditText)
+							findViewById(R.id.editpatron_phoneVal)).
+								getText().toString()).
 					setPassangers(npass).
-					setPickup(((EditText)findViewById(R.id.editpatron_puVal)).getText().toString()).
-					setDropoff(((EditText)findViewById(R.id.editpatron_doVal)).getText().toString()).
-					setTimeassigned(((EditText)findViewById(R.id.editpatron_ttVal)).getText().toString()).
+					setPickup(((EditText)
+							findViewById(R.id.editpatron_puVal)).
+								getText().toString()).
+					setDropoff(((EditText)
+							findViewById(R.id.editpatron_doVal)).
+								getText().toString()).
+					setTimeassigned(((EditText)
+							findViewById(R.id.editpatron_ttVal)).
+								getText().toString()).
 					setStatus("cancelled").
 					build();
 			
@@ -305,8 +368,8 @@ public class EditPatron extends Activity {
 	
 	private int getStatusPositionID(String sStat)
 	{
-		/* Determined by position in/order of in 
-		 * stringarray in res/values/status.xml 
+		/* Determined by position in/order of in
+		 * stringarray in res/values/status.xml
 		 */
 		String sLowerStat = sStat.toLowerCase();
 		
@@ -321,8 +384,8 @@ public class EditPatron extends Activity {
 		return 0;
 	}
 	
-	public class StatusOnItemSelectedListener 
-			implements OnItemSelectedListener 
+	public class StatusOnItemSelectedListener
+			implements OnItemSelectedListener
 	{
 		public void onItemSelected(
 				AdapterView<?> parent, View view, int pos, long id)
@@ -336,7 +399,8 @@ public class EditPatron extends Activity {
 				aPI = PatronInfo.newBuilder(m_aPI).
 				setStatus("waiting").
 				build();
-				mGDbHelper.setStatus(0, aPI.toByteArray(), m_aPI.getPid(), "waiting");
+				mGDbHelper.setStatus(0, aPI.toByteArray(),
+						m_aPI.getPid(), "waiting");
 				mGDbHelper.close();
 				break;
 			case 1:
@@ -344,7 +408,8 @@ public class EditPatron extends Activity {
 				aPI = PatronInfo.newBuilder(m_aPI).
 				setStatus("riding").
 				build();
-				mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "riding");
+				mGDbHelper.setStatus(0, m_aPI.toByteArray(),
+						m_aPI.getPid(), "riding");
 				mGDbHelper.close();
 				break;
 			case 2:
@@ -352,7 +417,8 @@ public class EditPatron extends Activity {
 				aPI = PatronInfo.newBuilder(m_aPI).
 				setStatus("done").
 				build();
-				mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "done");
+				mGDbHelper.setStatus(0, m_aPI.toByteArray(),
+						m_aPI.getPid(), "done");
 				mGDbHelper.close();
 				break;
 			case 3:
@@ -360,7 +426,8 @@ public class EditPatron extends Activity {
 				aPI = PatronInfo.newBuilder(m_aPI).
 				setStatus("cancelled").
 				build();
-				mGDbHelper.setStatus(0, m_aPI.toByteArray(), m_aPI.getPid(), "cancelled");
+				mGDbHelper.setStatus(0, m_aPI.toByteArray(),
+						m_aPI.getPid(), "cancelled");
 				mGDbHelper.close();
 				break;
 			default:
@@ -377,7 +444,8 @@ public class EditPatron extends Activity {
 	private int getStatusOpenness(String isStatus)
 	{
 		String sStatusLower = isStatus.toLowerCase();
-		if (sStatusLower.compareTo("waiting") == 0 || sStatusLower.compareTo("riding") == 0)
+		if (sStatusLower.compareTo("waiting") == 0 ||
+				sStatusLower.compareTo("riding") == 0)
 			return 0;
 		else /*if (sStatusLower == "done" || sStatusLower == "cancelled") */
 			return 1;
@@ -389,6 +457,7 @@ public class EditPatron extends Activity {
     */
    private class UpdtTask extends AsyncTask<Void, Integer, Integer>
    {
+	   private SSLSocket aSock = null;
 	   static final int INCREMENT_PROGRESS = 20;
 	   protected void onPreExecute()
 	   {
@@ -403,8 +472,8 @@ public class EditPatron extends Activity {
 	   protected Integer doInBackground(Void... params)
 	   {
 		   return updateRide();
-	   }	 
-	   
+	   }
+
 	   protected void onProgressUpdate(Integer... progress)
 	   {
 		   int nTotalProgress = mProgBar.getProgress() + progress[0];
@@ -415,7 +484,8 @@ public class EditPatron extends Activity {
 			   mProgBar.setMessage("Establishing Connection with server...");
 			   break;
 		   case 40:
-			   mProgBar.setMessage("Connection Established, Sending request...");
+			   mProgBar.setMessage(
+					   "Connection Established, Sending request...");
 			   break;
 		   case 60:
 			   mProgBar.setMessage("Updating ride...");
@@ -429,242 +499,584 @@ public class EditPatron extends Activity {
 		   }		
 		   mProgBar.setProgress(nTotalProgress);
 	   }
-	   
+
 	   protected void onPostExecute(Integer res)
 	   {
-		   
 		  publishProgress(INCREMENT_PROGRESS);
-		  //mProgBar.dismiss();  // Can not call because ShowPatron while update is taking place
-		  // therefore dismissing progbar would be dismissing an object that doesn't exist.
-		  
+		  /* Can not call because ShowPatron while update is taking place
+		   * therefore dismissing progbar would be
+		   * dismissing an object that doesn't exist.
+		   */
+		  //mProgBar.dismiss();
 	   }
-	   
+
 	   public int updateRide()
 	   {
-		   GtBSSLSocketFactoryWrapper aSSLSF = null;
-		try {
-			aSSLSF = new GtBSSLSocketFactoryWrapper(self);
-		} catch (UnrecoverableKeyException e1) 
-		{
-		exceptionalMessage = "We ran into an unrecoverable key" +
-					" exception. Please notify the IT Officer. Sorry.";
-			cancel(true);
-		} catch (KeyStoreException e1) 
-		{
-			exceptionalMessage = "We couldn't find or open the KeyStore." +
-					"This is manditory to use this app so please notify " +
-					"the IT Officer. Sorry.";
-			cancel(true);
-		} catch (NoSuchAlgorithmException e1) 
-		{
-			exceptionalMessage = "This tablet doesn't support an " +
-					"algorithm we need to use. Please notify the " +
-					"IT Officer so it can be updated. Sorry.";
-			cancel(true);
-		} catch (GTBSSLSocketException e1) 
-		{
-			exceptionalMessage = e1.getMessage();
-			cancel(true);
-		}
-		if(isCancelled())
-			return 0;
+		   if(mGDbHelper == null)
+				mGDbHelper = new GtBDbAdapter(self);
+			mGDbHelper.open();
 
-		   mGDbHelper.open();
-		   mCDbHelper = new CarsGtBDbAdapter(self);
-		   mCDbHelper.open();
-		   //ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();  // We only want the server to send us new rides, so we send the set of pids we already have
-                   PatronInfo pbPat = mGDbHelper.fetchPatron(mpid);  // Get current patron info from DB 
-		   mGDbHelper.close();
-		   PatronList apbPL = PatronList.newBuilder().
-		                    addPatron(pbPat).
-				    build();
-		   Request aPBReq = Request.newBuilder().
-				   setNReqId(4).
-				   setSReqType("UPDT").
-				   setNCarId(mCDbHelper.getCar()).
-		   		   setPlPatronList(apbPL).
-		   		   build();
-		   mCDbHelper.close();
-		   publishProgress(INCREMENT_PROGRESS);  // <---- start from here
-		   Log.v(TAG, "Request type: " + aPBReq.getSReqType());
-		   Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
-		   Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
-		   Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " + 
-				   aPBReq.getSerializedSize());
-           /* Make sure the connection is established and valid */
-		   SSLSocket aSock = null;
-		try {
-			aSock = aSSLSF.createSSLSocket(self);
-			if (aSSLSF.getSession() == null)
+			Request aPBReq = null;
+			Response aPBRes = null;
+			GtBSSLSocketFactoryWrapper aSSLSF = null;
+			try
 			{
-			   aSSLSF = aSSLSF.getNewSSLSFW(self);
-			   aSock = aSSLSF.getSSLSocket();
+				aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+			} catch (UnrecoverableKeyException e1)
+			{
+				exceptionalMessage = "We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+				cancel(true);
+			} catch (KeyStoreException e1)
+			{
+				exceptionalMessage = "We couldn't find or open the KeyStore." +
+						"This is manditory to use this app so please notify " +
+						"the IT Officer. Sorry.";
+				cancel(true);
+			} catch (NoSuchAlgorithmException e1)
+			{
+				exceptionalMessage = "This tablet doesn't support an " +
+						"algorithm we need to use. Please notify the " +
+						"IT Officer so it can be updated. Sorry.";
+				cancel(true);
+			} catch (SignalException e1)
+			{
+				exceptionalMessage = "We appear to have low signal strength." +
+						" We can't connect right now, sorry.";
+				cancel(true);
+			} catch (GTBSSLSocketException e1)
+			{
+				exceptionalMessage = e1.getMessage();
+				cancel(true);
 			}
-		} catch (UnrecoverableKeyException e1) 
-		{
-		exceptionalMessage = "We ran into an unrecoverable key" +
-					" exception. Please notify the IT Officer. Sorry.";
-			cancel(true);
-		} catch (KeyStoreException e1) 
-		{
-			exceptionalMessage = "We couldn't find or open the KeyStore." +
-				"This is manditory to use this app so please notify " +
-					"the IT Officer. Sorry.";
-			cancel(true);
-		} catch (NoSuchAlgorithmException e1) 
-		{
-			exceptionalMessage = "This tablet doesn't support an " +
-					"algorithm we need to use. Please notify the " +
-					"IT Officer so it can be updated. Sorry.";
-			cancel(true);
-		} catch (GTBSSLSocketException e1) 
-		{
-			exceptionalMessage = e1.getMessage();
-			cancel(true);
-		}
-		if(isCancelled())
-			return 0;
+			/* Wait until we cancel */
+			while(isCancelled());
 
-		   publishProgress(INCREMENT_PROGRESS);
-		   try {
-			   OutputStream aOS = aSock.getOutputStream();
-			   try
-			   {
-				   aOS.write(aPBReq.getSerializedSize());
-			   } catch (SSLProtocolException ex)
-			   {
-				   Log.e(TAG, "SSLProtoclException Caught. On-write to Output Stream");
-					try {
+			final int INCREMENT_PROGRESS = 20;
+			Log.v(TAG, "Sending Patrons");
+
+			publishProgress(INCREMENT_PROGRESS);
+			try
+			{
+				aSock = aSSLSF.getSSLSocket();
+			} catch (GTBSSLSocketException e)
+			{
+				exceptionalMessage = "We could not connect to the server! :(" +
+						" Do we currently have 3G service?";
+				cancel(true);
+			}
+			while(isCancelled());
+
+			if(aSock.isClosed())
+			{
+				Log.w(TAG, "Socket IS closed!");
+				try
+				{
+					aSock = aSSLSF.createSSLSocket(self);
+				} catch (UnrecoverableKeyException e1)
+				{
+					exceptionalMessage =
+							"We ran into an unrecoverable key exception." +
+							" Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1)
+				{
+					exceptionalMessage =
+							"We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so" +
+							" please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1)
+				{
+					exceptionalMessage =
+							"This tablet doesn't support an algorithm we" +
+							" need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (SignalException e1)
+				{
+					exceptionalMessage =
+							"We appear to have low signal strength. " +
+							"We can't connect right now, sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1)
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}
+			}
+
+			/* Wait until we cancel */
+			while(isCancelled());
+
+			if (aSock.isOutputShutdown())
+			{
+				Log.w(TAG, "We just opened the socket but Output Stream" +
+						" is Shutdown!");
+				try
+				{
+					aSock.close();
+					aSock = aSSLSF.createSSLSocket(self);
+				} catch (UnrecoverableKeyException e1)
+				{
+					exceptionalMessage =
+							"We ran into an unrecoverable key exception." +
+							" Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1)
+				{
+					exceptionalMessage =
+							"We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so" +
+							" please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1)
+				{
+					exceptionalMessage =
+							"This tablet doesn't support an algorithm we" +
+							" need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (SignalException e1)
+				{
+					exceptionalMessage =
+							"We appear to have low signal strength. " +
+							"We can't connect right now, sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				} catch (IOException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}
+				/* Wait until we cancel */
+				while(isCancelled());
+			}
+
+			if (aSSLSF.getSession() != null)
+				Log.v(TAG, "Session is still valid");
+			else
+			{
+				Log.w(TAG, "Session is NO LONGER VALID");
+				try
+				{
+					aSSLSF = new GtBSSLSocketFactoryWrapper(self);
+				} catch (UnrecoverableKeyException e1)
+				{
+					exceptionalMessage =
+							"We ran into an unrecoverable key" +
+						" exception. Please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (KeyStoreException e1)
+				{
+					exceptionalMessage =
+							"We couldn't find or open the KeyStore." +
+							"This is manditory to use this app so" +
+							" please notify the IT Officer. Sorry.";
+					cancel(true);
+				} catch (NoSuchAlgorithmException e1)
+				{
+					exceptionalMessage = "This tablet doesn't support an " +
+							"algorithm we need to use. Please notify the " +
+							"IT Officer so it can be updated. Sorry.";
+					cancel(true);
+				} catch (SignalException e1)
+				{
+					exceptionalMessage = "We appear to have low signal" +
+							" strength. We can't connect right now, sorry.";
+					cancel(true);
+				} catch (GTBSSLSocketException e1)
+				{
+					exceptionalMessage = e1.getMessage();
+					cancel(true);
+				}
+
+				/* Wait until we cancel */
+				while(isCancelled());
+
+				try
+				{
+					aSock = aSSLSF.getSSLSocket();
+				} catch (GTBSSLSocketException e)
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}
+				/* Wait until we cancel */
+				while(isCancelled());
+			}
+
+			publishProgress(INCREMENT_PROGRESS);
+			try
+			{
+				OutputStream aOS = null;
+				try
+				{
+					aOS = aSock.getOutputStream();
+				} catch (IOException e)
+				{
+					try
+					{
+						aSock.close();
 						aSSLSF.forceReHandshake(self);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
-						try
-						{
-							aOS.write(aPBReq.getSerializedSize());
-						} catch (SSLProtocolException exc)
-						{
-							aSSLSF = aSSLSF.getNewSSLSFW(self);
-							aSock = aSSLSF.getSSLSocket();
-							aOS = aSock.getOutputStream();
-							aOS.write(aPBReq.getSerializedSize());
-						}
-					} catch (UnrecoverableKeyException e1) 
+					} catch (UnrecoverableKeyException e1)
 					{
-						exceptionalMessage = "We ran into an unrecoverable key" +
-								" exception. Please notify the IT Officer. Sorry.";
+						exceptionalMessage =
+								"We ran into an unrecoverable key" +
+							" exception. Please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (KeyStoreException e1) 
+					} catch (KeyStoreException e1)
 					{
-						exceptionalMessage = "We couldn't find or open the KeyStore." +
-								"This is manditory to use this app so please notify " +
-								"the IT Officer. Sorry.";
+						exceptionalMessage =
+								"We couldn't find or open the KeyStore." +
+								"This is manditory to use this " +
+								"app so please notify the IT Officer. Sorry.";
 						cancel(true);
-					} catch (NoSuchAlgorithmException e1) 
+					} catch (NoSuchAlgorithmException e1)
 					{
-						exceptionalMessage = "This tablet doesn't support an " +
-								"algorithm we need to use. Please notify the " +
+						exceptionalMessage =
+								"This tablet doesn't support an algorithm " +
+								"we need to use. Please notify the " +
 								"IT Officer so it can be updated. Sorry.";
 						cancel(true);
-					} catch (GTBSSLSocketException e1) 
+					} catch (SignalException e1)
+					{
+						exceptionalMessage =
+								"We appear to have low signal strength. " +
+								"We can't connect right now, sorry.";
+						cancel(true);
+					} catch (GTBSSLSocketException e1)
 					{
 						exceptionalMessage = e1.getMessage();
 						cancel(true);
 					}
-					if(isCancelled())
-						return 0;
+
+					/* Wait until we cancel */
+					while(isCancelled());
+				}
+				
+				mGDbHelper.open();
+				if(mCDbHelper == null)
+					mCDbHelper = new CarsGtBDbAdapter(self);
+				mCDbHelper.open();
+				/* We only want the server to send us new rides,
+				 * so we send the set of pids we already have
+				 */
+				//ArrayList<Integer> vRides = mGDbHelper.fetchAllPid();
+				
+				// Get current patron info from DB
+				PatronInfo pbPat = mGDbHelper.fetchPatron(mpid);
+				mGDbHelper.close();
+				PatronList apbPL = PatronList.newBuilder().
+						addPatron(pbPat).
+						build();
+				aPBReq = Request.newBuilder().
+						setNReqId(4).
+						setSReqType("UPDT").
+						setNCarId(mCDbHelper.getCar()).
+						setPlPatronList(apbPL).
+						build();
+				mCDbHelper.close();
+				
+				publishProgress(INCREMENT_PROGRESS);  // <---- start from here
+				Log.v(TAG, "Request ID: " + aPBReq.getNReqId());
+				Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
+				Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " +
+						aPBReq.getSerializedSize());
+				if(!aPBReq.isInitialized())
+				{
+					exceptionalMessage = "You did not enter all required " +
+					   		"information.";
+					cancel(true);
+					while(isCancelled());
+				}
+				if(aSock.isConnected())
+				{
+					try
+					{
+						aOS.write(aPBReq.getSerializedSize());
+					}catch (SSLProtocolException e)
+					{
+						Log.e(TAG, "SSLProtoclException Caught. On-write to" +
+								" Output Stream");
+						try
+						{
+							aSSLSF.forceReHandshake(self);
+						} catch (UnrecoverableKeyException e1)
+						{
+							exceptionalMessage =
+									"We ran into an unrecoverable key " +
+									"exception. " +
+									"Please notify the IT Officer. Sorry.";
+							cancel(true);
+						} catch (KeyStoreException e1)
+						{
+							exceptionalMessage =
+									"We couldn't find or open the KeyStore." +
+									"This is manditory to use this app so" +
+									" please notify the IT Officer. Sorry.";
+							cancel(true);
+						} catch (NoSuchAlgorithmException e1)
+						{
+							exceptionalMessage =
+									"This tablet doesn't support an " +
+									"algorithm we need to use. Please " +
+									"notify the IT Officer so it can " +
+									"be updated. Sorry.";
+							cancel(true);
+						} catch (SignalException e1)
+						{
+							exceptionalMessage =
+									"We appear to have low signal strength. " +
+									"We can't connect right now, sorry.";
+							cancel(true);
+						} catch (GTBSSLSocketException e1)
+						{
+							exceptionalMessage = e1.getMessage();
+							cancel(true);
+						}
 	
-			   }
-			   byte[] vbuf = aPBReq.toByteArray();
-			   aOS.write(vbuf);  // Send
-			   publishProgress(INCREMENT_PROGRESS);
-			   InputStream aIS = aSock.getInputStream();
-			   vbuf = new byte[9];
-			   aIS.read(vbuf);  // Receive
-			   /* Handle messages smaller than 9 bytes; Bufs aren't terminated, so removes trailing 0s */
-			   int nsize = (vbuf.length - 1);
-			   for (; nsize>0; nsize--)
-			   {
-				   if(vbuf[nsize] == 0)
-				   {
-					   continue;
-				   }
-				   break;
-			   }
-			   byte[] vbuf2 = new byte[nsize + 1];  // Copy the received buf into an array of the correct size so parsing is successful
-			   for(int i = 0; i != nsize + 1; i++)
-				   vbuf2[i] = vbuf[i];
-			   vbuf = vbuf2;
-			   Response apbRes = null;
-			   try 
-			   {
+						/* Wait until we cancel */
+						while(isCancelled());
+	
+						try
+						{
+							aSock = aSSLSF.getSSLSocket();
+						} catch (GTBSSLSocketException ex)
+						{
+							exceptionalMessage =
+									"We could not connect to the server! :(" +
+									" Do we currently have 3G service?";
+							cancel(true);							
+						}
+						aOS = aSock.getOutputStream();
+						try
+						{
+							aOS.write(aPBReq.getSerializedSize());
+						} catch (SSLProtocolException ex)
+						{
+							try
+							{
+								aSSLSF.loadStores();
+								aSSLSF.createConnection();
+
+								aSock = aSSLSF.getSSLSocket();
+								aOS = aSock.getOutputStream();
+								aOS.write(aPBReq.getSerializedSize());
+							} catch (UnrecoverableKeyException e1)
+							{
+								exceptionalMessage =
+										"We ran into an unrecoverable key" +
+									" exception. " +
+									"Please notify the IT Officer. Sorry.";
+								cancel(true);
+							} catch (KeyStoreException e1)
+							{
+								exceptionalMessage =
+										"We couldn't find or open the" +
+										" KeyStore. This is manditory to" +
+										" use this app so please notify" +
+										" the IT Officer. Sorry.";
+								cancel(true);
+							} catch (NoSuchAlgorithmException e1)
+							{
+								exceptionalMessage =
+										"This tablet doesn't support an " +
+										"algorithm we need to use. " +
+										"Please notify the IT Officer" +
+										" so it can be updated. Sorry.";
+								cancel(true);
+							} catch (SignalException e1)
+							{
+								exceptionalMessage =
+										"We appear to have low signal" +
+										" strength. We can't connect" +
+										" right now, sorry.";
+								cancel(true);
+							} catch (GTBSSLSocketException e1)
+							{
+								exceptionalMessage = e1.getMessage();
+								cancel(true);
+							}
+	
+							/* Wait until we cancel */
+							while(isCancelled());
+						}
+					}
+				}
+				else
+				{
+					exceptionalMessage =
+							"We could not connect to the server! :(" +
+							" Do we currently have 3G service?";
+					cancel(true);
+				}			
+				while(isCancelled());
+
+				publishProgress(INCREMENT_PROGRESS);
+				if(aSock.isConnected())
+					aPBReq.writeTo(aOS);
+				else
+				{
+					Log.v(TAG, "Server-side closed early. Watchdog effect?");
+					exceptionalMessage = "Our connection to the server was" +
+							"broken! :(" +	" Do we still have 3G service?";
+					cancel(true);
+					while(isCancelled());
+				}
+				
+				aOS.close();
+				InputStream aIS = aSock.getInputStream();
+				byte[] vbuf = new byte[9];
+				aIS.read(vbuf);  // Receive
+				/* Handle messages smaller than 9 bytes;
+				 * Bufs aren't terminated, so removes trailing 0s
+				 */
+				int nsize = (vbuf.length - 1);
+				for (; nsize>0; nsize--)
+				{
+					if(vbuf[nsize] == 0)
+					{
+						continue;
+					}
+					break;
+				}
+				/* Copy the received buf into an array of
+				 * the correct size so parsing is successful
+				 */
+				byte[] vbuf2 = new byte[nsize + 1];
+				for(int i = 0; i != nsize + 1; i++)
+					vbuf2[i] = vbuf[i];
+				vbuf = vbuf2;
+				try
+				{
 				   Response apbTmpSize = null;
 				   apbTmpSize = Response.parseFrom(vbuf);
 				   vbuf = new byte[apbTmpSize.getNRespId()];
-				   aIS.read(vbuf);
-				   apbRes = Response.parseFrom(vbuf);  // Still deciding what will be contained in the response
-				   publishProgress(INCREMENT_PROGRESS);
-				   
-				   Log.v(TAG, "Response Buffer:");
-				   Log.v(TAG, TextFormat.shortDebugString(apbRes));
-				   Log.v(TAG, "PatronList Buffer: ");
-				   Log.v(TAG, TextFormat.shortDebugString(
-						   apbRes.getPlPatronList()));
-                   /* I'd rather have the dispatchers handle merge conflicts
-				    * because it would be easier, but what should this return
-				    * on error/conflict to the client?
-				    *
-				    * Maybe we'll just have to return a message generated
-				    * by the server, on both failure and success. On merge
-				    * conflict, flag is set and message asks if he/she would
-				    * like to resolve the conflict
-				    */
-				   if ( apbRes.getNResAddCount() == 1 )
-				   {
-				     if ( apbRes.getNResAdd(0) == mpid )
-				     {
-				    	 mDialogMsg = apbRes.getSResAdd(0);
-				    	 self.runOnUiThread( new Runnable () {
-				    		 public void run() {
-				    			 String sErrorMessage = mDialogMsg;
-				    			 AlertDialog.Builder builder = new AlertDialog.Builder(self);
-				    			 builder.setMessage("Save returned error message:\n" + sErrorMessage + "\nCan/Would you like to resolve this?");
-				    			 builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-				    				 public void onClick(DialogInterface dialog, int id) {
-				    					 dialog.dismiss();
-				    					 new AlertDialog.Builder(self).
-						    			 setMessage("Sorry, we haven't gotten this far yet.\nHopefully you can resolve the problem :-/ ").
-						    			 setPositiveButton("Fiiiiiine", new DialogInterface.OnClickListener() {
-						    				 public void onClick(DialogInterface dialog, int id) {
-						    					 dialog.dismiss();
-						    					 
-						    				 }
-						    			 }).
-						    			 show();
-				    				 }
-				    			 });
-				    			 builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-									
-									@Override
-									public void onClick(DialogInterface dialog, int which) {
-										return;  // Do nothing
-									}
-								});
-				    			 builder.show();
-				    			 
-				    		 }
-				    	 });
-				     }
-				   }
-				   //addToDb(apbRes.getPlPatronList());  
-				   //Log.v(TAG, "Added to DB");
-				   
-				} catch (InvalidProtocolBufferException e) {
+
+					if(aSock.isConnected())
+					{
+						aIS.read(vbuf);
+						/* Still deciding what will be contained
+						 * in the response */
+						aPBRes = Response.parseFrom(vbuf);
+						publishProgress(INCREMENT_PROGRESS);
+						
+						Log.v(TAG, "Response Buffer:");
+						Log.v(TAG, TextFormat.shortDebugString(aPBRes));
+						Log.v(TAG, "PatronList Buffer: ");
+						Log.v(TAG, TextFormat.shortDebugString(
+								aPBRes.getPlPatronList()));
+						/* I'd rather have the dispatchers handle merge
+						 * conflicts because it would be easier,\
+						 * but what should this return
+						 * on error/conflict to the client?
+						 *
+						 * Maybe we'll just have to return a message
+						 * generated by the server, on both failure and
+						 * success. On merge conflict, flag is set an
+						 * message asks if he/she would
+						 * like to resolve the conflict
+						 */
+					}
+					else
+					{
+						exceptionalMessage =
+							"Our connection to the server was interrupted." +
+							" :( Try again soon.";
+						cancel(true);
+						while(isCancelled());
+					}
+					if ( aPBRes.getNResAddCount() == 1 )
+					{
+						if ( aPBRes.getNResAdd(0) == mpid )
+						{
+							mDialogMsg = aPBRes.getSResAdd(0);
+							self.runOnUiThread( new Runnable ()
+							{
+								
+								public void run()
+								{
+									String sErrorMessage = mDialogMsg;
+									AlertDialog.Builder builder =
+											new AlertDialog.Builder(self);
+									builder.setMessage(
+											"Save returned error message:\n"
+													+ sErrorMessage +
+											"\nCan/Would you like to " +
+											"resolve this?");
+									builder.setPositiveButton("Yes",
+											new DialogInterface.OnClickListener()
+									{
+										
+										public void onClick(
+												DialogInterface dialog, int id)
+										{
+											dialog.dismiss();
+											new AlertDialog.Builder(self).
+											setMessage(
+													"Sorry, we haven't" +
+													" gotten this far" +
+													" yet.\nHopefully you" +
+													" can resolve the" +
+													" problem :-/ ").
+											setPositiveButton(
+												"Fiiiiiine",
+												new DialogInterface.
+													OnClickListener()
+											{
+												
+											public void onClick(
+												DialogInterface dialog,
+												int id)
+											{
+												dialog.dismiss();
+											}
+											}).
+											show();
+										}
+									});
+									builder.setNegativeButton(
+											"No",
+											new DialogInterface.
+											OnClickListener()
+									{
+										
+										@Override
+										public void onClick(
+												DialogInterface dialog,
+												int which)
+										{
+											return;  // Do nothing
+										}
+									});
+									builder.show();
+								}
+							});
+						}
+					}
+					//addToDb(apbRes.getPlPatronList());
+					//Log.v(TAG, "Added to DB");
+					
+				} catch (InvalidProtocolBufferException e)
+				{
 					e.printStackTrace();
 					String tmp = "";
 					for(int i = 0; i<vbuf.length; i++)
 						tmp = tmp + vbuf[i] + " ";
-					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : " 
-						+ tmp);
+					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : "
+							+ tmp);
 					e.printStackTrace();
 				}
 		   }catch (IOException e)
@@ -678,22 +1090,26 @@ public class EditPatron extends Activity {
 		{
 			mProgBar.dismiss();
 			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
-			msgBox.setMessage(exceptionalMessage + "\n\n Would you like to try" +
-					" to send the update again? If you have no signal right now" +
+			msgBox.setMessage(exceptionalMessage +
+					"\n\n Would you like to try to send the update again?" +
+					" If you have no signal right now" +
 					" sending the update will not be successful. ");
-			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			msgBox.setPositiveButton("Yes",
+					new DialogInterface.OnClickListener()
 			{
 				public void onClick(DialogInterface dialog, int id)
 				{
 					mProgBar = new ProgressDialog(self);
 					mProgBar.setCancelable(true);
 					mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-					mProgBar.setMessage("Establishing Connection with server...");
+					mProgBar.setMessage(
+							"Establishing Connection with server...");
 					mProgBar.show();
 					updateRide();
 				}
 			}	);
-			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
+			msgBox.setNegativeButton("No",
+					new DialogInterface.OnClickListener()
 			{
 				public void onClick(DialogInterface dialog, int id)
 				{
