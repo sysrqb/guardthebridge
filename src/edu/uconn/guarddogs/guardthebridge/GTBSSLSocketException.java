@@ -8,5 +8,10 @@ public class GTBSSLSocketException extends Exception {
 		super();
 		m_msg = msg;
 	}
+	
+	public String getMessage()
+	{
+		return m_msg;
+	}
 
 }

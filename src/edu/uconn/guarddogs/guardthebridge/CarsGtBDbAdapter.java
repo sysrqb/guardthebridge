@@ -143,13 +143,19 @@ public class CarsGtBDbAdapter {
 
         Cursor curse = mDb.query(DATABASE_TABLE, new String[] {KEY_CARNUM}, KEY_ROWID + "= 1", null, null, null, null, null);
         curse.moveToFirst();
-       Log.v(TAG, "getCar: returned rows: " + curse.getCount() + " " + curse.getColumnCount());
-        return curse.getInt(0);
+        Log.v(TAG, "getCar: returned rows: " + curse.getCount() + " " + curse.getColumnCount());
+        if(curse.getCount() == 0)
+        	return -1;
+        else
+        	return curse.getInt(0);
     }
     
     public int getRowId(int carnum){
     	Cursor curse = mDb.query(true, DATABASE_TABLE, new String[] {KEY_ROWID}, KEY_CARNUM + "=" + carnum, null, null, null, null, null);
-    	return curse.getInt(0);
+    	if(curse.getCount() == 0)
+        	return -1;
+        else
+        	return curse.getInt(0);
     }
 
     /**

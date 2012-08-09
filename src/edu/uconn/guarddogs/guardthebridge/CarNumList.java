@@ -66,9 +66,20 @@ public class CarNumList extends ListActivity
 	{
 		super.onListItemClick(l, v, position, id);
 		//Position starts at 0, so add 1
+		int nNum = -1;
 		String sCarNum = (String)l.getItemAtPosition(position);
-		Log.v(TAG, "Index: " + m_aCDbHelper.setCar(position+1));
-		Log.v(TAG, "Car Number: " + position + "(or " + sCarNum + ")");
+		try
+		{
+			String aNum = sCarNum.substring(4);
+			nNum = Integer.parseInt(aNum);
+			Log.v(TAG, "Index: " + m_aCDbHelper.setCar(nNum));
+			Log.v(TAG, "Car Number: " + nNum);
+		} catch (NumberFormatException e)
+		{
+			Log.w(TAG, "Could not parse car number. Assuming we didn't" +
+					"receive an valid range from the server.");
+			m_aCDbHelper.setCar(-1);
+		}
 		m_aCDbHelper.close();
 		setResult(RESULT_OK);
 		finish();
