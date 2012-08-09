@@ -84,6 +84,14 @@ public class LogintoBridge extends ListActivity {
 
         });
 	}
+	
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+		if(mProgBar != null && mProgBar.isShowing())
+			mProgBar.cancel();
+	}
 
 	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
 	        super.onActivityResult(requestCode, resultCode, intent);
@@ -186,7 +194,8 @@ public class LogintoBridge extends ListActivity {
 			Request aPBReq = null;
 			Response aPBRes = null;
 			GtBSSLSocketFactoryWrapper aSSLSF = null;
-			try {
+			try
+			{
 				aSSLSF = new GtBSSLSocketFactoryWrapper(self);
 			} catch (UnrecoverableKeyException e1)
 			{
@@ -276,7 +285,8 @@ public class LogintoBridge extends ListActivity {
 				
 				try
 				{
-					aSock.close();
+					if(aSock != null)
+						aSock.close();
 					aSock = aSSLSF.createSSLSocket(self);
 				} catch (UnrecoverableKeyException e1)
 				{
@@ -387,7 +397,8 @@ public class LogintoBridge extends ListActivity {
 				{
 					try
 					{
-						aSock.close();
+						if(aSock != null)
+							aSock.close();
 						aSSLSF.forceReHandshake(self);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
@@ -586,7 +597,8 @@ public class LogintoBridge extends ListActivity {
 				byte[] vbuf = new byte[14];
 				aIS.read(vbuf);
 				//Server Side is already closed
-				aSock.close();
+				if(aSock != null)
+					aSock.close();
 
 				try
 				{
@@ -615,8 +627,10 @@ public class LogintoBridge extends ListActivity {
 
 		protected void onPostExecute(Integer res)
 		{
-			try {
-				aSock.close();
+			try
+			{
+				if(aSock != null)
+					aSock.close();
 			} catch (IOException e)
 			{
 			}
@@ -660,8 +674,10 @@ public class LogintoBridge extends ListActivity {
 
 		protected void onCancelled()
 		{
-			try {
-				aSock.close();
+			try 
+			{
+				if(aSock != null)
+					aSock.close();
 			} catch (IOException e)
 			{
 			}

@@ -62,6 +62,14 @@ public class CarNumList extends ListActivity
 	}
 	
 	@Override
+	protected void onPause()
+	{
+		super.onPause();
+		if(mProgBar != null && mProgBar.isShowing())
+			mProgBar.cancel();
+	}
+	
+	@Override
 	protected void onListItemClick(ListView l, View v, int position, long id)
 	{
 		super.onListItemClick(l, v, position, id);
@@ -111,7 +119,8 @@ public class CarNumList extends ListActivity
 			Request aPBReq = null;
 			Response aPBRes = null;
 			GtBSSLSocketFactoryWrapper aSSLSF = null;
-			try {
+			try
+			{
 				aSSLSF = new GtBSSLSocketFactoryWrapper(self);
 			} catch (UnrecoverableKeyException e1)
 			{
@@ -605,8 +614,10 @@ public class CarNumList extends ListActivity
 		
 		protected void onPostExecute(Integer res)
 		{
-			try {
-				aSock.close();
+			try
+			{
+				if(aSock != null)
+					aSock.close();
 			} catch (IOException e)
 			{
 			}
@@ -670,6 +681,13 @@ public class CarNumList extends ListActivity
 		
 		protected void onCancelled()
 		{
+			try
+			{
+				if(aSock != null)
+					aSock.close();
+			} catch (IOException e)
+			{
+			}
 			mProgBar.dismiss();
 			if(exceptionalMessage.compareTo("") != 0)
 			{

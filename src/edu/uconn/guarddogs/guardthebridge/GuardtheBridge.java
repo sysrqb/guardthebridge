@@ -514,6 +514,14 @@ public class GuardtheBridge extends FragmentActivity {
 		Intent i = new Intent(this, GTBLocationManager.class);
 		this.startService(i);
     }
+	
+	@Override
+	protected void onPause()
+	{
+		super.onPause();
+		if(mProgBar != null && mProgBar.isShowing())
+			mProgBar.cancel();
+	}
 
     public boolean onOptionItemSelected(MenuItem menu){
 		return super.onOptionsItemSelected(menu);
@@ -835,10 +843,11 @@ public class GuardtheBridge extends FragmentActivity {
 		  publishProgress(INCREMENT_PROGRESS);
 		  try
 		  {
-			  aSock.close();
-		  } catch (IOException e)
-		  {
-		  }
+				if(aSock != null)
+					aSock.close();
+			} catch (IOException e)
+			{
+			}
 		  mProgBar.dismiss();
 
 		  /* this, right here, updates the frag */
@@ -947,7 +956,8 @@ public class GuardtheBridge extends FragmentActivity {
 						" is Shutdown!");
 				try
 				{
-					aSock.close();
+					if(aSock != null)
+						aSock.close();
 					aSock = aSSLSF.createSSLSocket(sself);
 				} catch (UnrecoverableKeyException e1)
 				{
@@ -1058,7 +1068,8 @@ public class GuardtheBridge extends FragmentActivity {
 				{
 					try
 					{
-						aSock.close();
+						if(aSock != null)
+							aSock.close();
 						aSSLSF.forceReHandshake(sself);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
@@ -1444,7 +1455,8 @@ public class GuardtheBridge extends FragmentActivity {
 						" is Shutdown!");
 				try
 				{
-					aSock.close();
+					if(aSock != null)
+						aSock.close();
 					aSock = aSSLSF.createSSLSocket(sself);
 				} catch (UnrecoverableKeyException e1)
 				{
@@ -1555,7 +1567,8 @@ public class GuardtheBridge extends FragmentActivity {
 				{
 					try
 					{
-						aSock.close();
+						if(aSock != null)
+							aSock.close();
 						aSSLSF.forceReHandshake(sself);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
@@ -1811,7 +1824,6 @@ public class GuardtheBridge extends FragmentActivity {
 						tmp = tmp + vbuf[i] + " ";
 					Log.w(TAG, "Buffer Received: " + vbuf.length + " bytes : "
 						+ tmp);
-					e.printStackTrace();
 				}
 			} catch (IOException e)
 			{
@@ -1875,13 +1887,19 @@ public class GuardtheBridge extends FragmentActivity {
 		{
 			try
 			{
-				aSock.close();
+				if(aSock != null)
+					aSock.close();
 			} catch (IOException e)
 			{
 			}
-
+			
+			if(mGDbHelper == null)
+				mGDbHelper = new GtBDbAdapter(sself);
+			mGDbHelper.open();
 			/* Remove successful updates from pending list */
 			mGDbHelper.removePendingUpdatesOnSuccess();
+			mGDbHelper.close();
+			
 			/* this, right here, updates the frag */
 			mVp = (ViewPager)findViewById(R.id.ridelist_pageview);
 			m_GFPA = new GTBAdapter(getSupportFragmentManager());
@@ -2016,7 +2034,8 @@ public class GuardtheBridge extends FragmentActivity {
 						" is Shutdown!");
 				try
 				{
-					aSock.close();
+					if(aSock != null)
+						aSock.close();
 					aSock = aSSLSF.createSSLSocket(sself);
 				} catch (UnrecoverableKeyException e1)
 				{
@@ -2127,7 +2146,8 @@ public class GuardtheBridge extends FragmentActivity {
 				{
 					try
 					{
-						aSock.close();
+						if(aSock != null)
+							aSock.close();
 						aSSLSF.forceReHandshake(sself);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
@@ -2166,6 +2186,9 @@ public class GuardtheBridge extends FragmentActivity {
 					/* Wait until we cancel */
 					while(isCancelled());
 				}
+				if(mCDbHelper == null)
+					mCDbHelper = new CarsGtBDbAdapter(sself);
+				mCDbHelper.open();
 				Request.Builder aReqBuilder = Request.newBuilder().
 						setNReqId(4).
 						setSReqType("UPDT").
@@ -2173,6 +2196,7 @@ public class GuardtheBridge extends FragmentActivity {
 						setNParams(0, vReqs.length);
 				Patron.PatronList.Builder aPLBuild = Patron.PatronList.
 						newBuilder();
+				mCDbHelper.close();
 						
 				/* Combine all requests */
 				for(int idx = 0; idx < vReqs.length; ++idx)
@@ -2396,7 +2420,8 @@ public class GuardtheBridge extends FragmentActivity {
 		{
 			try
 			{
-				aSock.close();
+				if(aSock != null)
+					aSock.close();
 			} catch (IOException e)
 			{
 			}
