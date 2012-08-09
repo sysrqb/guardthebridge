@@ -158,6 +158,8 @@ public class LogintoBridge extends ListActivity {
 	private class AuthTask extends AsyncTask<Void, Integer, Integer>
 	{
 		static final int INCREMENT_PROGRESS = 20;
+		private SSLSocket aSock = null;
+		
 		protected void onPreExecute()
 		{
 			mProgBar = new ProgressDialog(self);
@@ -217,7 +219,6 @@ public class LogintoBridge extends ListActivity {
 			while(isCancelled());
 			
 			publishProgress(INCREMENT_PROGRESS);
-			SSLSocket aSock = null;
 			try
 			{
 				aSock = aSSLSF.getSSLSocket();
@@ -614,6 +615,11 @@ public class LogintoBridge extends ListActivity {
 
 		protected void onPostExecute(Integer res)
 		{
+			try {
+				aSock.close();
+			} catch (IOException e)
+			{
+			}
 			publishProgress(INCREMENT_PROGRESS);
 			if(res != 0)
 			{
@@ -654,39 +660,49 @@ public class LogintoBridge extends ListActivity {
 
 		protected void onCancelled()
 		{
+			try {
+				aSock.close();
+			} catch (IOException e)
+			{
+			}
 			mProgBar.dismiss();
-			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
-			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
-					" like to continue without a connection to the" +
-					" server? This will be must more annoying " +
-					"because you will be asked this question every time" +
-					" we need to connect to the server.");
-			msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
+			if(exceptionalMessage.compareTo("") != 0)
 			{
-				public void onClick(DialogInterface dialog, int id)
+				AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
+				msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
+						" like to continue without a connection to the" +
+						" server? This will be must more annoying " +
+						"because you will be asked this question every time" +
+						" we need to connect to the server.");
+				msgBox.setPositiveButton("Yes", new DialogInterface.OnClickListener()
 				{
-					mProgBar.dismiss();
-					Intent i = new Intent (self, GuardtheBridge.class);
-					startActivity(i);
-				}
-			}	);
-			msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
-			{
-				public void onClick(DialogInterface dialog, int id)
+					public void onClick(DialogInterface dialog, int id)
+					{
+						mProgBar.dismiss();
+						Intent i = new Intent (self, GuardtheBridge.class);
+						startActivity(i);
+					}
+				}	);
+				msgBox.setNegativeButton("No", new DialogInterface.OnClickListener()
 				{
-					new AlertDialog.Builder(self).
-						setMessage("Sorry for the inconvenience. " +
-								"GUARD the Bridge is now exiting.");
-					try
+					public void onClick(DialogInterface dialog, int id)
 					{
-						Thread.sleep(5000);
-					} catch (InterruptedException e)
-					{
+						new AlertDialog.Builder(self).
+							setMessage("Sorry for the inconvenience. " +
+									"GUARD the Bridge is now exiting.");
+						try
+						{
+							Thread.sleep(5000);
+						} catch (InterruptedException e)
+						{
+							finish();
+						}
 						finish();
 					}
-					finish();
-				}
-			}	);
+				}	);
+				msgBox.show();
+			}
+			exceptionalMessage = "";
 		}
 
 		/* TODO

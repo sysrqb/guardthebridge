@@ -87,6 +87,7 @@ public class CarNumList extends ListActivity
 	
 	private class CarsTask extends AsyncTask<Void, Integer, Integer>
 	{
+		private SSLSocket aSock = null;
 		
 		protected void onPreExecute()
 		{
@@ -146,7 +147,6 @@ public class CarNumList extends ListActivity
 			Log.v(TAG, "Getting Car");
 
 			publishProgress(INCREMENT_PROGRESS);
-			SSLSocket aSock = null;
 			try
 			{
 				aSock = aSSLSF.getSSLSocket();
@@ -204,7 +204,6 @@ public class CarNumList extends ListActivity
 			{
 				Log.w(TAG, "We just opened the socket but Output Stream" +
 						" is Shutdown!");
-				
 				try
 				{
 					aSock.close();
@@ -606,6 +605,11 @@ public class CarNumList extends ListActivity
 		
 		protected void onPostExecute(Integer res)
 		{
+			try {
+				aSock.close();
+			} catch (IOException e)
+			{
+			}
 			if(isCancelled() && res == null)
 			{
 				onCancelled();
@@ -667,51 +671,55 @@ public class CarNumList extends ListActivity
 		protected void onCancelled()
 		{
 			mProgBar.dismiss();
-			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
-			msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
-					" like to continue without a connection to the" +
-					" server? This will be much more annoying " +
-					"because you will be asked this question every time" +
-					" we need to connect to the server.");
-			msgBox.setPositiveButton("Yes",
-					new DialogInterface.OnClickListener()
+			if(exceptionalMessage.compareTo("") != 0)
 			{
-				public void onClick(DialogInterface dialog, int id)
+				AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
+				msgBox.setMessage(exceptionalMessage + "\n\n Would you" +
+						" like to continue without a connection to the" +
+						" server? This will be much more annoying " +
+						"because you will be asked this question every time" +
+						" we need to connect to the server.");
+				msgBox.setPositiveButton("Yes",
+						new DialogInterface.OnClickListener()
 				{
-					/* We're setting this to 8 for no actual reason.
-					 * Thus far, GUARD Dogs has not exceeded 8 vans
-					 * so this works for us.
-					 */
-					int num = 8;
-					String[] cars = new String[num];
-					for(int i = 0; i<num; i++){
-						cars[i] = "Car " + (i+1);
+					public void onClick(DialogInterface dialog, int id)
+					{
+						/* We're setting this to 8 for no actual reason.
+						 * Thus far, GUARD Dogs has not exceeded 8 vans
+						 * so this works for us.
+						 */
+						int num = 8;
+						String[] cars = new String[num];
+						for(int i = 0; i<num; i++){
+							cars[i] = "Car " + (i+1);
+						}
+						setListAdapter(new ArrayAdapter<String>(self,
+								R.layout.carnums, cars));
+						Log.v(TAG, "Failed connection Num of Cars: "
+								+ cars.length);
 					}
-					setListAdapter(new ArrayAdapter<String>(self,
-							R.layout.carnums, cars));
-					Log.v(TAG, "Failed connection Num of Cars: "
-							+ cars.length);
-				}
-			}	);
-			msgBox.setNegativeButton("No",
-					new DialogInterface.OnClickListener()
-			{
-				public void onClick(DialogInterface dialog, int id)
+				}	);
+				msgBox.setNegativeButton("No",
+						new DialogInterface.OnClickListener()
 				{
-					new AlertDialog.Builder(self).
-						setMessage("Sorry for the inconvenience. " +
-								"GUARD the Bridge is now exiting.");
-					try
+					public void onClick(DialogInterface dialog, int id)
 					{
-						Thread.sleep(5000);
-					} catch (InterruptedException e)
-					{
+						new AlertDialog.Builder(self).
+							setMessage("Sorry for the inconvenience. " +
+									"GUARD the Bridge is now exiting.");
+						try
+						{
+							Thread.sleep(5000);
+						} catch (InterruptedException e)
+						{
+							finish();
+						}
 						finish();
 					}
-					finish();
-				}
-			}	);
-			msgBox.show();
+				}	);
+				msgBox.show();
+			}
+			exceptionalMessage = "";
 		}
 	}
 }
