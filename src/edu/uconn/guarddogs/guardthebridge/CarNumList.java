@@ -67,6 +67,9 @@ public class CarNumList extends ListActivity
 		super.onPause();
 		if(mProgBar != null && mProgBar.isShowing())
 			mProgBar.cancel();
+		
+		if(m_aCDbHelper != null && !m_aCDbHelper.isClosed())
+			m_aCDbHelper.close();
 	}
 	
 	@Override

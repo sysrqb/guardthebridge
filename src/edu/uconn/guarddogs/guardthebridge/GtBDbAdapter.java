@@ -161,6 +161,12 @@ public class GtBDbAdapter {
     }
 
 
+    public boolean isClosed()
+    {
+    	return (nThreadSafe == 0);
+    }
+
+
     /**
      * Create a new patron index using the pid and info provided. If the patron is
      * successfully created return the new rowId for that note, otherwise return
@@ -621,7 +627,7 @@ public class GtBDbAdapter {
     		    	ContentValues initialValues = new ContentValues();
     		        initialValues.put(KEY_PID, pid);
 
-    		        mDb.delete(DATABASE_TABLE_UPDATEERR, KEY_PID + "=" + pid, null);
+    		        mDb.delete(DATABASE_TABLE_PENDING, KEY_PID + "=" + pid, null);
     			}
     		}
     	}
@@ -633,7 +639,7 @@ public class GtBDbAdapter {
      */
     public void removePendingUpdatesOnSuccess()
     {
-    	mDb.delete(DATABASE_TABLE_UPDATEERR, KEY_UPDATESTATUS + "= pending", null);
+    	mDb.delete(DATABASE_TABLE_PENDING, KEY_UPDATESTATUS + "='pending'", null);
 	}
     
     /**

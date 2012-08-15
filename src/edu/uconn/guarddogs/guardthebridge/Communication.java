@@ -33,7 +33,11 @@ public final class Communication {
     int getNParamsCount();
     int getNParams(int index);
     
-    // optional .PatronList plPatronList = 6;
+    // optional int32 nClient = 6;
+    boolean hasNClient();
+    int getNClient();
+    
+    // optional .PatronList plPatronList = 7;
     boolean hasPlPatronList();
     edu.uconn.guarddogs.guardthebridge.Patron.PatronList getPlPatronList();
     edu.uconn.guarddogs.guardthebridge.Patron.PatronListOrBuilder getPlPatronListOrBuilder();
@@ -148,11 +152,21 @@ public final class Communication {
     }
     private int nParamsMemoizedSerializedSize = -1;
     
-    // optional .PatronList plPatronList = 6;
-    public static final int PLPATRONLIST_FIELD_NUMBER = 6;
+    // optional int32 nClient = 6;
+    public static final int NCLIENT_FIELD_NUMBER = 6;
+    private int nClient_;
+    public boolean hasNClient() {
+      return ((bitField0_ & 0x00000008) == 0x00000008);
+    }
+    public int getNClient() {
+      return nClient_;
+    }
+    
+    // optional .PatronList plPatronList = 7;
+    public static final int PLPATRONLIST_FIELD_NUMBER = 7;
     private edu.uconn.guarddogs.guardthebridge.Patron.PatronList plPatronList_;
     public boolean hasPlPatronList() {
-      return ((bitField0_ & 0x00000008) == 0x00000008);
+      return ((bitField0_ & 0x00000010) == 0x00000010);
     }
     public edu.uconn.guarddogs.guardthebridge.Patron.PatronList getPlPatronList() {
       return plPatronList_;
@@ -167,6 +181,7 @@ public final class Communication {
       nCarId_ = 0;
       sParams_ = com.google.protobuf.LazyStringArrayList.EMPTY;
       nParams_ = java.util.Collections.emptyList();;
+      nClient_ = 0;
       plPatronList_ = edu.uconn.guarddogs.guardthebridge.Patron.PatronList.getDefaultInstance();
     }
     private byte memoizedIsInitialized = -1;
@@ -209,7 +224,10 @@ public final class Communication {
         output.writeInt32NoTag(nParams_.get(i));
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
-        output.writeMessage(6, plPatronList_);
+        output.writeInt32(6, nClient_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        output.writeMessage(7, plPatronList_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -257,7 +275,11 @@ public final class Communication {
       }
       if (((bitField0_ & 0x00000008) == 0x00000008)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeMessageSize(6, plPatronList_);
+          .computeInt32Size(6, nClient_);
+      }
+      if (((bitField0_ & 0x00000010) == 0x00000010)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(7, plPatronList_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -394,12 +416,14 @@ public final class Communication {
         bitField0_ = (bitField0_ & ~0x00000008);
         nParams_ = java.util.Collections.emptyList();;
         bitField0_ = (bitField0_ & ~0x00000010);
+        nClient_ = 0;
+        bitField0_ = (bitField0_ & ~0x00000020);
         if (plPatronListBuilder_ == null) {
           plPatronList_ = edu.uconn.guarddogs.guardthebridge.Patron.PatronList.getDefaultInstance();
         } else {
           plPatronListBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
       
@@ -464,6 +488,10 @@ public final class Communication {
         if (((from_bitField0_ & 0x00000020) == 0x00000020)) {
           to_bitField0_ |= 0x00000008;
         }
+        result.nClient_ = nClient_;
+        if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
+          to_bitField0_ |= 0x00000010;
+        }
         if (plPatronListBuilder_ == null) {
           result.plPatronList_ = plPatronList_;
         } else {
@@ -513,6 +541,9 @@ public final class Communication {
             nParams_.addAll(other.nParams_);
           }
           onChanged();
+        }
+        if (other.hasNClient()) {
+          setNClient(other.getNClient());
         }
         if (other.hasPlPatronList()) {
           mergePlPatronList(other.getPlPatronList());
@@ -590,7 +621,12 @@ public final class Communication {
               input.popLimit(limit);
               break;
             }
-            case 50: {
+            case 48: {
+              bitField0_ |= 0x00000020;
+              nClient_ = input.readInt32();
+              break;
+            }
+            case 58: {
               edu.uconn.guarddogs.guardthebridge.Patron.PatronList.Builder subBuilder = edu.uconn.guarddogs.guardthebridge.Patron.PatronList.newBuilder();
               if (hasPlPatronList()) {
                 subBuilder.mergeFrom(getPlPatronList());
@@ -784,12 +820,33 @@ public final class Communication {
         return this;
       }
       
-      // optional .PatronList plPatronList = 6;
+      // optional int32 nClient = 6;
+      private int nClient_ ;
+      public boolean hasNClient() {
+        return ((bitField0_ & 0x00000020) == 0x00000020);
+      }
+      public int getNClient() {
+        return nClient_;
+      }
+      public Builder setNClient(int value) {
+        bitField0_ |= 0x00000020;
+        nClient_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearNClient() {
+        bitField0_ = (bitField0_ & ~0x00000020);
+        nClient_ = 0;
+        onChanged();
+        return this;
+      }
+      
+      // optional .PatronList plPatronList = 7;
       private edu.uconn.guarddogs.guardthebridge.Patron.PatronList plPatronList_ = edu.uconn.guarddogs.guardthebridge.Patron.PatronList.getDefaultInstance();
       private com.google.protobuf.SingleFieldBuilder<
           edu.uconn.guarddogs.guardthebridge.Patron.PatronList, edu.uconn.guarddogs.guardthebridge.Patron.PatronList.Builder, edu.uconn.guarddogs.guardthebridge.Patron.PatronListOrBuilder> plPatronListBuilder_;
       public boolean hasPlPatronList() {
-        return ((bitField0_ & 0x00000020) == 0x00000020);
+        return ((bitField0_ & 0x00000040) == 0x00000040);
       }
       public edu.uconn.guarddogs.guardthebridge.Patron.PatronList getPlPatronList() {
         if (plPatronListBuilder_ == null) {
@@ -808,7 +865,7 @@ public final class Communication {
         } else {
           plPatronListBuilder_.setMessage(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         return this;
       }
       public Builder setPlPatronList(
@@ -819,12 +876,12 @@ public final class Communication {
         } else {
           plPatronListBuilder_.setMessage(builderForValue.build());
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         return this;
       }
       public Builder mergePlPatronList(edu.uconn.guarddogs.guardthebridge.Patron.PatronList value) {
         if (plPatronListBuilder_ == null) {
-          if (((bitField0_ & 0x00000020) == 0x00000020) &&
+          if (((bitField0_ & 0x00000040) == 0x00000040) &&
               plPatronList_ != edu.uconn.guarddogs.guardthebridge.Patron.PatronList.getDefaultInstance()) {
             plPatronList_ =
               edu.uconn.guarddogs.guardthebridge.Patron.PatronList.newBuilder(plPatronList_).mergeFrom(value).buildPartial();
@@ -835,7 +892,7 @@ public final class Communication {
         } else {
           plPatronListBuilder_.mergeFrom(value);
         }
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         return this;
       }
       public Builder clearPlPatronList() {
@@ -845,11 +902,11 @@ public final class Communication {
         } else {
           plPatronListBuilder_.clear();
         }
-        bitField0_ = (bitField0_ & ~0x00000020);
+        bitField0_ = (bitField0_ & ~0x00000040);
         return this;
       }
       public edu.uconn.guarddogs.guardthebridge.Patron.PatronList.Builder getPlPatronListBuilder() {
-        bitField0_ |= 0x00000020;
+        bitField0_ |= 0x00000040;
         onChanged();
         return getPlPatronListFieldBuilder().getBuilder();
       }
@@ -1724,15 +1781,15 @@ public final class Communication {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\023communication.proto\032\014patron.proto\"\204\001\n\007" +
+      "\n\023communication.proto\032\014patron.proto\"\225\001\n\007" +
       "Request\022\016\n\006nReqId\030\001 \002(\005\022\020\n\010sReqType\030\002 \002(" +
       "\t\022\016\n\006nCarId\030\003 \001(\005\022\017\n\007sParams\030\004 \003(\t\022\023\n\007nP" +
-      "arams\030\005 \003(\005B\002\020\001\022!\n\014plPatronList\030\006 \001(\0132\013." +
-      "PatronList\"w\n\010Response\022\017\n\007nRespId\030\001 \002(\005\022" +
-      "\021\n\tsResValue\030\002 \002(\t\022\017\n\007sResAdd\030\003 \003(\t\022\023\n\007n" +
-      "ResAdd\030\004 \003(\005B\002\020\001\022!\n\014plPatronList\030\005 \001(\0132\013" +
-      ".PatronListB$\n\"edu.uconn.guarddogs.guard" +
-      "thebridge"
+      "arams\030\005 \003(\005B\002\020\001\022\017\n\007nClient\030\006 \001(\005\022!\n\014plPa" +
+      "tronList\030\007 \001(\0132\013.PatronList\"w\n\010Response\022" +
+      "\017\n\007nRespId\030\001 \002(\005\022\021\n\tsResValue\030\002 \002(\t\022\017\n\007s" +
+      "ResAdd\030\003 \003(\t\022\023\n\007nResAdd\030\004 \003(\005B\002\020\001\022!\n\014plP" +
+      "atronList\030\005 \001(\0132\013.PatronListB$\n\"edu.ucon" +
+      "n.guarddogs.guardthebridge"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -1744,7 +1801,7 @@ public final class Communication {
           internal_static_Request_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_Request_descriptor,
-              new java.lang.String[] { "NReqId", "SReqType", "NCarId", "SParams", "NParams", "PlPatronList", },
+              new java.lang.String[] { "NReqId", "SReqType", "NCarId", "SParams", "NParams", "NClient", "PlPatronList", },
               edu.uconn.guarddogs.guardthebridge.Communication.Request.class,
               edu.uconn.guarddogs.guardthebridge.Communication.Request.Builder.class);
           internal_static_Response_descriptor =

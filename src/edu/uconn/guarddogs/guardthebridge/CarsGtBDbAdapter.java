@@ -116,6 +116,10 @@ public class CarsGtBDbAdapter {
     		Log.v(TAG,"Another thread is still using this, delaying close until all threads done!");
     }
 
+    public boolean isClosed()
+    {
+    	return (nThreadSafeCount == 0);
+    }
 
     /**
      * Create a new note using the title and body provided. If the note is
