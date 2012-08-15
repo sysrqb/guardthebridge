@@ -137,7 +137,11 @@ public class EditPatron extends Activity {
 	{
 		if (mpid != null)
 		{
+			if(mGDbHelper == null)
+				mGDbHelper = new GtBDbAdapter(this);
+			mGDbHelper.open();
 			m_aPI = mGDbHelper.fetchPatron(mpid);
+			mGDbHelper.close();
 			if (m_aPI == null)
 				return;
 			EditText evName = null;
@@ -187,6 +191,8 @@ public class EditPatron extends Activity {
 	{
 		if (mpid != null)
 		{
+			if(mGDbHelper == null)
+				mGDbHelper = new GtBDbAdapter(this);
 			mGDbHelper.open();
 			if (m_aPI == null)
 				m_aPI = mGDbHelper.fetchPatron(mpid);
@@ -254,6 +260,8 @@ public class EditPatron extends Activity {
 
 		if (mpid != null)
 		{
+			if(mGDbHelper == null)
+				mGDbHelper = new GtBDbAdapter(this);
 			mGDbHelper.open();
 			if (m_aPI == null)
 				m_aPI = mGDbHelper.fetchPatron(mpid);
@@ -312,6 +320,8 @@ public class EditPatron extends Activity {
 
 		if (mpid != null)
 		{
+			if(mGDbHelper == null)
+				mGDbHelper = new GtBDbAdapter(this);
 			mGDbHelper.open();
 			if (m_aPI == null)
 				m_aPI = mGDbHelper.fetchPatron(mpid);
@@ -390,6 +400,8 @@ public class EditPatron extends Activity {
 		public void onItemSelected(
 				AdapterView<?> parent, View view, int pos, long id)
 		{
+			if(mGDbHelper == null)
+				mGDbHelper = new GtBDbAdapter(self);
 			PatronInfo aPI = null;
 			mGDbHelper.open();
 			switch (pos)
@@ -502,7 +514,8 @@ public class EditPatron extends Activity {
 
 	   protected void onPostExecute(Integer res)
 	   {
-		  publishProgress(INCREMENT_PROGRESS);
+		   publishProgress(INCREMENT_PROGRESS);
+			mGDbHelper.close();
 		  /* Can not call because ShowPatron while update is taking place
 		   * therefore dismissing progbar would be
 		   * dismissing an object that doesn't exist.
@@ -615,7 +628,8 @@ public class EditPatron extends Activity {
 						" is Shutdown!");
 				try
 				{
-					aSock.close();
+					if(aSock != null)
+						aSock.close();
 					aSock = aSSLSF.createSSLSocket(self);
 				} catch (UnrecoverableKeyException e1)
 				{
@@ -726,7 +740,8 @@ public class EditPatron extends Activity {
 				{
 					try
 					{
-						aSock.close();
+						if(aSock != null)
+							aSock.close();
 						aSSLSF.forceReHandshake(self);
 						aSock = aSSLSF.getSSLSocket();
 						aOS = aSock.getOutputStream();
@@ -766,7 +781,6 @@ public class EditPatron extends Activity {
 					while(isCancelled());
 				}
 				
-				mGDbHelper.open();
 				if(mCDbHelper == null)
 					mCDbHelper = new CarsGtBDbAdapter(self);
 				mCDbHelper.open();
@@ -1089,6 +1103,7 @@ public class EditPatron extends Activity {
 		protected void onCancelled()
 		{
 			mProgBar.dismiss();
+			mGDbHelper.close();
 			AlertDialog.Builder msgBox = new AlertDialog.Builder(self);
 			msgBox.setMessage(exceptionalMessage +
 					"\n\n Would you like to try to send the update again?" +
