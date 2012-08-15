@@ -41,8 +41,12 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import android.content.Context;
 import android.content.res.Resources.NotFoundException;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Looper;
-import android.telephony.*;
+import android.telephony.PhoneStateListener;
+import android.telephony.SignalStrength;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
 public class GtBSSLSocketFactoryWrapper {
@@ -86,8 +90,6 @@ public class GtBSSLSocketFactoryWrapper {
 	{
 
 		m_ctx = i_aCtx;
-		if(!isCurrentSignalStrengthHigh)
-			setSignalStrengthListener();
 		
 		/* We currently have an open socket connection, use it */
 		if(m_sslSocket != null && successfullyEstablishedConn)
@@ -697,13 +699,28 @@ public class GtBSSLSocketFactoryWrapper {
 	 */
 	public boolean haveDataConnection()
 	{
-		TelephonyManager telManager;
-		telManager = (TelephonyManager)
-	    		m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
-	    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
-	    	isCurrentSignalStrengthHigh = true;
-	    else
-	    	isCurrentSignalStrengthHigh = false;
+		boolean usetelManager = false;
+		if(usetelManager)
+		{
+			TelephonyManager telManager;
+			telManager = (TelephonyManager)
+		    		m_ctx.getSystemService(Context.TELEPHONY_SERVICE);
+		    if(telManager.getDataState() == TelephonyManager.DATA_CONNECTED)
+		    	isCurrentSignalStrengthHigh = true;
+		    else
+		    	isCurrentSignalStrengthHigh = false;
+		}
+		else
+		{
+			ConnectivityManager conManager = 
+					(ConnectivityManager) m_ctx.getSystemService(Context.CONNECTIVITY_SERVICE);
+			NetworkInfo netinfo = conManager.getActiveNetworkInfo();
+			if(netinfo != null && netinfo.isConnected())
+				isCurrentSignalStrengthHigh = true;
+			else
+				isCurrentSignalStrengthHigh = false;
+		}
+		    
 	    return isCurrentSignalStrengthHigh;
 	}
 	
