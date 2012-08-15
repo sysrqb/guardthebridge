@@ -22,6 +22,7 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -368,59 +369,82 @@ public class GtBSSLSocketFactoryWrapper {
 				+ aSS.getLocalPort());
 		Log.v(TAG, "Connection Established. Handshaking...");
 		aSS.setUseClientMode(true);
-		try {
+		try
+		{
+			/* Set timeout to 5 seconds */
+			aSS.setSoTimeout(5000);
+		} catch (SocketException e2)
+		{
+			Log.w(TAG, "Socket Thrown on handshake " +
+					"(mostlikely on handshake): " + e2.getMessage());
+			try
+			{
+				aSS.close();
+			} catch (IOException e)
+			{
+			}
+			throw new GTBSSLSocketException(
+					"We couldn't make a connection.");
+		}
+		try
+		{
 			aSS.startHandshake();
 			successfullyEstablishedConn = true;
 			/* Resume sessions from now on */
-			aSS.setEnableSessionCreation(false);
+			//aSS.setEnableSessionCreation(false);
 		} catch (IOException e)
 		{
-			Log.w(TAG, "Handshake Failed");
 			successfullyEstablishedConn = false;
-			try {
-				aSS.startHandshake();
-				successfullyEstablishedConn = true;
-				aSS.setEnableSessionCreation(false);
-			} catch (IOException ex)
+			Log.w(TAG, "Handshake Failed. Failed to establish connection!");
+			//TODO
+			/*  Actually we should research this to make sure it's actually necessary
+			 * 
+			 */
+			 /* We need to back off and retry after some period of time!
+			  * 
+			  */
+			/*
+			 * m_sslSocket = null;
+			 * new GtBSSLSocketFactoryWrapper(i_aCtx);
+			 */
+			/*
+			for(int i = 0; i<3; i++)
 			{
-				Log.w(TAG, "Failed to establish connection!");
-				successfullyEstablishedConn = false;
-				//TODO
-				// We need to back off and retry after some period of time!
-				/*
-				 * m_sslSocket = null;
-				 * new GtBSSLSocketFactoryWrapper(i_aCtx);
-				 */
-				for(int i = 0; i<3; i++)
+				try
 				{
 					try
 					{
-						try
-						{
-							Thread.sleep(25000);
-						} catch (InterruptedException e1)
-						{
-							aSS.startHandshake();
-							successfullyEstablishedConn = true;
-							aSS.setEnableSessionCreation(false);
-						}
-						if(!aSS.getEnableSessionCreation())
-						{
-							aSS.startHandshake();
-							successfullyEstablishedConn = true;
-							aSS.setEnableSessionCreation(false);
-						}
-					} catch (IOException ex2)
+						Thread.sleep(25000);
+					} catch (InterruptedException e1)
 					{
-						successfullyEstablishedConn = false;
-						continue;
+						aSS.startHandshake();
+						successfullyEstablishedConn = true;
+						aSS.setEnableSessionCreation(false);
 					}
-					break;
+					if(!aSS.getEnableSessionCreation())
+					{
+						aSS.startHandshake();
+						successfullyEstablishedConn = true;
+						aSS.setEnableSessionCreation(false);
+					}
+				} catch (IOException ex2)
+				{
+					successfullyEstablishedConn = false;
+					continue;
 				}
+				break;
 			}
+			*/
 		}
 		if(successfullyEstablishedConn)
+		{
 			m_sslSocket = aSS;
+			Log.v(TAG, "Successfully established Connection");
+		}
+		else
+			throw new GTBSSLSocketException(
+					"We could not establish a secure connection with the" +
+					" server.");
 	}
 	
 	/**
