@@ -4,7 +4,9 @@
 	<string name="targetvers">8</string>
 	<string name="back">Back</string>
     <string name="directions">Please Follow the Directions Below.</string>
-    <string name="netidtext">Please input your NetID:</string>
+    <string name="netidtextD">Please input the Driver\'s NetID:</string>
+    <string name="netidtextR">Please input the Ride-Along\'s NetID:</string>
+    <string name="carseatstext">Please input the number of seats in the car:</string>
     <string name="authtext">Please input tonight\'s code:</string>
     <string name="carnum">Please CLICK to select your car.</string>
     <string name="login">Login</string>
