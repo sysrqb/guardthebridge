@@ -730,21 +730,33 @@ public class LogintoBridge extends ListActivity {
 				break;
 			case -3:
 			case -4:
+			case -5:
+				if(exceptionalMessage.compareTo("") != 0)
+					getDialog(exceptionalMessage);
+				else
+					getDialog("We don't know what went wrong. Please make" +
+							" sure all of the fields are fill in correctly" +
+							". Thanks!");
+				break;
 			default:
-				getDialog("I'm sorry, but an unknown error occurred. " +
-						 "Please call dispatch/the supervisor if this persists.");
+				getDialog("I'm sorry, but an unknown error occurred. "
+						+ "Please call dispatch/the supervisor if this persists.");
 				break;
 			}
 		}
 
-		private void getDialog(String msg){
+		private void getDialog(String msg)
+		{
 			AlertDialog.Builder builder = new AlertDialog.Builder(self);
 			builder.setMessage(msg);
-			builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int id) {
-					return;
-				}
-			});
+			builder.setPositiveButton("OK",
+					new DialogInterface.OnClickListener()
+			{
+						public void onClick(DialogInterface dialog, int id)
+						{
+							return;
+						}
+					});
 			builder.show();
 		}
 	}
