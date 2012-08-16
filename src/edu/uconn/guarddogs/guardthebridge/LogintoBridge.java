@@ -16,7 +16,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 package edu.uconn.guarddogs.guardthebridge;
 
 import java.io.IOException;
@@ -55,121 +54,150 @@ public class LogintoBridge extends ListActivity {
 	private EditText mCarSeats;
 	private String mCarNum;
 	private CarsGtBDbAdapter mDbHelper;
-	private static final int CarNum_SELECT=0;
+	private static final int CarNum_SELECT = 0;
 	private LogintoBridge self;
 	private ProgressDialog mProgBar = null;
 	private String exceptionalMessage = "";
-	
 
 	@Override
-	protected void onCreate(Bundle savedInstanceState) {
+	protected void onCreate(Bundle savedInstanceState)
+	{
 		super.onCreate(savedInstanceState);
 		this.self = this;
-		
-		//Re-establish connections to databases
+
+		// Re-establish connections to databases
 		mDbHelper = new CarsGtBDbAdapter(this);
 
-        setContentView(R.layout.cars);
-        setTitle(R.string.app_name);
+		setContentView(R.layout.cars);
+		setTitle(R.string.app_name);
 
-        TextView carnumtext = (TextView) findViewById(R.id.carnum);
-        carnumtext.setClickable(true);//Sets the text to be clickable
+		TextView carnumtext = (TextView) findViewById(R.id.carnum);
+		carnumtext.setClickable(true);// Sets the text to be clickable
 
-        carnumtext.setOnClickListener(new View.OnClickListener() {
+		carnumtext.setOnClickListener(new View.OnClickListener()
+		{
 
-            public void onClick(View view) {
-            	Intent i = new Intent(self, CarNumList.class);
-            	startActivityForResult(i, CarNum_SELECT);
-            }
+			public void onClick(View view)
+			{
+				Intent i = new Intent(self, CarNumList.class);
+				startActivityForResult(i, CarNum_SELECT);
+			}
 
-        });
+		});
 	}
-	
+
 	@Override
 	protected void onPause()
 	{
 		super.onPause();
-		if(mProgBar != null && mProgBar.isShowing())
+		if (mProgBar != null && mProgBar.isShowing())
 			mProgBar.cancel();
+
+		if (mDbHelper != null && !mDbHelper.isClosed())
+			mDbHelper.close();
 	}
 
-	protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
-	        super.onActivityResult(requestCode, resultCode, intent);
-	        Log.v(TAG, "On Return");
+	protected void onActivityResult(int requestCode, int resultCode,
+			Intent intent)
+	{
+		super.onActivityResult(requestCode, resultCode, intent);
+		Log.v(TAG, "On Return");
 
-	        mDbHelper.open();
-	        int nCarNum = mDbHelper.getCar();
-	        mCarNum = Integer.toString(nCarNum);
-	        mDbHelper.close();
-	        /* We want mCarNum to be either negative or to store another
-	         * value in the Db if we failed to retrieve the number of
-	         * cars. We want this Activity to return to its initial
-	         * state if we fail and to proceed to the login layout if
-	         * we're successful.
-	         */
-	        if(nCarNum > 0)
-	        {
-		        Log.v(TAG, "Ret Car Number: " + mCarNum);
-		        setContentView(R.layout.main);
-		        setTitle(R.string.app_name);
-	
-		        TextView carnumtext = (TextView) findViewById(R.id.carnum);
-		        carnumtext.setClickable(true);//Sets the text to be clickable
-	
-		        mAuthText = (EditText) findViewById(R.id.authkey);
-		        mNetIdDText = (EditText) findViewById(R.id.netidD);
-		        mNetIdRText = (EditText) findViewById(R.id.netidR);
-		        mCarSeats = (EditText) findViewById(R.id.carseats);
-	
-		        Button loginButton = (Button) findViewById(R.id.login);
-	
-		        loginButton.setOnClickListener(new View.OnClickListener()
-		        {
-	
-		            public void onClick(View view) {
-		            	new AuthTask().execute();
-		            }
-	
-		        });
-		        TextView showcarnum = (TextView)findViewById(R.id.showcarnum);
-		        showcarnum.setText("You Selected Car Number: " + mCarNum);
-	
-		        carnumtext.setOnClickListener(new View.OnClickListener()
-		        {
-	
-		            public void onClick(View view) {
-		            	Intent i = new Intent(self, CarNumList.class);
-		            	startActivityForResult(i, CarNum_SELECT);
-		            }
-	
-		        });
-	        }
-	        else
-	        {
-	        	setContentView(R.layout.cars);
-	            setTitle(R.string.app_name);
+		mDbHelper.open();
+		int nCarNum = mDbHelper.getCar();
+		mCarNum = Integer.toString(nCarNum);
+		mDbHelper.close();
+		/*
+		 * We want mCarNum to be either negative or to store another value in
+		 * the Db if we failed to retrieve the number of cars. We want this
+		 * Activity to return to its initial state if we fail and to proceed to
+		 * the login layout if we're successful.
+		 */
+		if (nCarNum > 0)
+		{
+			Log.v(TAG, "Ret Car Number: " + mCarNum);
+			setContentView(R.layout.main);
+			setTitle(R.string.app_name);
 
-	            TextView carnumtext = (TextView) findViewById(R.id.carnum);
-	            carnumtext.setClickable(true);//Sets the text to be clickable
+			TextView carnumtext = (TextView) findViewById(R.id.carnum);
+			carnumtext.setClickable(true);// Sets the text to be clickable
 
-	            carnumtext.setOnClickListener(new View.OnClickListener() {
+			mAuthText = (EditText) findViewById(R.id.authkey);
+			mNetIdDText = (EditText) findViewById(R.id.netidD);
+			mNetIdRText = (EditText) findViewById(R.id.netidR);
+			mCarSeats = (EditText) findViewById(R.id.carseats);
 
-	                public void onClick(View view) {
-	                	Intent i = new Intent(self, CarNumList.class);
-	                	startActivityForResult(i, CarNum_SELECT);
-	                }
+			Button loginButton = (Button) findViewById(R.id.login);
 
-	            });
-	        }
-	    }
+			loginButton.setOnClickListener(new View.OnClickListener()
+			{
+
+				public void onClick(View view)
+				{
+					Log.v(TAG, "CarSeats: '" + mCarSeats.getText().toString()
+							+ "' Regex match: "
+							+ mCarSeats.getText().toString().matches("[0-9]"));
+					if (mCarSeats.getText().toString().matches("[0-9]"))
+						new AuthTask().execute();
+					else {
+						AlertDialog.Builder msgBox = new AlertDialog.Builder(
+								self);
+						msgBox.setMessage("Please make sure you enter"
+								+ " the number of seats in your car."
+								+ " Thank you!");
+						msgBox.setPositiveButton("Ok",
+								new DialogInterface.OnClickListener()
+						{
+									public void onClick(DialogInterface dialog,
+											int id) 
+									{
+									}
+								});
+						msgBox.show();
+					}
+				}
+
+			});
+			TextView showcarnum = (TextView) findViewById(R.id.showcarnum);
+			showcarnum.setText("You Selected Car Number: " + mCarNum);
+
+			carnumtext.setOnClickListener(new View.OnClickListener()
+			{
+
+				public void onClick(View view)
+				{
+					Intent i = new Intent(self, CarNumList.class);
+					startActivityForResult(i, CarNum_SELECT);
+				}
+
+			});
+		} else
+		{
+			setContentView(R.layout.cars);
+			setTitle(R.string.app_name);
+
+			TextView carnumtext = (TextView) findViewById(R.id.carnum);
+			carnumtext.setClickable(true);// Sets the text to be clickable
+
+			carnumtext.setOnClickListener(new View.OnClickListener()
+			{
+
+				public void onClick(View view)
+				{
+					Intent i = new Intent(self, CarNumList.class);
+					startActivityForResult(i, CarNum_SELECT);
+				}
+
+			});
+		}
+	}
 
 	private class AuthTask extends AsyncTask<Void, Integer, Integer>
 	{
 		static final int INCREMENT_PROGRESS = 20;
 		private SSLSocket aSock = null;
-		
-		protected void onPreExecute()
-		{
+
+		protected void onPreExecute() {
 			mProgBar = new ProgressDialog(self);
 			mProgBar.setCancelable(true);
 			mProgBar.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
