@@ -34,6 +34,7 @@ public class GTBLocationManager extends Service {
 	private double nLat =0, nLong = 0, nSpeed = 0, nHeading = 0, nAccur = 0, nAlt = 0;
 	private GTBLocationManager self = null;
 	private CarsGtBDbAdapter mCDbHelper = null;
+	private ArrayList<List<NameValuePair>> queue = null;
 	
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) 
@@ -80,6 +81,7 @@ public class GTBLocationManager extends Service {
 	public void onCreate() {
 		self = this;
 		mCDbHelper = new CarsGtBDbAdapter(this);
+		queue = new ArrayList<List<NameValuePair>>();
 	}
 	
 	private void backgroundIt()
@@ -171,35 +173,65 @@ public class GTBLocationManager extends Service {
 	        nameValuePairs.add(new BasicNameValuePair("accuracy", Double.toString(nAccur)));
 	        nameValuePairs.add(new BasicNameValuePair("altitude", Double.toString(nAlt)));
 	        
-	        
-	        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-
-	        // Execute HTTP Post Request
-	        HttpResponse aRespGPS = httpclient.execute(httppost);
-	        //Header aHdrGPS;
-	        
-	        HttpEntity aEntityGPS = aRespGPS.getEntity();
-	        
-	        DataInputStream aBufInStr = new DataInputStream(aEntityGPS.getContent());
-	        String sContent = "";
-	        int nChar = 0;
-	        while ((nChar = aBufInStr.read()) != -1)
+	        GtBSSLSocketFactoryWrapper sslConn = new GtBSSLSocketFactoryWrapper();
+	        sslConn.setContext(this);
+	        if(!sslConn.haveDataConnection())
+	        	queue.add(nameValuePairs);
+	        else
 	        {
-	        	sContent += (char)nChar;
-	        }
-	        
-	        Log.v(TAG, "GPS POST response: " + sContent);
-	        /*String sHeaders = "";
-	        for(HeaderIterator ahdrIt = aRespGPS.headerIterator();ahdrIt.hasNext(); ahdrIt.next())
-	        {
-	        	if (ahdrIt.hasNext())
+	        	if(queue.size() > 0)
 	        	{
-	        		aHdrGPS = ahdrIt.nextHeader();
-	        		sHeaders += aHdrGPS.getValue() + " :: ";
+	        		while(!queue.isEmpty())
+	        		{
+		        		httppost.setEntity(new UrlEncodedFormEntity(queue.get(0)));
+		        		
+				        // Execute HTTP Post Request
+				        HttpResponse aRespGPS = httpclient.execute(httppost);
+				        //Header aHdrGPS;
+				        
+				        HttpEntity aEntityGPS = aRespGPS.getEntity();
+				        
+				        DataInputStream aBufInStr = new DataInputStream(aEntityGPS.getContent());
+				        String sContent = "";
+				        int nChar = 0;
+				        while ((nChar = aBufInStr.read()) != -1)
+				        {
+				        	sContent += (char)nChar;
+				        }
+				        
+				        Log.v(TAG, "GPS POST response: " + sContent);
+	        		}
 	        	}
-	        }
 	        
-	        Log.v(TAG, "GPS POST response: " + sHeaders);*/
+		        httppost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+	
+		        // Execute HTTP Post Request
+		        HttpResponse aRespGPS = httpclient.execute(httppost);
+		        //Header aHdrGPS;
+		        
+		        HttpEntity aEntityGPS = aRespGPS.getEntity();
+		        
+		        DataInputStream aBufInStr = new DataInputStream(aEntityGPS.getContent());
+		        String sContent = "";
+		        int nChar = 0;
+		        while ((nChar = aBufInStr.read()) != -1)
+		        {
+		        	sContent += (char)nChar;
+		        }
+		        
+		        Log.v(TAG, "GPS POST response: " + sContent);
+		        /*String sHeaders = "";
+		        for(HeaderIterator ahdrIt = aRespGPS.headerIterator();ahdrIt.hasNext(); ahdrIt.next())
+		        {
+		        	if (ahdrIt.hasNext())
+		        	{
+		        		aHdrGPS = ahdrIt.nextHeader();
+		        		sHeaders += aHdrGPS.getValue() + " :: ";
+		        	}
+		        }
+		        
+		        Log.v(TAG, "GPS POST response: " + sHeaders);*/
+	        }
 	        
 	    } catch (ClientProtocolException e) {
 	    	Log.e(TAG, "ClientProtocolException caught. Is the server down?");
