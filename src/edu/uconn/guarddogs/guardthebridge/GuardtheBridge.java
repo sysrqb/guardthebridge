@@ -267,9 +267,24 @@ public class GuardtheBridge extends FragmentActivity
 
     private void updateList()
     {
-        mVp = (ViewPager)findViewById(R.id.ridelist_pageview);
-        m_GFPA = new GTBAdapter(getSupportFragmentManager());
-        mVp.setAdapter(m_GFPA);
+    	if(Thread.currentThread().equals(mainThread))
+    	{
+	        mVp = (ViewPager)findViewById(R.id.ridelist_pageview);
+	        m_GFPA = new GTBAdapter(getSupportFragmentManager());
+	        mVp.setAdapter(m_GFPA);
+    	}
+    	else
+    	{
+    		Log.v(TAG, "Passing list update over to MT");
+    		mainHandler.post( new Runnable()
+    		{
+    			
+    			public void run()
+    			{
+    				updateList();
+    			}
+    		});
+    	}
     }
 
 	public void addToDb(PatronList list)
