@@ -185,6 +185,12 @@ public class GuardtheBridge extends FragmentActivity
 		super.onPause();
 		if(mProgBar != null && mProgBar.isShowing())
 			mProgBar.cancel();
+		
+		if(mCDbHelper != null && !mCDbHelper.isClosed())
+			mCDbHelper.close();
+		
+		if(mGDbHelper != null && !mGDbHelper.isClosed())
+			mGDbHelper.close();
 	}
 	
 	/* Create and launch the background threads that periodically send the
