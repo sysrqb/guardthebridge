@@ -36,6 +36,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -62,7 +64,8 @@ import edu.uconn.guarddogs.guardthebridge.Communication.Response;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo;
 import edu.uconn.guarddogs.guardthebridge.Patron.PatronList;
 
-public class GuardtheBridge extends FragmentActivity {
+public class GuardtheBridge extends FragmentActivity
+{
 	private static final int PATRON_EDIT = 101;
 	private static final String TAG = "GTB";
 	private static final int OPENRIDES = 0;
@@ -75,205 +78,26 @@ public class GuardtheBridge extends FragmentActivity {
 
     private GtBDbAdapter mGDbHelper = null;
 	private CarsGtBDbAdapter mCDbHelper = null;
-	private GtBSSLSocketFactoryWrapper mSSLSF;
 
 	private ViewPager mVp = null;
     private GTBAdapter m_GFPA = null;
 	private String exceptionalMessage = "";
-	private boolean failedConnection = false;
-	private boolean updatingNow = false;
-	private boolean sendingUpdatesNow = false;
+	private boolean mUpdatingNow = false;
+	private Thread mainThread = null;
+	private Handler mainHandler = null;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState)
+    {
 
         super.onCreate(savedInstanceState);
         sself = this;
         setContentView(R.layout.rideslist);
+        mainThread = Thread.currentThread();
+        mainHandler = new Handler();
 
         updateList();
-        (new Thread (new Runnable()
-        {
-		    public void run()
-	        {
-		    	Log.v(TAG, "Spawning background thread for updates.");
-		    	SignalException signexcept = null;
-		    	do
-	        	{
-	        		while(updatingNow)
-	        		{
-						/*try
-						{
-							Thread.sleep(10000);
-						} catch(InterruptedException e)
-						{*/
-						/* If we're interrupted early we can keep
-						 * going
-						 */
-						//}
-	        		}
-	        		updatingNow = true;
-	        		
-	        		failedConnection = false;
-	        		try
-	        		{
-	        			mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
-        			} catch (UnrecoverableKeyException e1)
-        			{
-        				failedConnection = true;
-    				} catch (KeyStoreException e1)
-    				{
-    					failedConnection = true;
-					} catch (NoSuchAlgorithmException e1)
-					{
-						failedConnection = true;
-					} catch (SignalException e1)
-					{
-						signexcept = e1;
-						failedConnection = true;
-					} catch (GTBSSLSocketException e1)
-					{
-						failedConnection = true;
-					}
-	        		if(!failedConnection)
-	        		{
-	        			for(;;)
-	        			{
-	        				new CurrUpdtTask().execute();
-	        				try
-	        				{
-	        					Thread.sleep(30000);
-        					} catch (InterruptedException ex)
-        					{
-        						/* If we update slightly more often than
-        						 * 30 seconds it's ok.
-        						 */
-    						}
-        				}
-        			}
-	        		else
-					{
-	        			if(signexcept != null)
-						{
-							/* The connection failed because we have
-							 * insufficient signal strength. Wait for
-							 * the environment to improve.
-							 *
-							 * Sleep for 20 seconds and check.
-							 */
-	        				while(!mSSLSF.haveDataConnection())
-	        				{
-	        					try {
-									Thread.sleep(20000);
-								} catch (InterruptedException e) {
-								}
-	        				}
-							continue;
-						}
-					}
-			        updatingNow = false;
-					try
-					{
-						/* Sleep on the failure, then try again */
-						Thread.sleep(30000);
-					} catch (InterruptedException ex)
-					{
-					}
-				} while(failedConnection);
-		    	/* Execute background update every 30 seconds */
-	    	}
-	    })).start();
-
-        (new Thread (new Runnable()
-        {
-        	public void run()
-	        {
-        		Log.v(TAG,
-		    			"Launching background thread for pending updates.");
-        		SignalException signexcept = null;
-        		do
-        		{
-        			while(sendingUpdatesNow)
-        			{
-        				try
-        				{
-        					Thread.sleep(10000);
-    					} catch(InterruptedException e)
-    					{
-    						/* If we're interrupted early we can keep
-    						 * going
-    						 */
-						}
-    				}
-        			sendingUpdatesNow = true;
-        			failedConnection = false;
-        			try
-        			{
-        				mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
-    				} catch (UnrecoverableKeyException e1)
-    				{
-    					failedConnection = true;
-					} catch (KeyStoreException e1)
-					{
-						failedConnection = true;
-					} catch (NoSuchAlgorithmException e1)
-					{
-						failedConnection = true;
-					} catch (SignalException e1)
-					{
-						signexcept = e1;
-						failedConnection = true;
-					} catch (GTBSSLSocketException e1)
-					{
-						failedConnection = true;
-					}
-        			if(!failedConnection)
-        			{
-        				for(;;)
-        				{
-        					new SendUpdatesTask().execute();
-        					try
-        					{
-        						Thread.sleep(30000);
-        					} catch (InterruptedException ex)
-        					{
-        						/* If we update slightly more often than
-        						 * 30 seconds it's ok.
-        						 */
-    						}
-						}
-    				}
-        			else
-        			{
-        				if(signexcept != null)
-        				{
-        					/* The connection failed because we have
-							 * insufficient signal strength. Wait for
-							 * the environment to improve.
-							 *
-							 * Sleep for 20 seconds and check.
-							 */
-	        				while(!mSSLSF.haveDataConnection())
-	        				{
-	        					try {
-									Thread.sleep(20000);
-								} catch (InterruptedException e) {
-								}
-	        				}
-							continue;
-    					}
-    				}
-        			sendingUpdatesNow = false;
-        			try
-        			{
-        				/* Sleep on the failure, then try again */
-        				Thread.sleep(32000);
-    				} catch (InterruptedException ex)
-    				{
-    				}
-    			} while(failedConnection);
-    		} // Execute background update every 32 seconds
-    	})).start();
+        createBackgroundThreads();
 
         Button aRfrshBtn = (Button)findViewById(R.id.refresh);
         aRfrshBtn.setOnClickListener(new OnClickListener()
@@ -284,216 +108,39 @@ public class GuardtheBridge extends FragmentActivity {
 				/* We don't want to make another unnecessary connection
 				 * to the server. We're already handling updates.
 				 */
-				if(!updatingNow && !sendingUpdatesNow)
+				if(mUpdatingNow)
+				{
+					AlertDialog.Builder msgBox =
+							new AlertDialog.Builder(sself);
+					msgBox.setMessage("We're actually already updating in" +
+							" the background right now. If you have new" +
+							" rides, they should show up very soon!");
+					msgBox.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int id)
+						{
+							return;
+						}
+					}	);
+					msgBox.show();
 					return;
+				}
+				mUpdatingNow = true;
 				new CurrTask().execute();  // Request the update
-
-			/* Update both fragments */  // Not working
-		        /*ArrayListFragment aALF =
-		         	(ArrayListFragment) getSupportFragmentManager().
-		        		findFragmentByTag("android:switch:" +
-		        		R.id.ridelist_pageview + ":0");
-		        if (aALF != null && aALF.getView() != null)
-		        	aALF.updateView();
-		        aALF = (ArrayListFragment) getSupportFragmentManager().
-		        		findFragmentByTag("android:switch:" +
-		        		R.id.ridelist_pageview + ":1");
-		        if (aALF != null && aALF.getView() != null)
-		        	aALF.updateView();
-		     */
 			}
 		});
 		
         /* Launch GPS Location Updater */
-		Intent i = new Intent(this, GTBLocationManager.class);
-		this.startService(i);
+        Log.e(TAG, "Make sure this is uncommented!");
+		/* Intent i = new Intent(this, GTBLocationManager.class);
+		this.startService(i); */
     }
 
     public void onRestart()
     {
-    	updateList();
-        (new Thread (new Runnable()
-        {	
-		    public void run()
-	        {
-		    	Log.v(TAG, "Spawning background thread for updates.");
-		    	SignalException signexcept = null;
-		    	do
-	        	{
-	        		while(updatingNow)
-	        		{
-						/*try
-						{
-							Thread.sleep(10000);
-						} catch(InterruptedException e)
-						{*/
-						/* If we're interrupted early we can keep
-						 * going
-						 */
-						//}
-	        		}
-	        		updatingNow = true;
-
-	        		failedConnection = false;
-	        		try
-	        		{
-	        			mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
-        			} catch (UnrecoverableKeyException e1)
-        			{
-        				failedConnection = true;
-    				} catch (KeyStoreException e1)
-    				{
-    					failedConnection = true;
-					} catch (NoSuchAlgorithmException e1)
-					{
-						failedConnection = true;
-					} catch (SignalException e1)
-					{
-						signexcept = e1;
-						failedConnection = true;
-					} catch (GTBSSLSocketException e1)
-					{
-						failedConnection = true;
-					}
-	        		if(!failedConnection)
-	        		{
-	        			for(;;)
-	        			{
-	        				new CurrUpdtTask().execute();
-	        				try
-	        				{
-	        					Thread.sleep(30000);
-        					} catch (InterruptedException ex)
-        					{
-        						/* If we update slightly more often than
-        						 * 30 seconds it's ok.
-        						 */
-    						}
-        				}
-        			}
-	        		else
-					{
-	        			if(signexcept != null)
-						{
-							/* The connection failed because we have
-							 * insufficient signal strength. Wait for
-							 * the environment to improve.
-							 *
-							 * Sleep for 20 seconds and check.
-							 */
-	        				while(!mSSLSF.haveDataConnection())
-	        				{
-	        					try {
-									Thread.sleep(20000);
-								} catch (InterruptedException e) {
-								}
-	        				}
-							continue;
-						}
-					}
-			        updatingNow = false;
-					try
-					{
-						/* Sleep on the failure, then try again */
-						Thread.sleep(30000);
-					} catch (InterruptedException ex)
-					{
-					}
-				} while(failedConnection);
-		    	/* Execute background update every 30 seconds */
-	    	}
-	    })).start();
-
-        (new Thread (new Runnable()
-        {
-        	public void run()
-	        {
-        		Log.v(TAG,
-		    			"Launching background thread for pending updates.");
-        		SignalException signexcept = null;
-        		do
-        		{
-        			while(sendingUpdatesNow)
-        			{
-        				try
-        				{
-        					Thread.sleep(10000);
-    					} catch(InterruptedException e)
-    					{
-    						/* If we're interrupted early we can keep
-    						 * going
-    						 */
-						}
-    				}
-        			sendingUpdatesNow = true;
-        			failedConnection = false;
-        			try
-        			{
-        				mSSLSF = new GtBSSLSocketFactoryWrapper(sself);
-    				} catch (UnrecoverableKeyException e1)
-    				{
-    					failedConnection = true;
-					} catch (KeyStoreException e1)
-					{
-						failedConnection = true;
-					} catch (NoSuchAlgorithmException e1)
-					{
-						failedConnection = true;
-					} catch (SignalException e1)
-					{
-						signexcept = e1;
-						failedConnection = true;
-					} catch (GTBSSLSocketException e1)
-					{
-						failedConnection = true;
-					}
-        			if(!failedConnection)
-        			{
-        				for(;;)
-        				{
-        					new SendUpdatesTask().execute();
-        					try
-        					{
-        						Thread.sleep(30000);
-        					} catch (InterruptedException ex)
-        					{
-        						/* If we update slightly more often than
-        						 * 30 seconds it's ok.
-        						 */
-    						}
-						}
-    				}
-        			else
-        			{
-        				if(signexcept != null)
-        				{
-        					/* The connection failed because we have
-							 * insufficient signal strength. Wait for
-							 * the environment to improve.
-							 *
-							 * Sleep for 20 seconds and check.
-							 */
-	        				while(!mSSLSF.haveDataConnection())
-	        				{
-	        					try {
-									Thread.sleep(20000);
-								} catch (InterruptedException e) {
-								}
-	        				}
-							continue;
-    					}
-    				}
-        			sendingUpdatesNow = false;
-        			try
-        			{
-        				/* Sleep on the failure, then try again */
-        				Thread.sleep(32000);
-    				} catch (InterruptedException ex)
-    				{
-    				}
-    			} while(failedConnection);
-    		} // Execute background update every 32 seconds
-    	})).start();
+    	super.onRestart();
+    	createBackgroundThreads();
 
         Button aRfrshBtn = (Button)findViewById(R.id.refresh);
         aRfrshBtn.setOnClickListener(new OnClickListener()
@@ -504,8 +151,25 @@ public class GuardtheBridge extends FragmentActivity {
 				/* We don't want to make another unnecessary connection
 				 * to the server. We're already handling updates.
 				 */
-				if(!updatingNow && !sendingUpdatesNow)
+				if(mUpdatingNow)
+				{
+					AlertDialog.Builder msgBox =
+							new AlertDialog.Builder(sself);
+					msgBox.setMessage("We're actually already updating in" +
+							" the background right now. If you have new" +
+							" rides, they should show up very soon!");
+					msgBox.setPositiveButton("Ok",
+							new DialogInterface.OnClickListener()
+					{
+						public void onClick(DialogInterface dialog, int id)
+						{
+							return;
+						}
+					}	);
+					msgBox.show();
 					return;
+				}
+				mUpdatingNow = true;
 				new CurrTask().execute();  // Request the update
 			}
 		});
@@ -521,6 +185,74 @@ public class GuardtheBridge extends FragmentActivity {
 		super.onPause();
 		if(mProgBar != null && mProgBar.isShowing())
 			mProgBar.cancel();
+	}
+	
+	/* Create and launch the background threads that periodically send the
+	 * server any pending updates or retrieve newly assigned patrons to the
+	 * respective van.
+	 */
+	private void createBackgroundThreads()
+	{
+		(new Thread (new Runnable()
+        {
+		    public void run()
+	        {
+		    	Log.v(TAG, "Spawning background thread for updates.");
+		    	Looper.prepare();
+		    	
+    			for(;;)
+    			{
+    				if (!mUpdatingNow)
+    				{
+    					mUpdatingNow = true;
+    					new CurrUpdtTask().execute();
+    					/* updatingNow = false is set on onPostExecute
+    					 * or onCancelled, depending on what happens.
+    					 */
+    				}
+    				try
+    				{
+    					Thread.sleep(60000);
+					} catch (InterruptedException ex)
+					{
+						/* If we update slightly more often than
+						 * 60 seconds it's ok.
+						 */
+					}
+				}
+	        }
+	    })).start();
+
+        (new Thread (new Runnable()
+        {
+        	public void run()
+	        {
+        		Log.v(TAG,
+		    			"Launching background thread for pending updates.");
+		    	Looper.prepare();
+		    	
+				for(;;)
+				{
+					if(!mUpdatingNow)
+					{
+						mUpdatingNow = true;
+						new SendUpdatesTask().execute();
+    					/* updatingNow = false is set on onPostExecute
+    					 * or onCancelled, depending on what happens.
+    					 */
+					}
+					try
+					{
+						Thread.sleep(75000);
+					} catch (InterruptedException ex)
+					{
+						/* If we update slightly more often than
+						 * 75 seconds it's ok.
+						 */
+					}
+				}
+    		} // Execute background update every 75 seconds
+    	})).start();
 	}
 
     public boolean onOptionItemSelected(MenuItem menu){
