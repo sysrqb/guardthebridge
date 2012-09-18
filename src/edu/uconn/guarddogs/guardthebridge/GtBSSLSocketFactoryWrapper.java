@@ -388,6 +388,12 @@ public class GtBSSLSocketFactoryWrapper {
 			throw new GTBSSLSocketException(
 					"We couldn't make a connection.");
 		}
+		String[] cipherSuites = aSS.getEnabledCipherSuites();
+		for (int i = 0; i < cipherSuites.length; ++i)
+			Log.i(TAG, "Supported Cipher Suite: " + cipherSuites[i]);
+		String[] protocols = aSS.getEnabledProtocols();
+		for (int i = 0; i < protocols.length; ++i)
+			Log.i(TAG, "Supported Protocols: " + protocols[i]);
 		try
 		{
 			aSS.startHandshake();
