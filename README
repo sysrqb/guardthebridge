@@ -1,0 +1,68 @@
+GUARD the Bridge - Android App used to manage ride requests for GUARD Dogs
+
+
+REQUIREMENTS
+
+  - Android 2.3.3 (Gingerbread)
+  - Bouncycastle Provider 146 (bcprov-jdk16-146.jar)
+  - Protocol Buffers 2.4.1 (protobuf-java-2.4.1.jar)
+  - Android Support Package (android-support-v4.jar)
+
+
+PRE-BUILDING
+
+  - Add X.509 certificates to a keystore
+    - To create the keystore, you must first generate a certificate that is
+      signed by an authorized Certificate Authority. This may be your own
+      self-signed CA or another, as long as it's trusted.
+    - When you have the certificate, we then must import it into the keystore
+    - From a command line (all on one line):
+
+        $ keytool -importcert -v -trustcacerts -file
+          "/path/to/certificate/pem/cacrt.pem" -alias ALIASOFCACERT -keystore
+          "keyStore" -provider
+          org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath
+          /path/to/bcprov-jdk16-146.jar -storetype BKS
+          -storepass KEYSTOREPASSPHRASE
+
+    - /path/to/certificate/pem/cacrt.pem is the path to the CA certificate
+      - If you are setting up the environment with gtbserver, then the cert is
+        probably in pem/certs/
+    - /path/to/bcprov-jdk16-146.jar should be in libs/
+    - ALIASOFCACERT is the alias you give to the new trusted certificate entry
+    - KEYSTOREPASSPHRASE is the passphrase used to check integrity of keystore
+
+    - You may verify the keystore was created successfully by running this from
+      the command line (all on one line):
+      
+        $ keytool -list -keystore keyStore -provider
+          org.bouncycastle.jce.provider.BouncyCastleProvider -providerpath
+          /path/to/bcprov-jdk16-146.jar -storetype BKS -storepass
+          KEYSTOREPASSPHRASE
+
+
+BUILDING
+
+  Open in Eclipse and add the the Bouncycastle, Protobuf, and Support Package
+  libraries to the Build Path. Then Run.
+
+
+LICENSING
+
+GUARD the Bridge
+Copyright (C) 2012  Matthew Finkel <Matthew.Finkel@gmail.com>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+The full license text is included in COPYING/COPYING
