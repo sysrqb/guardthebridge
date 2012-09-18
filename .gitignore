@@ -1,3 +1,5 @@
 res/raw/
 KSNOTES
 assets/
+bin/
+.classpath

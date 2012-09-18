@@ -244,7 +244,8 @@ public class EditPatron extends Activity {
 			long nRetval = mGDbHelper.setStatus(0,
 					aPI.toByteArray(),
 					aPI.getPid(),
-					mStatus);
+					aPI.getStatus());
+			mStatus = aPI.getStatus();
 			Log.v(TAG, "setStatus returned " + nRetval);
 			Log.v(TAG, "updatePatron returned "
 					+ mGDbHelper.updatePatron(aPI.toByteArray(),
@@ -385,12 +386,14 @@ public class EditPatron extends Activity {
 		
 		if (sLowerStat.compareTo("waiting") == 0)
 			return 0;
-		if (sLowerStat.compareTo("riding") == 0)
+		if (sLowerStat.compareTo("assigned") == 0)
 			return 1;
-		if (sLowerStat.compareTo("Done") == 0)
+		if (sLowerStat.compareTo("riding") == 0)
 			return 2;
-		if (sLowerStat.compareTo("Cancelled") == 0)
+		if (sLowerStat.compareTo("Done") == 0)
 			return 3;
+		if (sLowerStat.compareTo("Cancelled") == 0)
+			return 4;
 		return 0;
 	}
 	
@@ -416,6 +419,15 @@ public class EditPatron extends Activity {
 				mGDbHelper.close();
 				break;
 			case 1:
+				mStatus = "assigned";
+				aPI = PatronInfo.newBuilder(m_aPI).
+				setStatus("assigned").
+				build();
+				mGDbHelper.setStatus(0, m_aPI.toByteArray(),
+						m_aPI.getPid(), "assigned");
+				mGDbHelper.close();
+				break;
+			case 2:
 				mStatus = "riding";
 				aPI = PatronInfo.newBuilder(m_aPI).
 				setStatus("riding").
@@ -424,7 +436,7 @@ public class EditPatron extends Activity {
 						m_aPI.getPid(), "riding");
 				mGDbHelper.close();
 				break;
-			case 2:
+			case 3:
 				mStatus = "done";
 				aPI = PatronInfo.newBuilder(m_aPI).
 				setStatus("done").
@@ -433,7 +445,7 @@ public class EditPatron extends Activity {
 						m_aPI.getPid(), "done");
 				mGDbHelper.close();
 				break;
-			case 3:
+			case 4:
 				mStatus = "cancelled";
 				aPI = PatronInfo.newBuilder(m_aPI).
 				setStatus("cancelled").
@@ -457,7 +469,8 @@ public class EditPatron extends Activity {
 	{
 		String sStatusLower = isStatus.toLowerCase();
 		if (sStatusLower.compareTo("waiting") == 0 ||
-				sStatusLower.compareTo("riding") == 0)
+			sStatusLower.compareTo("riding") == 0 ||
+			sStatusLower.compareTo("assigned") == 0)
 			return 0;
 		else /*if (sStatusLower == "done" || sStatusLower == "cancelled") */
 			return 1;
@@ -808,6 +821,7 @@ public class EditPatron extends Activity {
 				Log.v(TAG, "Request Size: " + aPBReq.isInitialized());
 				Log.v(TAG, "SReqType = " + aPBReq.getSReqType() + " " +
 						aPBReq.getSerializedSize());
+				Log.v(TAG, aPBReq.toString());
 				if(!aPBReq.isInitialized())
 				{
 					exceptionalMessage = "You did not enter all required " +

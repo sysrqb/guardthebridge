@@ -178,7 +178,13 @@ public class GtBDbAdapter {
      */
     public long createPatron(byte[] message, int pid, String status) {
     	if(!isNewPatron(pid))
-    		return 0;
+    	{
+    		if(status.compareToIgnoreCase("reassigned") == 0)
+    			return (deletePatron((long)pid) ? 0 : -1);
+    		else
+    			deletePatron((long)pid);
+    	}
+    		
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PATRON, message);
         initialValues.put(KEY_PID, pid);
@@ -346,7 +352,7 @@ public class GtBDbAdapter {
         ContentValues args = new ContentValues();
         args.put(KEY_PATRON, message);
         args.put(KEY_PID, pid);
-        Log.v(TAG, "Updating patron " + pid + " " + message);
+        Log.v(TAG, "Updating patron " + pid + " " + status + " " + message);
         
         switch(status)
         {
@@ -436,6 +442,33 @@ public class GtBDbAdapter {
         return 0;
     }
     
+    public long setAssigned(long rowId, byte[] message, int pid)
+    {
+    	long nRetVal = 0;
+    	ContentValues args = new ContentValues();
+        args.put(KEY_PATRON, message);
+        args.put(KEY_PID, pid);
+        args.put(KEY_STATUS, "assigned");
+
+        if (!isClosed(pid))
+        {
+        	if ((nRetVal = mDb.update(DATABASE_TABLE, args, KEY_PID + "=" + pid, null)) > 0)
+        	{
+	    	 return nRetVal;
+        	}
+	    	return 0;
+        }
+        else
+        {
+        	if ((nRetVal = mDb.insert(DATABASE_TABLE, null, args)) > 0)
+        	{
+	    	 deleteClosedPatron(pid);
+	    	 return nRetVal;
+        	}
+        }
+        return 0;
+    }
+    
     public long setWaiting(long rowId, byte[] message, int pid)
     {
     	long nRetVal = 0;
@@ -465,6 +498,7 @@ public class GtBDbAdapter {
     
     public long setStatus(long rowId, byte[] message, int pid, String status)
     {
+    	Log.v(TAG, "Setting Status for " + pid + ": " + status);
     	ContentValues initialValues = new ContentValues();
         initialValues.put(KEY_PATRON, message);
         initialValues.put(KEY_PID, pid);
@@ -491,7 +525,9 @@ public class GtBDbAdapter {
 	        }
 	        return 0;
         }
-        if (status.compareToIgnoreCase("waiting") == 0 || status.compareToIgnoreCase("riding") == 0)
+        if (status.compareToIgnoreCase("waiting") == 0 ||
+        	status.compareToIgnoreCase("riding") == 0 ||
+        	status.compareToIgnoreCase("assigned") == 0)
         {
                 
             if (isClosed(pid))
@@ -506,6 +542,10 @@ public class GtBDbAdapter {
 		        {
 		        	setRiding(rowId, message, pid);
 		        }
+		        else if (status.compareToIgnoreCase("assigned") == 0)
+		        {
+		        	setRiding(rowId, message, pid);
+		        }
 		    	return insrtRow;
             }
             else
@@ -515,6 +555,10 @@ public class GtBDbAdapter {
 		        	setWaiting(rowId, message, pid);
 		        }
 		        else if (status.compareToIgnoreCase("riding") == 0)
+		        {
+		        	setRiding(rowId, message, pid);
+		        }
+		        else if (status.compareToIgnoreCase("assigned") == 0)
 		        {
 		        	setRiding(rowId, message, pid);
 		        }

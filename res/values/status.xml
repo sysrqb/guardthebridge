@@ -4,6 +4,7 @@
     <string name="statuslist">Set Status</string>
     <string-array name="statusarray">
 	    <item>Waiting</item>
+	    <item>Assigned</item>
 	    <item>Riding</item>
 	    <item>Done</item>
 	    <item>Cancelled</item>
