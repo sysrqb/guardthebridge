@@ -35,23 +35,39 @@ public final class Patron {
     boolean hasStatus();
     String getStatus();
     
-    // optional string notes = 7;
+    // optional int32 car = 7;
+    boolean hasCar();
+    int getCar();
+    
+    // optional string notes = 8;
     boolean hasNotes();
     String getNotes();
     
-    // optional string timetaken = 8;
-    boolean hasTimetaken();
-    String getTimetaken();
+    // optional string ridecreated = 9;
+    boolean hasRidecreated();
+    String getRidecreated();
     
-    // optional string timeassigned = 9;
-    boolean hasTimeassigned();
-    String getTimeassigned();
+    // optional string rideassigned = 10;
+    boolean hasRideassigned();
+    String getRideassigned();
     
-    // optional string timedone = 10;
-    boolean hasTimedone();
-    String getTimedone();
+    // optional string timepickedup = 11;
+    boolean hasTimepickedup();
+    String getTimepickedup();
     
-    // optional int32 pid = 11;
+    // optional string timecomplete = 12;
+    boolean hasTimecomplete();
+    String getTimecomplete();
+    
+    // optional string imecancelled = 13;
+    boolean hasImecancelled();
+    String getImecancelled();
+    
+    // optional int32 modified = 14;
+    boolean hasModified();
+    int getModified();
+    
+    // optional int32 pid = 15;
     boolean hasPid();
     int getPid();
   }
@@ -254,11 +270,21 @@ public final class Patron {
       }
     }
     
-    // optional string notes = 7;
-    public static final int NOTES_FIELD_NUMBER = 7;
+    // optional int32 car = 7;
+    public static final int CAR_FIELD_NUMBER = 7;
+    private int car_;
+    public boolean hasCar() {
+      return ((bitField0_ & 0x00000040) == 0x00000040);
+    }
+    public int getCar() {
+      return car_;
+    }
+    
+    // optional string notes = 8;
+    public static final int NOTES_FIELD_NUMBER = 8;
     private java.lang.Object notes_;
     public boolean hasNotes() {
-      return ((bitField0_ & 0x00000040) == 0x00000040);
+      return ((bitField0_ & 0x00000080) == 0x00000080);
     }
     public String getNotes() {
       java.lang.Object ref = notes_;
@@ -286,46 +312,14 @@ public final class Patron {
       }
     }
     
-    // optional string timetaken = 8;
-    public static final int TIMETAKEN_FIELD_NUMBER = 8;
-    private java.lang.Object timetaken_;
-    public boolean hasTimetaken() {
-      return ((bitField0_ & 0x00000080) == 0x00000080);
-    }
-    public String getTimetaken() {
-      java.lang.Object ref = timetaken_;
-      if (ref instanceof String) {
-        return (String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        String s = bs.toStringUtf8();
-        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          timetaken_ = s;
-        }
-        return s;
-      }
-    }
-    private com.google.protobuf.ByteString getTimetakenBytes() {
-      java.lang.Object ref = timetaken_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        timetaken_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    
-    // optional string timeassigned = 9;
-    public static final int TIMEASSIGNED_FIELD_NUMBER = 9;
-    private java.lang.Object timeassigned_;
-    public boolean hasTimeassigned() {
+    // optional string ridecreated = 9;
+    public static final int RIDECREATED_FIELD_NUMBER = 9;
+    private java.lang.Object ridecreated_;
+    public boolean hasRidecreated() {
       return ((bitField0_ & 0x00000100) == 0x00000100);
     }
-    public String getTimeassigned() {
-      java.lang.Object ref = timeassigned_;
+    public String getRidecreated() {
+      java.lang.Object ref = ridecreated_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -333,31 +327,31 @@ public final class Patron {
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          timeassigned_ = s;
+          ridecreated_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getTimeassignedBytes() {
-      java.lang.Object ref = timeassigned_;
+    private com.google.protobuf.ByteString getRidecreatedBytes() {
+      java.lang.Object ref = ridecreated_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        timeassigned_ = b;
+        ridecreated_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     
-    // optional string timedone = 10;
-    public static final int TIMEDONE_FIELD_NUMBER = 10;
-    private java.lang.Object timedone_;
-    public boolean hasTimedone() {
+    // optional string rideassigned = 10;
+    public static final int RIDEASSIGNED_FIELD_NUMBER = 10;
+    private java.lang.Object rideassigned_;
+    public boolean hasRideassigned() {
       return ((bitField0_ & 0x00000200) == 0x00000200);
     }
-    public String getTimedone() {
-      java.lang.Object ref = timedone_;
+    public String getRideassigned() {
+      java.lang.Object ref = rideassigned_;
       if (ref instanceof String) {
         return (String) ref;
       } else {
@@ -365,28 +359,134 @@ public final class Patron {
             (com.google.protobuf.ByteString) ref;
         String s = bs.toStringUtf8();
         if (com.google.protobuf.Internal.isValidUtf8(bs)) {
-          timedone_ = s;
+          rideassigned_ = s;
         }
         return s;
       }
     }
-    private com.google.protobuf.ByteString getTimedoneBytes() {
-      java.lang.Object ref = timedone_;
+    private com.google.protobuf.ByteString getRideassignedBytes() {
+      java.lang.Object ref = rideassigned_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8((String) ref);
-        timedone_ = b;
+        rideassigned_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     
-    // optional int32 pid = 11;
-    public static final int PID_FIELD_NUMBER = 11;
+    // optional string timepickedup = 11;
+    public static final int TIMEPICKEDUP_FIELD_NUMBER = 11;
+    private java.lang.Object timepickedup_;
+    public boolean hasTimepickedup() {
+      return ((bitField0_ & 0x00000400) == 0x00000400);
+    }
+    public String getTimepickedup() {
+      java.lang.Object ref = timepickedup_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          timepickedup_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getTimepickedupBytes() {
+      java.lang.Object ref = timepickedup_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        timepickedup_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional string timecomplete = 12;
+    public static final int TIMECOMPLETE_FIELD_NUMBER = 12;
+    private java.lang.Object timecomplete_;
+    public boolean hasTimecomplete() {
+      return ((bitField0_ & 0x00000800) == 0x00000800);
+    }
+    public String getTimecomplete() {
+      java.lang.Object ref = timecomplete_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          timecomplete_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getTimecompleteBytes() {
+      java.lang.Object ref = timecomplete_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        timecomplete_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional string imecancelled = 13;
+    public static final int IMECANCELLED_FIELD_NUMBER = 13;
+    private java.lang.Object imecancelled_;
+    public boolean hasImecancelled() {
+      return ((bitField0_ & 0x00001000) == 0x00001000);
+    }
+    public String getImecancelled() {
+      java.lang.Object ref = imecancelled_;
+      if (ref instanceof String) {
+        return (String) ref;
+      } else {
+        com.google.protobuf.ByteString bs = 
+            (com.google.protobuf.ByteString) ref;
+        String s = bs.toStringUtf8();
+        if (com.google.protobuf.Internal.isValidUtf8(bs)) {
+          imecancelled_ = s;
+        }
+        return s;
+      }
+    }
+    private com.google.protobuf.ByteString getImecancelledBytes() {
+      java.lang.Object ref = imecancelled_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8((String) ref);
+        imecancelled_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    
+    // optional int32 modified = 14;
+    public static final int MODIFIED_FIELD_NUMBER = 14;
+    private int modified_;
+    public boolean hasModified() {
+      return ((bitField0_ & 0x00002000) == 0x00002000);
+    }
+    public int getModified() {
+      return modified_;
+    }
+    
+    // optional int32 pid = 15;
+    public static final int PID_FIELD_NUMBER = 15;
     private int pid_;
     public boolean hasPid() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
+      return ((bitField0_ & 0x00004000) == 0x00004000);
     }
     public int getPid() {
       return pid_;
@@ -399,10 +499,14 @@ public final class Patron {
       dropoff_ = "";
       phone_ = "";
       status_ = "";
+      car_ = 0;
       notes_ = "";
-      timetaken_ = "";
-      timeassigned_ = "";
-      timedone_ = "";
+      ridecreated_ = "";
+      rideassigned_ = "";
+      timepickedup_ = "";
+      timecomplete_ = "";
+      imecancelled_ = "";
+      modified_ = 0;
       pid_ = 0;
     }
     private byte memoizedIsInitialized = -1;
@@ -436,19 +540,31 @@ public final class Patron {
         output.writeBytes(6, getStatusBytes());
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
-        output.writeBytes(7, getNotesBytes());
+        output.writeInt32(7, car_);
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
-        output.writeBytes(8, getTimetakenBytes());
+        output.writeBytes(8, getNotesBytes());
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
-        output.writeBytes(9, getTimeassignedBytes());
+        output.writeBytes(9, getRidecreatedBytes());
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        output.writeBytes(10, getTimedoneBytes());
+        output.writeBytes(10, getRideassignedBytes());
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        output.writeInt32(11, pid_);
+        output.writeBytes(11, getTimepickedupBytes());
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        output.writeBytes(12, getTimecompleteBytes());
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        output.writeBytes(13, getImecancelledBytes());
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        output.writeInt32(14, modified_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        output.writeInt32(15, pid_);
       }
       getUnknownFields().writeTo(output);
     }
@@ -485,23 +601,39 @@ public final class Patron {
       }
       if (((bitField0_ & 0x00000040) == 0x00000040)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(7, getNotesBytes());
+          .computeInt32Size(7, car_);
       }
       if (((bitField0_ & 0x00000080) == 0x00000080)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(8, getTimetakenBytes());
+          .computeBytesSize(8, getNotesBytes());
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(9, getTimeassignedBytes());
+          .computeBytesSize(9, getRidecreatedBytes());
       }
       if (((bitField0_ & 0x00000200) == 0x00000200)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(10, getTimedoneBytes());
+          .computeBytesSize(10, getRideassignedBytes());
       }
       if (((bitField0_ & 0x00000400) == 0x00000400)) {
         size += com.google.protobuf.CodedOutputStream
-          .computeInt32Size(11, pid_);
+          .computeBytesSize(11, getTimepickedupBytes());
+      }
+      if (((bitField0_ & 0x00000800) == 0x00000800)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(12, getTimecompleteBytes());
+      }
+      if (((bitField0_ & 0x00001000) == 0x00001000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeBytesSize(13, getImecancelledBytes());
+      }
+      if (((bitField0_ & 0x00002000) == 0x00002000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(14, modified_);
+      }
+      if (((bitField0_ & 0x00004000) == 0x00004000)) {
+        size += com.google.protobuf.CodedOutputStream
+          .computeInt32Size(15, pid_);
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -639,16 +771,24 @@ public final class Patron {
         bitField0_ = (bitField0_ & ~0x00000010);
         status_ = "";
         bitField0_ = (bitField0_ & ~0x00000020);
-        notes_ = "";
+        car_ = 0;
         bitField0_ = (bitField0_ & ~0x00000040);
-        timetaken_ = "";
+        notes_ = "";
         bitField0_ = (bitField0_ & ~0x00000080);
-        timeassigned_ = "";
+        ridecreated_ = "";
         bitField0_ = (bitField0_ & ~0x00000100);
-        timedone_ = "";
+        rideassigned_ = "";
         bitField0_ = (bitField0_ & ~0x00000200);
-        pid_ = 0;
+        timepickedup_ = "";
         bitField0_ = (bitField0_ & ~0x00000400);
+        timecomplete_ = "";
+        bitField0_ = (bitField0_ & ~0x00000800);
+        imecancelled_ = "";
+        bitField0_ = (bitField0_ & ~0x00001000);
+        modified_ = 0;
+        bitField0_ = (bitField0_ & ~0x00002000);
+        pid_ = 0;
+        bitField0_ = (bitField0_ & ~0x00004000);
         return this;
       }
       
@@ -714,21 +854,37 @@ public final class Patron {
         if (((from_bitField0_ & 0x00000040) == 0x00000040)) {
           to_bitField0_ |= 0x00000040;
         }
-        result.notes_ = notes_;
+        result.car_ = car_;
         if (((from_bitField0_ & 0x00000080) == 0x00000080)) {
           to_bitField0_ |= 0x00000080;
         }
-        result.timetaken_ = timetaken_;
+        result.notes_ = notes_;
         if (((from_bitField0_ & 0x00000100) == 0x00000100)) {
           to_bitField0_ |= 0x00000100;
         }
-        result.timeassigned_ = timeassigned_;
+        result.ridecreated_ = ridecreated_;
         if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
           to_bitField0_ |= 0x00000200;
         }
-        result.timedone_ = timedone_;
+        result.rideassigned_ = rideassigned_;
         if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
           to_bitField0_ |= 0x00000400;
+        }
+        result.timepickedup_ = timepickedup_;
+        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
+          to_bitField0_ |= 0x00000800;
+        }
+        result.timecomplete_ = timecomplete_;
+        if (((from_bitField0_ & 0x00001000) == 0x00001000)) {
+          to_bitField0_ |= 0x00001000;
+        }
+        result.imecancelled_ = imecancelled_;
+        if (((from_bitField0_ & 0x00002000) == 0x00002000)) {
+          to_bitField0_ |= 0x00002000;
+        }
+        result.modified_ = modified_;
+        if (((from_bitField0_ & 0x00004000) == 0x00004000)) {
+          to_bitField0_ |= 0x00004000;
         }
         result.pid_ = pid_;
         result.bitField0_ = to_bitField0_;
@@ -765,17 +921,29 @@ public final class Patron {
         if (other.hasStatus()) {
           setStatus(other.getStatus());
         }
+        if (other.hasCar()) {
+          setCar(other.getCar());
+        }
         if (other.hasNotes()) {
           setNotes(other.getNotes());
         }
-        if (other.hasTimetaken()) {
-          setTimetaken(other.getTimetaken());
+        if (other.hasRidecreated()) {
+          setRidecreated(other.getRidecreated());
         }
-        if (other.hasTimeassigned()) {
-          setTimeassigned(other.getTimeassigned());
+        if (other.hasRideassigned()) {
+          setRideassigned(other.getRideassigned());
         }
-        if (other.hasTimedone()) {
-          setTimedone(other.getTimedone());
+        if (other.hasTimepickedup()) {
+          setTimepickedup(other.getTimepickedup());
+        }
+        if (other.hasTimecomplete()) {
+          setTimecomplete(other.getTimecomplete());
+        }
+        if (other.hasImecancelled()) {
+          setImecancelled(other.getImecancelled());
+        }
+        if (other.hasModified()) {
+          setModified(other.getModified());
         }
         if (other.hasPid()) {
           setPid(other.getPid());
@@ -841,28 +1009,48 @@ public final class Patron {
               status_ = input.readBytes();
               break;
             }
-            case 58: {
+            case 56: {
               bitField0_ |= 0x00000040;
-              notes_ = input.readBytes();
+              car_ = input.readInt32();
               break;
             }
             case 66: {
               bitField0_ |= 0x00000080;
-              timetaken_ = input.readBytes();
+              notes_ = input.readBytes();
               break;
             }
             case 74: {
               bitField0_ |= 0x00000100;
-              timeassigned_ = input.readBytes();
+              ridecreated_ = input.readBytes();
               break;
             }
             case 82: {
               bitField0_ |= 0x00000200;
-              timedone_ = input.readBytes();
+              rideassigned_ = input.readBytes();
               break;
             }
-            case 88: {
+            case 90: {
               bitField0_ |= 0x00000400;
+              timepickedup_ = input.readBytes();
+              break;
+            }
+            case 98: {
+              bitField0_ |= 0x00000800;
+              timecomplete_ = input.readBytes();
+              break;
+            }
+            case 106: {
+              bitField0_ |= 0x00001000;
+              imecancelled_ = input.readBytes();
+              break;
+            }
+            case 112: {
+              bitField0_ |= 0x00002000;
+              modified_ = input.readInt32();
+              break;
+            }
+            case 120: {
+              bitField0_ |= 0x00004000;
               pid_ = input.readInt32();
               break;
             }
@@ -1073,10 +1261,31 @@ public final class Patron {
         onChanged();
       }
       
-      // optional string notes = 7;
+      // optional int32 car = 7;
+      private int car_ ;
+      public boolean hasCar() {
+        return ((bitField0_ & 0x00000040) == 0x00000040);
+      }
+      public int getCar() {
+        return car_;
+      }
+      public Builder setCar(int value) {
+        bitField0_ |= 0x00000040;
+        car_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearCar() {
+        bitField0_ = (bitField0_ & ~0x00000040);
+        car_ = 0;
+        onChanged();
+        return this;
+      }
+      
+      // optional string notes = 8;
       private java.lang.Object notes_ = "";
       public boolean hasNotes() {
-        return ((bitField0_ & 0x00000040) == 0x00000040);
+        return ((bitField0_ & 0x00000080) == 0x00000080);
       }
       public String getNotes() {
         java.lang.Object ref = notes_;
@@ -1092,147 +1301,240 @@ public final class Patron {
         if (value == null) {
     throw new NullPointerException();
   }
-  bitField0_ |= 0x00000040;
+  bitField0_ |= 0x00000080;
         notes_ = value;
         onChanged();
         return this;
       }
       public Builder clearNotes() {
-        bitField0_ = (bitField0_ & ~0x00000040);
+        bitField0_ = (bitField0_ & ~0x00000080);
         notes_ = getDefaultInstance().getNotes();
         onChanged();
         return this;
       }
       void setNotes(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000040;
+        bitField0_ |= 0x00000080;
         notes_ = value;
         onChanged();
       }
       
-      // optional string timetaken = 8;
-      private java.lang.Object timetaken_ = "";
-      public boolean hasTimetaken() {
-        return ((bitField0_ & 0x00000080) == 0x00000080);
-      }
-      public String getTimetaken() {
-        java.lang.Object ref = timetaken_;
-        if (!(ref instanceof String)) {
-          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          timetaken_ = s;
-          return s;
-        } else {
-          return (String) ref;
-        }
-      }
-      public Builder setTimetaken(String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000080;
-        timetaken_ = value;
-        onChanged();
-        return this;
-      }
-      public Builder clearTimetaken() {
-        bitField0_ = (bitField0_ & ~0x00000080);
-        timetaken_ = getDefaultInstance().getTimetaken();
-        onChanged();
-        return this;
-      }
-      void setTimetaken(com.google.protobuf.ByteString value) {
-        bitField0_ |= 0x00000080;
-        timetaken_ = value;
-        onChanged();
-      }
-      
-      // optional string timeassigned = 9;
-      private java.lang.Object timeassigned_ = "";
-      public boolean hasTimeassigned() {
+      // optional string ridecreated = 9;
+      private java.lang.Object ridecreated_ = "";
+      public boolean hasRidecreated() {
         return ((bitField0_ & 0x00000100) == 0x00000100);
       }
-      public String getTimeassigned() {
-        java.lang.Object ref = timeassigned_;
+      public String getRidecreated() {
+        java.lang.Object ref = ridecreated_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          timeassigned_ = s;
+          ridecreated_ = s;
           return s;
         } else {
           return (String) ref;
         }
       }
-      public Builder setTimeassigned(String value) {
+      public Builder setRidecreated(String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000100;
-        timeassigned_ = value;
+        ridecreated_ = value;
         onChanged();
         return this;
       }
-      public Builder clearTimeassigned() {
+      public Builder clearRidecreated() {
         bitField0_ = (bitField0_ & ~0x00000100);
-        timeassigned_ = getDefaultInstance().getTimeassigned();
+        ridecreated_ = getDefaultInstance().getRidecreated();
         onChanged();
         return this;
       }
-      void setTimeassigned(com.google.protobuf.ByteString value) {
+      void setRidecreated(com.google.protobuf.ByteString value) {
         bitField0_ |= 0x00000100;
-        timeassigned_ = value;
+        ridecreated_ = value;
         onChanged();
       }
       
-      // optional string timedone = 10;
-      private java.lang.Object timedone_ = "";
-      public boolean hasTimedone() {
+      // optional string rideassigned = 10;
+      private java.lang.Object rideassigned_ = "";
+      public boolean hasRideassigned() {
         return ((bitField0_ & 0x00000200) == 0x00000200);
       }
-      public String getTimedone() {
-        java.lang.Object ref = timedone_;
+      public String getRideassigned() {
+        java.lang.Object ref = rideassigned_;
         if (!(ref instanceof String)) {
           String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
-          timedone_ = s;
+          rideassigned_ = s;
           return s;
         } else {
           return (String) ref;
         }
       }
-      public Builder setTimedone(String value) {
+      public Builder setRideassigned(String value) {
         if (value == null) {
     throw new NullPointerException();
   }
   bitField0_ |= 0x00000200;
-        timedone_ = value;
+        rideassigned_ = value;
         onChanged();
         return this;
       }
-      public Builder clearTimedone() {
+      public Builder clearRideassigned() {
         bitField0_ = (bitField0_ & ~0x00000200);
-        timedone_ = getDefaultInstance().getTimedone();
+        rideassigned_ = getDefaultInstance().getRideassigned();
         onChanged();
         return this;
       }
-      void setTimedone(com.google.protobuf.ByteString value) {
+      void setRideassigned(com.google.protobuf.ByteString value) {
         bitField0_ |= 0x00000200;
-        timedone_ = value;
+        rideassigned_ = value;
         onChanged();
       }
       
-      // optional int32 pid = 11;
+      // optional string timepickedup = 11;
+      private java.lang.Object timepickedup_ = "";
+      public boolean hasTimepickedup() {
+        return ((bitField0_ & 0x00000400) == 0x00000400);
+      }
+      public String getTimepickedup() {
+        java.lang.Object ref = timepickedup_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          timepickedup_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setTimepickedup(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000400;
+        timepickedup_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearTimepickedup() {
+        bitField0_ = (bitField0_ & ~0x00000400);
+        timepickedup_ = getDefaultInstance().getTimepickedup();
+        onChanged();
+        return this;
+      }
+      void setTimepickedup(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000400;
+        timepickedup_ = value;
+        onChanged();
+      }
+      
+      // optional string timecomplete = 12;
+      private java.lang.Object timecomplete_ = "";
+      public boolean hasTimecomplete() {
+        return ((bitField0_ & 0x00000800) == 0x00000800);
+      }
+      public String getTimecomplete() {
+        java.lang.Object ref = timecomplete_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          timecomplete_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setTimecomplete(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00000800;
+        timecomplete_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearTimecomplete() {
+        bitField0_ = (bitField0_ & ~0x00000800);
+        timecomplete_ = getDefaultInstance().getTimecomplete();
+        onChanged();
+        return this;
+      }
+      void setTimecomplete(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00000800;
+        timecomplete_ = value;
+        onChanged();
+      }
+      
+      // optional string imecancelled = 13;
+      private java.lang.Object imecancelled_ = "";
+      public boolean hasImecancelled() {
+        return ((bitField0_ & 0x00001000) == 0x00001000);
+      }
+      public String getImecancelled() {
+        java.lang.Object ref = imecancelled_;
+        if (!(ref instanceof String)) {
+          String s = ((com.google.protobuf.ByteString) ref).toStringUtf8();
+          imecancelled_ = s;
+          return s;
+        } else {
+          return (String) ref;
+        }
+      }
+      public Builder setImecancelled(String value) {
+        if (value == null) {
+    throw new NullPointerException();
+  }
+  bitField0_ |= 0x00001000;
+        imecancelled_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearImecancelled() {
+        bitField0_ = (bitField0_ & ~0x00001000);
+        imecancelled_ = getDefaultInstance().getImecancelled();
+        onChanged();
+        return this;
+      }
+      void setImecancelled(com.google.protobuf.ByteString value) {
+        bitField0_ |= 0x00001000;
+        imecancelled_ = value;
+        onChanged();
+      }
+      
+      // optional int32 modified = 14;
+      private int modified_ ;
+      public boolean hasModified() {
+        return ((bitField0_ & 0x00002000) == 0x00002000);
+      }
+      public int getModified() {
+        return modified_;
+      }
+      public Builder setModified(int value) {
+        bitField0_ |= 0x00002000;
+        modified_ = value;
+        onChanged();
+        return this;
+      }
+      public Builder clearModified() {
+        bitField0_ = (bitField0_ & ~0x00002000);
+        modified_ = 0;
+        onChanged();
+        return this;
+      }
+      
+      // optional int32 pid = 15;
       private int pid_ ;
       public boolean hasPid() {
-        return ((bitField0_ & 0x00000400) == 0x00000400);
+        return ((bitField0_ & 0x00004000) == 0x00004000);
       }
       public int getPid() {
         return pid_;
       }
       public Builder setPid(int value) {
-        bitField0_ |= 0x00000400;
+        bitField0_ |= 0x00004000;
         pid_ = value;
         onChanged();
         return this;
       }
       public Builder clearPid() {
-        bitField0_ = (bitField0_ & ~0x00000400);
+        bitField0_ = (bitField0_ & ~0x00004000);
         pid_ = 0;
         onChanged();
         return this;
@@ -1509,7 +1811,7 @@ public final class Patron {
       
       public edu.uconn.guarddogs.guardthebridge.Patron.PatronList buildPartial() {
         edu.uconn.guarddogs.guardthebridge.Patron.PatronList result = new edu.uconn.guarddogs.guardthebridge.Patron.PatronList(this);
-        //int from_bitField0_ = bitField0_;
+        int from_bitField0_ = bitField0_;
         if (patronBuilder_ == null) {
           if (((bitField0_ & 0x00000001) == 0x00000001)) {
             patron_ = java.util.Collections.unmodifiableList(patron_);
@@ -1819,14 +2121,16 @@ public final class Patron {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\014patron.proto\"\305\001\n\nPatronInfo\022\014\n\004name\030\001 " +
+      "\n\014patron.proto\"\226\002\n\nPatronInfo\022\014\n\004name\030\001 " +
       "\001(\t\022\022\n\npassangers\030\002 \001(\r\022\016\n\006pickup\030\003 \001(\t\022" +
       "\017\n\007dropoff\030\004 \001(\t\022\r\n\005phone\030\005 \001(\t\022\016\n\006statu" +
-      "s\030\006 \001(\t\022\r\n\005notes\030\007 \001(\t\022\021\n\ttimetaken\030\010 \001(" +
-      "\t\022\024\n\014timeassigned\030\t \001(\t\022\020\n\010timedone\030\n \001(" +
-      "\t\022\013\n\003pid\030\013 \001(\005\")\n\nPatronList\022\033\n\006patron\030\001" +
-      " \003(\0132\013.PatronInfoB$\n\"edu.uconn.guarddogs" +
-      ".guardthebridge"
+      "s\030\006 \001(\t\022\013\n\003car\030\007 \001(\005\022\r\n\005notes\030\010 \001(\t\022\023\n\013r" +
+      "idecreated\030\t \001(\t\022\024\n\014rideassigned\030\n \001(\t\022\024" +
+      "\n\014timepickedup\030\013 \001(\t\022\024\n\014timecomplete\030\014 \001" +
+      "(\t\022\024\n\014imecancelled\030\r \001(\t\022\020\n\010modified\030\016 \001" +
+      "(\005\022\013\n\003pid\030\017 \001(\005\")\n\nPatronList\022\033\n\006patron\030" +
+      "\001 \003(\0132\013.PatronInfoB$\n\"edu.uconn.guarddog" +
+      "s.guardthebridge"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -1838,7 +2142,7 @@ public final class Patron {
           internal_static_PatronInfo_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_PatronInfo_descriptor,
-              new java.lang.String[] { "Name", "Passangers", "Pickup", "Dropoff", "Phone", "Status", "Notes", "Timetaken", "Timeassigned", "Timedone", "Pid", },
+              new java.lang.String[] { "Name", "Passangers", "Pickup", "Dropoff", "Phone", "Status", "Car", "Notes", "Ridecreated", "Rideassigned", "Timepickedup", "Timecomplete", "Imecancelled", "Modified", "Pid", },
               edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo.class,
               edu.uconn.guarddogs.guardthebridge.Patron.PatronInfo.Builder.class);
           internal_static_PatronList_descriptor =

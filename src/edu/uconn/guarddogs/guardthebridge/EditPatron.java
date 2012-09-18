@@ -167,10 +167,10 @@ public class EditPatron extends Activity {
 				evName = (EditText)findViewById(R.id.editpatron_doVal);
 				evName.setText(" " + m_aPI.getDropoff());
 			}
-			if(m_aPI.getTimetaken() != null)
+			if(m_aPI.getRidecreated() != null)
 			{
 				evName = (EditText)findViewById(R.id.editpatron_ttVal);
-				evName.setText(" " + m_aPI.getTimetaken());
+				evName.setText(" " + m_aPI.getRidecreated());
 			}
 			if(m_aPI.getStatus() != null)
 			{
@@ -233,7 +233,7 @@ public class EditPatron extends Activity {
 					setDropoff(((EditText)
 							findViewById(R.id.editpatron_doVal)).
 								getText().toString()).
-					setTimeassigned(((EditText)
+					setRideassigned(((EditText)
 							findViewById(R.id.editpatron_ttVal)).
 								getText().toString()).
 					setStatus(((Spinner)
@@ -304,7 +304,7 @@ public class EditPatron extends Activity {
 					setDropoff(((EditText)
 							findViewById(R.id.editpatron_doVal)).
 								getText().toString()).
-					setTimeassigned(((EditText)
+					setRideassigned(((EditText)
 							findViewById(R.id.editpatron_ttVal)).
 								getText().toString()).
 					setStatus("done").
@@ -364,7 +364,7 @@ public class EditPatron extends Activity {
 					setDropoff(((EditText)
 							findViewById(R.id.editpatron_doVal)).
 								getText().toString()).
-					setTimeassigned(((EditText)
+					setRideassigned(((EditText)
 							findViewById(R.id.editpatron_ttVal)).
 								getText().toString()).
 					setStatus("cancelled").

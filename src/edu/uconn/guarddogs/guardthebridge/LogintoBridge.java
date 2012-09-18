@@ -594,12 +594,39 @@ public class LogintoBridge extends ListActivity {
 				}
 				aOS.close();
 				InputStream aIS = aSock.getInputStream();
-				byte[] vbuf = new byte[14];
-				aIS.read(vbuf);
+				byte[] vbuf = new byte[18];
+				int bytesread = aIS.read(vbuf);
 				// Server Side is already closed
 				if (aSock != null)
 					aSock.close();
 
+				String bytesmsg = "";
+				for(int i = 0; i<vbuf.length; ++i)
+					bytesmsg += vbuf[i] + " ";
+				Log.i(TAG, "Read " + bytesread + " bytes, " + bytesmsg);
+				
+				int nsize = (vbuf.length - 1);
+				for (; nsize>0; nsize--)
+				{
+					if(vbuf[nsize] == 0)
+					{
+						continue;
+					}
+					break;
+				}
+				
+				/* Copy the received buf into an array of the correct size
+				 * so parsing is successful
+				 */
+				/* TODO Check
+				 * Is this actually necessary? Given the varint
+				 * encoding this shouldn't be necessary
+				 */
+				byte[] vbuf2 = new byte[nsize + 1];
+				for(int i = 0; i != nsize + 1; i++)
+					vbuf2[i] = vbuf[i];
+				vbuf = vbuf2;
+				
 				try
 				{
 					aPBRes = Response.parseFrom(vbuf);
@@ -633,7 +660,9 @@ public class LogintoBridge extends ListActivity {
 			} catch (IOException e) {
 			}
 			publishProgress(INCREMENT_PROGRESS);
-			if (res != 0) {
+			if (res == null)
+				dealwitherrors(-10);
+			else if(res != 0) {
 				dealwitherrors(res);
 			} else 
 			{
@@ -644,6 +673,8 @@ public class LogintoBridge extends ListActivity {
 		}
 
 		protected void onProgressUpdate(Integer... progress) {
+			if(progress == null)
+				return;
 			int nTotalProgress = mProgBar.getProgress() + progress[0];
 			switch (nTotalProgress)
 			{
